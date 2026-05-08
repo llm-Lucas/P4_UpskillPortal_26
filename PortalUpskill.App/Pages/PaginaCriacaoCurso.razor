@@ -1,0 +1,252 @@
+﻿@page "/Curso/"
+@page "/Curso/{CursoId:int}"
+
+@inject RefreshService refreshService
+
+@inject ICursoData cursoData
+@inject IModuloData moduloData
+@inject ITurmaData turmaData
+@inject IFormadorData formadorData
+
+<h2>@(Curso.Nome ?? "Novo Curso")</h2>
+<div class="row">
+    <div class="col-6">
+        <CriarCurso InserirCurso="InserirCurso" Id="Curso.Id" DuracaoTotal="Curso.DuracaoHoras" />
+    </div>
+
+    <div class="cardstyle col-6">
+        
+        <div class="mt-4">
+            <h4>Módulos Associados</h4>
+            @if (Curso.Modulos.Count == 0)
+            {
+                <p>Não existem Módulos associados a este curso.</p>
+                <p>Procure um módulo abaixo e clique em "Adicionar".</p>
+            }
+            else
+            {
+                <span><i>Clique e arraste para mudar a ordem dos módulos.</i></span>
+                <Dropzone @ref="dropzone" Items="Curso.Modulos.Keys.ToList<Modulo>()" InstantReplace="true" Context="modulo" TItem="Modulo" OnItemDrop="@(() => ActualizarOrdemModulos())">
+                    <div class="row pb-2 border-bottom align-items-center">
+                        <div class="col-1">
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => RemoveModulo(modulo))" Icon="remove" />
+                        </div>
+                        <div class="col-6">
+                            @modulo.Nome
+                        </div>
+                        <div class="col-2">
+                            <RadzenNumeric ShowUpDown="false" Format="0.00" TValue="double" @bind-Value="Curso.Modulos[modulo]" Change="@(() => {Curso.DuracaoHoras = Curso.Modulos.Values.Sum(); })" Name="@($"mod{modulo.Id}-hora")" />
+                        </div>
+                    </div>
+                </Dropzone>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="my-4">
+    <RadzenTabs style="height: 880px">
+        <Tabs>
+            <RadzenTabsItem Text="Módulos">
+                <ListarModulos OutgoingModulo=@ReceiveModulo Mode="Add" IsViewedAsChild="true" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Novo Módulo">
+                <CriarModulo IsViewedAsChild="true" />
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
+</div>
+
+
+
+@code{
+
+    Dropzone<Modulo> dropzone;
+
+    [Parameter]
+    public int CursoId { get; set; }
+
+    Curso Curso = new Curso();
+    List<Turma> Turmas = new List<Turma>();
+    List<Formador> Coordenadores = new List<Formador>();
+
+    Curso CursoEstadoInicial = new Curso();
+    List<Turma> TurmasEstadoInicial = new List<Turma>();
+    List<Formador> CoordenadoresEstadoInicial = new List<Formador>();
+
+    /// <summary>
+    /// Carrega o Curso com os módulos, turmas e coordenador de curso da BD
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        if (CursoId != 0)
+        {
+            Curso = cursoData.GetById(CursoId);
+
+            //guardar a lista original dos módulos caso haja uma alteração na listagem
+            CursoEstadoInicial.Modulos = new Dictionary<Modulo, double>();
+            foreach (var keyValue in Curso.Modulos)
+            {
+                CursoEstadoInicial.Modulos.Add(keyValue.Key, keyValue.Value);
+            }
+
+            //guardar a lista original das turmas caso haja uma alteração na listagem
+            Turmas = turmaData.GetByCurso(CursoId);
+            foreach (var turma in Turmas)
+            {
+                TurmasEstadoInicial.Add(turma);
+            }
+
+            Coordenadores = formadorData.GetCoordByCurso(CursoId);
+            foreach (var coordenador in Coordenadores)
+            {
+                CoordenadoresEstadoInicial.Add(coordenador);
+            }
+        }
+    }
+
+    ///Trata da lógica necessária para adicionar outras entidades eg: adicionar modulos em curso
+    private void ReceiveModulo(int ModuloId)
+    {
+        if (Curso.Modulos.Keys.FirstOrDefault(m => m.Id == ModuloId) != null)
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Este Módulo já está associado ao Curso", Duration = 2000 });
+        }
+        else
+        {
+            var modulo = moduloData.GetById(ModuloId);
+            Curso.Modulos.Add(modulo, modulo.Horas);
+            Curso.DuracaoHoras += Curso.Modulos[modulo];
+        }
+    }
+
+    /// <summary>
+    /// Remove o módulo passado como argumento do Curso que a página está a editar
+    /// </summary>
+    /// <param name="modulo">Modulo a remover</param>
+    private void RemoveModulo(Modulo modulo)
+    {
+        Curso.DuracaoHoras -= Curso.Modulos[modulo];
+        Curso.Modulos.Remove(modulo);
+    }
+
+    private void ReceiveTurma(int TurmaId)
+    {
+
+        if (Turmas.FirstOrDefault(t => t.Id == TurmaId) != null)
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Esta Turma já está associado ao Curso", Duration = 2000 });
+        }
+        else
+        {
+            Turmas.Add(turmaData.GetById(TurmaId));
+        }
+    }
+
+    private void RemoveTurma(Turma turma)
+    {
+        Turmas.Remove(turma);
+    }
+
+    private void ReceiveCoordenador(int FormadorId)
+    {
+        if (Coordenadores.FirstOrDefault(c => c.Id == FormadorId) != null)
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Este Coordenador já está associado ao Curso", Duration = 2000 });
+        }
+        else
+        {
+            Coordenadores.Add(formadorData.GetById(FormadorId));
+        }
+    }
+
+    private void RemoveCoordenador(Formador coordenador)
+    {
+        Coordenadores.Remove(coordenador);
+    }
+
+    void InserirCurso(Curso curso)
+    {
+        curso.Modulos = Curso.Modulos;
+        curso.Coordenadores = Coordenadores;
+
+        //lógica de criação
+        if (Curso.Id == 0)
+        {
+            int cursoId = cursoData.CreateReturnId(curso);
+
+            foreach (var turma in Turmas)
+            {
+                turma.CursoId = cursoId;
+                turmaData.Update(turma);
+            }
+
+            cursoData.InsertCoordenadores(cursoId, Coordenadores);
+
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = $"Curso criado com sucesso.", Duration = 4000 });
+            navManager.NavigateTo("Cursos");
+        }
+
+        //lógica update
+        else
+        {
+            cursoData.Update(curso);
+
+            var modulosQueEntraram = Curso.Modulos.Keys.Except(CursoEstadoInicial.Modulos.Keys).ToDictionary(m => m, m => Curso.Modulos[m]);
+            var modulosQueSairam = CursoEstadoInicial.Modulos.Keys.Except(Curso.Modulos.Keys).ToDictionary(m => m, m => CursoEstadoInicial.Modulos[m]);
+
+            if (modulosQueSairam.Count() != 0)
+                cursoData.RemoveModulos(curso, modulosQueSairam);
+
+            if (modulosQueEntraram.Count() != 0)
+                cursoData.InsertModulos(curso, modulosQueEntraram);
+
+            cursoData.UpdateOrdemModulos(curso);
+
+            var modulosComHoraAlterada = new Dictionary<Modulo, double>();
+
+            foreach (var mh in Curso.Modulos)
+            {
+                if (CursoEstadoInicial.Modulos.ContainsKey(mh.Key) && mh.Value != CursoEstadoInicial.Modulos[mh.Key])
+                {
+                    modulosComHoraAlterada.Add(mh.Key, Curso.Modulos[mh.Key]);
+                }
+            }
+
+            if (modulosComHoraAlterada.Count != 0)
+            {
+                cursoData.UpdateDuracaoModulos(curso, modulosComHoraAlterada);
+            }
+
+            var turmasQueEntraram = Turmas.Except(TurmasEstadoInicial).ToList();
+            var turmasQueSairam = TurmasEstadoInicial.Except(Turmas).ToList();
+
+            if (turmasQueEntraram.Count != 0)
+                turmaData.AddToCurso(curso, turmasQueEntraram);
+            if (turmasQueSairam.Count != 0)
+                turmaData.RemoveFromCurso(curso, turmasQueSairam);
+
+            var coordenadoresQueEntraram = Coordenadores.Except(CoordenadoresEstadoInicial).ToList();
+            var coordenadoresQueSairam = CoordenadoresEstadoInicial.Except(Coordenadores).ToList();
+
+            if (coordenadoresQueEntraram.Count != 0)
+                cursoData.InsertCoordenadores(curso.Id, coordenadoresQueEntraram);
+            if (coordenadoresQueSairam.Count != 0)
+                cursoData.RemoveCoordenadores(curso.Id, coordenadoresQueSairam);
+
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = $"Curso actualizado com sucesso.", Duration = 4000 });
+            navManager.NavigateTo("Cursos/");
+        }
+    }
+
+    void ActualizarOrdemModulos()
+    {
+        var newDict = new Dictionary<Modulo, double>();
+
+        foreach (var item in dropzone.Items)
+        {
+            newDict.Add(item, Curso.Modulos[item]);
+        }
+        Curso.Modulos = newDict;
+    }
+}

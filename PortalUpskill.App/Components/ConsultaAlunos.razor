@@ -1,0 +1,384 @@
+﻿@page "/ConsultaAlunos/{Id:int}"
+
+@inject IPaisesData paisesData
+@inject ICNAEFData CNAEFData
+@inject IHabilitacoesData habilitacoesData
+@inject IPessoaData pessoaData
+@inject IListaEstadosFormandoData listaEstadosData
+@inject IFormadorData FormadorData
+@inject IFormandoData FormandoData
+@inject ITurmaData TurmaData
+@inject ICursoData CursoData
+@inject IModuloData ModuloData
+@inject FileManagerService fileManager
+
+<div class="cardstyle">
+
+	<!--INÍCIO #007-->
+	<!--O Title agora tem a turma que foi carregada, a seguir a "Lista de Formandos"-->
+	<h2>@Title da turma @turmaAtual</h2>
+	<!--FIM-->
+	<div>
+		<RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
+		<!-- INICIO #008 -->
+		<!-- O RadzenButton nao sei como meter a funcionar -->
+		<!-- <RadzenButton Text="Enviar Email" Icon="email" Disabled="@(!selectedFormandos.Any())" Click="@EnviarEmailParaSelecionados" /> -->
+		<span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@BuildMailToLink()" disabled="@(selectedFormandos.Count == 0)">Enviar Email</a>
+		<!--FIM-->
+	</div>
+
+	<!--INICIO #008-->
+	<!--Botao para enviar mail aos Formandos selecionados-->
+
+	<!--FIM-->
+
+	<RadzenGrid Data="@filteredFormandos"
+	TItem="Formando"
+	AllowSorting="true"
+	AllowFiltering="true"
+	FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+	AllowPaging="true"
+	PageSize="10">
+		<Columns>
+			<!--INICIO #008-->
+			<!--Adicionei checkbox para selecionar o mail da row especifica-->
+			<RadzenGridColumn TItem="Formando" Title="Selecionar" Sortable="false" Filterable="false" Width="50px">
+				<HeaderTemplate>
+					<RadzenCheckBox TValue="bool"
+					Value="@selectAll"
+					ValueChanged="@((bool value) => ToggleSelectAll(value))"
+					Change="@((args) => {})" /> <!-- required to trigger change -->
+				</HeaderTemplate>
+				<Template Context="formando">
+					<RadzenCheckBox TValue="bool"
+					Value="@IsSelected(formando.Id)"
+					ValueChanged="@((bool checkedValue) => ToggleSelection(formando.Id, checkedValue))"
+					Change="@((args) => {})" />
+				</Template>
+			</RadzenGridColumn>
+			<!--FIM-->
+			<RadzenGridColumn TItem="Formando" Property="Nome" Title="Nome" />
+			<RadzenGridColumn TItem="Formando" Property="Email" Title="Email" />
+			<RadzenGridColumn TItem="Formando" Property="ContactoTelemovel" Title="Telemovel" />
+			<RadzenGridColumn TItem="Formando" Title="Estado" Sortable="false">
+				<FilterTemplate>
+					<RadzenDropDown @bind-Value="@filtroEstado" TextProperty="Nome" ValueProperty="Id" Style="width:100%"
+					Change=@FiltrarPorEstado
+					Data="@(estados.Select(t => t.Nome))" />
+				</FilterTemplate>
+				<Template Context="Formando">
+					<span>@Formando.Estado.Nome</span>
+				</Template>
+			</RadzenGridColumn>
+			<RadzenGridColumn TItem="Formando" Sortable="false" Filterable="false">
+				<Template Context="Formando">
+					<RadzenButton Size="ButtonSize.Medium" Title="Ver Detalhes" Icon="description" Click=@(args => dialogService.Open<DetalhesFormando>("Detalhes do Formando",
+                                                                                    new Dictionary<string, object>() { { "FormandoId", Formando.Id } },
+                                                                                    new DialogOptions(){ Width = "1200px", Height = "450px" })) />
+				</Template>
+			</RadzenGridColumn>
+		</Columns>
+	</RadzenGrid>
+</div>
+
+<!-- INÍCIO #008 -->
+<!-- Botão de Voltar -->
+<div class="row justify-content-center">
+	<div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+		<!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
+		<AuthorizeView Roles="Administrador, Secretariado">
+			<Authorized>
+				<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Calendar/{aulaVM.TurmaId}"))" />
+			</Authorized>
+		</AuthorizeView>
+		<AuthorizeView Roles="Formador">
+			<Authorized>
+				<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"TurmasPorFormador"))" />
+			</Authorized>
+		</AuthorizeView>
+	</div>
+</div>
+<!-- FIM -->
+
+@code {
+
+	// INÍCIO #008
+	// Instancia a ViewModel para a Aula
+	// É necessário para o botão de Voltar
+	AulaViewModel aulaVM = new AulaViewModel();
+
+	HashSet<int> selectedFormandos = new();
+	bool selectAll = false;
+
+	bool IsSelected(int id) => selectedFormandos.Contains(id);
+
+	void ToggleSelection(int id, bool isSelected)
+	{
+		if (isSelected) {
+			selectedFormandos.Add(id);
+		}
+		else
+		{
+			selectedFormandos.Remove(id);
+			selectAll = false; // Uncheck Select All if one is deselected
+		}
+	}
+
+	void ToggleSelectAll(bool isSelected)
+	{
+		selectAll = isSelected;
+
+		if (isSelected)
+		{
+			selectedFormandos = filteredFormandos.Select(f => f.Id).ToHashSet();
+		}
+		else
+		{
+			selectedFormandos.Clear();
+		}
+	}
+
+	string BuildMailToLink()
+	{
+		if (!selectedFormandos.Any()) return "#";
+
+		var selectedEmails = filteredFormandos
+			.Where(f => selectedFormandos.Contains(f.Id))
+			.Select(f => f.Email)
+			.Where(email => !string.IsNullOrWhiteSpace(email))
+			.Distinct();
+
+		var mailto = "mailto:" + string.Join(",", selectedEmails);
+		return mailto;
+	}
+
+	bool value;
+	// FIM
+
+	int? role;
+	int count;
+	List<Paises> paises;
+	List<CNAEF> CNAEFs;
+	List<Habilitacoes> habilitacoes;
+	List<Turma> turmas;
+	List<Formando> filteredFormandos;
+	List<Formando> formandos;
+	List<ListaEstadosFormando> estados = new List<ListaEstadosFormando>();
+	ListaEstadosFormando todos = new ListaEstadosFormando() { Nome = "Todos" };
+
+	// INÍCIO #008
+	// Preciso de uma variável para saber a turma que está a ser analizada
+	string turmaAtual = "";
+	// FIM
+
+	RadzenGrid<Formando> grid;
+
+	[Parameter]
+	public int Id { get; set; } //id Turma
+
+	[Parameter]
+	public string Title { get; set; } = "Lista Formandos";
+
+	[Parameter]
+	public Func<Formando, bool> Filter { get; set; }
+
+	//Ir buscar o nivel de acesso do User
+	Pessoa user;
+	[CascadingParameter]
+	private Task<AuthenticationState> authStateTask { get; set; }
+	string email;
+	string mail;
+
+	protected override async Task OnInitializedAsync()
+	{
+		formandos = FormandoData.GetAllByTurma(Id); //lista formandos por id de turma
+		
+		// INÍCIO #008
+		// Isto é para ir buscar a turma que está a ser analisada
+		turmaAtual = formandos.First().Turma.Nome;
+		// FIM
+
+		estados = listaEstadosData.GetAll();
+		estados.Insert(0, todos);
+
+		if (Filter != null)
+		{
+			formandos = formandos.Where(Filter).OrderBy(f => f.Nome).ToList();
+		}
+
+		filteredFormandos = formandos.OrderBy(f => f.Nome).ToList();
+
+		string userEmail = (await authStateTask).User.Identity.Name;
+		user = pessoaData.GetByEmail(userEmail);
+		// user.PerfilId
+		// 1 = Administrador
+		// 2 = Coordenador
+		// 3 = Formador
+		// 4 = Formando
+		// 5 = FormadorCoordenador
+		role = user.Perfil.Id;
+	}
+
+	/// <summary>
+	/// Filtro da coluna Estado que está activo
+	/// </summary>
+	string filtroEstado = "Todos";
+
+	/// <summary>
+	/// Corre quando o filtro da coluna Estado é alterado
+	/// </summary>
+	void FiltrarPorEstado()
+	{
+		filteredFormandos = formandos.Where(f => filtroEstado != "Todos" ? f.Estado.Nome == filtroEstado : true).OrderBy(f => f.Nome).ToList();
+	}
+
+	/// <summary>
+	/// Usando ClosedXML https://github.com/closedxml/closedxml/wiki
+	/// 1: Criar um novo workbook, com uma worksheet
+	/// 2: Preencher e formatar as células com o conteúdo
+	/// 3: Exportar usando filemanager
+	/// </summary>
+	async void Exportar(string extension)
+	{
+		IXLWorkbook workbook = new XLWorkbook();
+		IXLWorksheet worksheet = workbook.Worksheets.Add("formandos");
+
+
+		#region Template Topo
+		var currentRow = 1;
+		var currentColumn = 1;
+
+		//Imagens Topo
+		worksheet.AddPicture("wwwroot/img/pauta/iefp.png")
+			  .MoveTo(worksheet.Cell(currentRow, currentColumn));
+		currentColumn += 3;
+		worksheet.AddPicture("wwwroot/img/pauta/iscte.png")
+			  .MoveTo(worksheet.Cell(currentRow, currentColumn))
+			  .Scale(.07);
+		currentColumn += 3;
+		worksheet.AddPicture("wwwroot/img/pauta/upskill.png")
+		  .MoveTo(worksheet.Cell(currentRow, currentColumn));
+
+		currentRow += 5;
+		currentColumn -= 6;
+		#endregion
+
+
+		#region Cabeçalho
+		var rngCabeçalhoFirstColumn = currentColumn;
+
+		worksheet.Cell(currentRow, currentColumn++).Value = "Nome do Formando";
+		worksheet.Cell(currentRow, currentColumn++).Value = "Turma";
+		worksheet.Cell(currentRow, currentColumn++).Value = "Curso";
+		worksheet.Cell(currentRow, currentColumn++).Value = "Email";
+		worksheet.Cell(currentRow, currentColumn++).Value = "Telemóvel";
+
+		//Dados apenas acessiveis a Administradores
+		if (role == 1)
+		{
+			worksheet.Cell(currentRow, currentColumn++).Value = "Estado";
+			worksheet.Cell(currentRow, currentColumn++).Value = "Data de nascimento";
+			worksheet.Cell(currentRow, currentColumn++).Value = "Género";
+			worksheet.Cell(currentRow, currentColumn++).Value = "NIF";
+			worksheet.Cell(currentRow, currentColumn++).Value = "CC";
+			worksheet.Cell(currentRow, currentColumn++).Value = "Morada";
+			worksheet.Cell(currentRow, currentColumn++).Value = "Habilitações Literárias";
+			worksheet.Cell(currentRow, currentColumn++).Value = "CNAEF";
+			worksheet.Cell(currentRow, currentColumn++).Value = "Nacionalidade";
+			worksheet.Cell(currentRow, currentColumn++).Value = "IBAN";
+			worksheet.Cell(currentRow, currentColumn++).Value = "Bolsa";
+		}
+
+
+		var rngCabeçalho = worksheet.Range(currentRow, rngCabeçalhoFirstColumn, currentRow, currentColumn - 1);
+		rngCabeçalho.Columns().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+		rngCabeçalho.Style.Font.FontName = "Century Gothic";
+		rngCabeçalho.Style.Font.FontSize = 15;
+		rngCabeçalho.Style.Font.Bold = true;
+		rngCabeçalho.Style.Fill.BackgroundColor = XLColor.FromArgb(204, 255, 255);
+
+		currentColumn = rngCabeçalhoFirstColumn;
+		#endregion
+
+
+		#region Corpo
+		List<Formando> exportFormandos = filteredFormandos;
+		var frm = exportFormandos.First();
+		var curso = CursoData.GetById((int)frm.Turma.CursoId);
+
+		var rngCorpo = worksheet.Range(1, 1, 1, 1);
+		var rngCorpoFirstRow = currentRow;
+		var rngCorpoFirstColumn = currentColumn;
+
+		foreach (var formando in exportFormandos)
+		{
+
+			currentRow++;
+
+			worksheet.Cell(currentRow, currentColumn++).Value = formando.Nome;
+			worksheet.Cell(currentRow, currentColumn++).Value = formando.Turma.Nome;
+			worksheet.Cell(currentRow, currentColumn++).Value = curso.Nome;
+
+			worksheet.Cell(currentRow, currentColumn++).Value = formando.Email;
+			worksheet.Cell(currentRow, currentColumn).Value = formando.ContactoTelemovel;
+
+			//Dados apenas acessiveis a Administradores
+			if (role == 1)
+			{
+				currentColumn++;
+				worksheet.Cell(currentRow, currentColumn++).Value = formando.Estado.Nome;
+				worksheet.Cell(currentRow, currentColumn++).Value = formando.DataNascimento;
+				worksheet.Cell(currentRow, currentColumn++).Value = formando.Sexo;
+				worksheet.Cell(currentRow, currentColumn++).Value = formando.NIF;
+				worksheet.Cell(currentRow, currentColumn++).Value = formando.CC;
+				worksheet.Cell(currentRow, currentColumn++).Value = formando.Morada;
+
+				if (formando.HabilitacoesLiterarias != 0)
+				{
+					var habilitacoesNome = from habilitacao in habilitacoes where habilitacao.Codigo == formando.HabilitacoesLiterarias select habilitacao;
+					worksheet.Cell(currentRow, currentColumn).Value = formando.HabilitacoesLiterarias + " - " + habilitacoesNome.First().HabilitacoesLiterarias;
+				}
+				currentColumn++;
+
+				if (formando.CodigoCNAEF != null)
+				{
+					var CNAEFNome = from CNAEF in CNAEFs where CNAEF.CodigoCNAEF == formando.CodigoCNAEF select CNAEF.CodigoCNAEF;
+					worksheet.Cell(currentRow, currentColumn).Value = string.Join(", ", CNAEFNome);
+				}
+				currentColumn++;
+
+				if (formando.Nacionalidade != null)
+				{
+					var nacionalidade = from pais in paises where pais.iso == formando.Nacionalidade select pais.nome;
+					worksheet.Cell(currentRow, currentColumn).Value = string.Join(", ", nacionalidade);
+				}
+				currentColumn++;
+
+				worksheet.Cell(currentRow, currentColumn++).Value = formando.IBAN;
+				worksheet.Cell(currentRow, currentColumn).Value = formando.Bolsa == true ? "Sim" : "Não";
+			}
+
+
+			rngCorpo = worksheet.Range(rngCorpoFirstRow, rngCorpoFirstColumn, currentRow, currentColumn);
+
+			currentColumn = rngCorpoFirstColumn;
+		}
+
+		rngCorpo.Columns().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+		rngCorpo.Cells().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+		worksheet.Columns().AdjustToContents();
+		#endregion
+
+
+		#region Template rodapé
+		currentRow += 3;
+		worksheet.AddPicture("wwwroot/img/pauta/gov.jpg")
+				  .MoveTo(worksheet.Cell(currentRow + 3, 4))
+				  .Scale(.74);
+		#endregion
+
+		var timestamp = Convert.ToString(DateTime.Now);
+
+		await fileManager.DownloadWorkbook(workbook, extension, timestamp + "_Formandos");
+	}
+}

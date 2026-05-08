@@ -1,0 +1,106 @@
+﻿@inject ITurmaData TurmaData
+@inject IModuloData ModuloData
+@inject IFormadorData FormadorData
+
+<h4>Formadores Associados</h4>
+
+@if (cursoId == 0)
+{
+    <p>Escolha um curso para associar Formadores à turma.</p>
+}
+else
+{
+    <p>Escolha no menu abaixo os Formadores que deseja associar à esta turma.</p>
+    <table class="table-borderless table-sm">
+        @foreach (var modulo in modulos)
+        {       
+            <tr>
+                <RadzenLabel Text="@modulo.Nome" />
+            </tr>
+            <tr>
+                @{
+                    var idFormador = modulo.Formadores.Select(i => i.Id).ToList();
+                    var nomeFormador = modulo.Formadores.ToList();
+                }
+                <td>
+                    <RadzenDropDown class="form-control" @bind-Value="ModuloFormador[modulo.Id].FormadorId" Data="@nomeFormador" TValue="int"
+                                    AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    ValueProperty="Id" TextProperty="Nome" AllowClear="true">
+                        <Template Context="Formador">
+                            <span>@Formador.Id - @Formador.Nome</span>
+                        </Template>
+                    </RadzenDropDown>
+                </td>
+                <td><RadzenNumeric TValue="double" @bind-Value="ModuloFormador[modulo.Id].Horas" /></td>
+            </tr>        
+        }
+    </table>
+}
+
+@code {
+
+    List<Modulo> modulos = new List<Modulo>();
+    List<Formador> formadores = new List<Formador>();
+
+    Dictionary<int,ModuloFormadorHora> ModuloFormador = new Dictionary<int,ModuloFormadorHora>();
+
+    int? ultimoCurso;
+
+    [Parameter]
+    public bool RequestModulosFormador { get; set; } = false;
+
+    [Parameter]
+    public int Id { get; set; }
+
+    int? _cursoId;
+    [Parameter]
+    public int? cursoId
+    {
+        get => _cursoId;
+        set
+        {
+            _cursoId = value;
+            CursoHasChanged();
+        }
+    }
+
+    [Parameter]
+    public EventCallback<Dictionary<int,ModuloFormadorHora>> SendDictionary { get; set; }
+
+    protected override Task OnParametersSetAsync()
+    {
+        if (RequestModulosFormador == true)
+        {
+            SendDictionary.InvokeAsync(ModuloFormador);
+            RequestModulosFormador = false;
+        }
+        return base.OnParametersSetAsync();
+    }
+
+    void CursoHasChanged()
+    {
+        if (_cursoId == 0 || ultimoCurso != _cursoId)
+        {
+            ultimoCurso = _cursoId;
+            ModuloFormador.Clear();
+            modulos = ModuloData.GetModulosByCurso(cursoId.Value);
+
+            foreach (var modulo in modulos)
+            {
+                ModuloFormador.Add(modulo.Id, new ModuloFormadorHora { FormadorId = 0, Horas = modulo.Horas }); //inicializar o dicionário
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            var turma = TurmaData.GetById(Id);
+            ModuloFormador.Clear();
+
+            ModuloFormador = ModuloData.GetModuloFormadorByTurma(turma);
+
+        }
+    }
+}

@@ -1,0 +1,206 @@
+﻿/*Custom styles*/
+.rz-panel-menu .rz-navigation-item .rz-navigation-item-wrapper{
+    background-color: transparent !important;
+}
+
+.rz-custom-panel-menu:hover {
+    background-color: #7d188c42 !important;
+}
+.sidebar {
+    height: auto !important;
+    min-height: 100vh !important;
+}
+
+
+/*Blazor Drag Drop*/
+﻿ /*add this to avoid flickering*/
+.plk-dd-inprogess > * {
+    pointer-events: none;
+}
+
+/*dropzone style style*/
+.plk-dd-dropzone {
+    min-height: 50px;
+}
+
+/*drag drop styles*/
+
+.plk-dd-spacing {
+    height: 10px;
+}
+
+.plk-dd-spacing-dragged-over {
+    padding: 25px;
+}
+
+.plk-dd-dragged-over {
+    background-color: lightgray;
+    opacity: 0.6;
+    animation: blinker 1s linear infinite;
+}
+
+    .plk-dd-dragged-over > div {
+        background-color: lightgray;
+        opacity: 0.6;
+        animation: blinker 1s linear infinite;
+    }
+
+.plk-dd-dragged-over-denied {
+    background-color: red;
+    opacity: 0.6;
+    animation: blinker 1s linear infinite;
+}
+
+.plk-dd-in-transit {
+    opacity: 0;
+}
+
+    .plk-dd-in-transit > div {
+        opacity: 0;
+    }
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}
+
+.blink_me {
+    animation: blinker 1s linear infinite;
+}
+
+/*for flex demo*/
+
+.plk-flex .plk-dd-spacing {
+    width: 20px;
+    height: auto;
+}
+
+.plk-flex .plk-dd-dragged-over {
+    background-color: lightgray;
+    opacity: 0.6;
+    animation: blinker 1s linear infinite;
+}
+
+    .plk-flex .plk-dd-dragged-over > div {
+        background-color: lightgray;
+        opacity: 0.9;
+        animation: blinker 1s linear infinite;
+    }
+
+.plk-flex .plk-dd-in-transit {
+    background-color: orangered;
+}
+
+    .plk-flex .plk-dd-in-transit > div {
+        background-color: orangered;
+    }
+
+.plk-dd-noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Old versions of Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+/*Estilos para o Syncfusion Scheduler*/
+.quick-info-header {
+    background-color: white;
+    padding: 8px 18px;
+}
+
+.quick-info-header-content {
+    justify-content: flex-end;
+    display: flex;
+    flex-direction: column;
+    padding: 5px 10px 5px;
+}
+
+.quick-info-title {
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: 0.48px;
+    height: 22px;
+}
+
+.duration-text {
+    font-size: 11px;
+    letter-spacing: 0.33px;
+    height: 14px;
+}
+/*ContentStyles*/
+.content-area {
+    padding: 10px;
+    width: 100%;
+}
+
+.event-content {
+    height: 90px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 15px;
+}
+
+.meeting-type-wrap, .meeting-subject-wrap, .notes-wrap {
+    font-size: 11px;
+    color: #666;
+    letter-spacing: 0.33px;
+    height: 24px;
+    padding: 5px;
+}
+
+.event-content div label {
+    display: inline-block;
+    min-width: 45px;
+    color: #666;
+}
+
+.event-content div span {
+    font-size: 11px;
+    color: #151515;
+    letter-spacing: 0.33px;
+    line-height: 14px;
+    padding-left: 8px;
+}
+
+.quick-info .e-popup-content {
+}
+/*FooterStyles*/
+.cell-footer.e-btn {
+    background-color: #ffffff;
+    border-color: #878787;
+    color: #878787;
+}
+
+.cell-footer {
+    padding-top: 10px;
+}
+
+.e-quick-popup-wrapper .e-cell-popup .e-popup-content {
+    padding: 0 14px;
+}
+
+/*cell sizing*/
+.schedule-cell-dimension.e-schedule .e-vertical-view .e-date-header-wrap table col,
+.schedule-cell-dimension.e-schedule .e-vertical-view .e-content-wrap table col {
+    width: 80px;
+}
+
+.schedule-cell-dimension.e-schedule .e-vertical-view .e-time-cells-wrap table td,
+.schedule-cell-dimension.e-schedule .e-vertical-view .e-work-cells {
+    height: 20px;
+    font-size: 10px;
+}
+
+.schedule-cell-dimension.e-schedule .e-month-view .e-work-cells,
+.schedule-cell-dimension.e-schedule .e-month-view .e-date-header-wrap table col {
+    width: 150px;
+}
+
+.schedule-cell-dimension.e-schedule .e-month-view .e-work-cells {
+    height: 100px;
+}

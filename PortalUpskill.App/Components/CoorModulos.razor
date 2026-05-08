@@ -1,0 +1,56 @@
+﻿@page "/Coor/Modulos/{TurmaId:int}"
+
+@inject IModuloData ModuloData
+@inject ITurmaData TurmaData
+@inject RefreshService refreshService
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage _sessionStorage
+
+<div class="cardstyle">
+    <h2>Modulos da turma @(turma.Nome)</h2>
+
+    <RadzenGrid Data="@modulos"
+                TItem="Modulo"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowPaging="true"
+                PageSize="10">
+        <Columns>
+            <RadzenGridColumn TItem="Modulo" Property="Nome" Title="Nome" />
+            <RadzenGridColumn TItem="Modulo" Property="Formador.Nome" Title="Formador" />
+            <RadzenGridColumn TItem="Modulo" Property="Horas" Title="Duração em Horas" Sortable="false" Filterable="false" />
+            <RadzenGridColumn Title="Opções" TItem="Modulo" Sortable="false" Filterable="false">
+                <Template Context="Modulo">
+                    <RadzenButton Title="Ver detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesModulo>($"Detalhes",
+                                                                                       new Dictionary<string, object>() { { "ModuloId", Modulo.Id } },
+                                                                                       new DialogOptions(){ Width = "80%", Height = "90%" })) />
+                </Template>
+            </RadzenGridColumn>
+        </Columns>
+    </RadzenGrid>
+</div>
+
+<!-- INÍCIO #008 -->
+<!-- Botão de Voltar -->
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Cursos"))" />
+    </div>
+</div>
+<!-- FIM -->
+
+@code {
+
+    List<Modulo> modulos;
+    Turma turma;
+
+    [Parameter]
+    public int TurmaId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        modulos = ModuloData.GetModulosComFormadorByTurma(TurmaId).OrderBy(m => m.Nome).ToList();
+        turma = TurmaData.GetById(TurmaId);
+    }
+}

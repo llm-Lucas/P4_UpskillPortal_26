@@ -1,0 +1,185 @@
+@page "/Index"
+
+<AuthorizeView Roles="Administrador, Secretariado">
+    <Authorized>
+        <div class="cardstyle text-center">
+            <div class="row">
+                <div class="col-md-4" text-center>
+                    <a href="Calendar" class="corbotao hvr-underline-from-left" role="button">
+                        <img src="img/dashboard/baseline_event_white_48dp.png">
+                        <!-- INÍCIO #004 -->
+                        <span class="text-center">CALENDÁRIO</span>
+                        <!-- FIM #004 -->
+                    </a>
+                </div>
+                <div class="col-md-4" text-center>
+                    <a a href="Avaliacao" class="corbotao hvr-underline-from-center" role="button">
+                        <img src="img/dashboard/outline_inventory_white_48dp.png">
+                        <span class="text-center">AVALIAÇÕES</span>
+                    </a>
+                </div>
+                <div class="col-md-4" text-center>
+                    <a href="Turmas" class="corbotao hvr-underline-from-right" role="button">
+                        <img src="img/dashboard/baseline_groups_white_48dp.png">
+                        <span class="text-center">TURMAS</span>
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4" text-center>
+                    <a href="Formandos" class="corbotao hvr-underline-from-left">
+                        <img src="img/dashboard/baseline_school_white_48dp.png">
+                        <span class="text-center">FORMANDOS</span>
+                    </a>
+                </div>
+                <div class="col-md-4" text-center>
+                    <a href="Formadores" class="corbotao hvr-underline-from-center" role="button">
+                        <img src="img/dashboard/baseline_assignment_ind_white_48dp.png">
+                        <span class="text-center">FORMADORES</span>
+                    </a>
+                </div>
+                @*Adicionar Coordenadores*@
+                <div class="col-md-4" text-center>
+                    <a href="Coordenadores" class="corbotao hvr-underline-from-right" role="button">
+                        <img src="img/dashboard/baseline_manage_accounts_white_48dp.png">
+                        <span class="text-center">COORDENADORES</span>
+                    </a>
+                </div>
+                
+            </div>
+
+            @*INICIO #008*@
+            <div class="row">
+            @*Adicionar Colaboradores*@
+            <div class="col-md-4" text-center>
+                <a href="Colaboradores" class="corbotao hvr-underline-from-left" role="button">
+                    <img src="img/dashboard/outline_engineering_white_48dp.png">
+                    <span class="text-center">COLABORADORES</span>
+                </a>
+            </div>
+
+            
+                <div class="col-md-4" text-center>
+                    <a href="Cursos" class="corbotao hvr-underline-from-center" role="button">
+                        <img src="img/dashboard/baseline_class_white_48dp.png">
+                        <span class="text-center">CURSOS</span>
+                    </a>
+                </div>
+                @*Adicionar Modulos*@
+                <div class="col-md-4" text-center>
+                    <a href="Modulos" class="corbotao hvr-underline-from-right" role="button">
+                        <img src="img/dashboard/outline_grid_view_white_48dp.png">
+                        <span class="text-center">MÓDULOS</span>
+                    </a>
+                </div> 
+            </div>
+            @*FIM*@
+        </div>
+        <!--<div class="cardstyle text-center">
+             Google Calendar doesn't work well this way. Also, as is doesn't provide any use to the app.
+            <div class="calendartop">
+                <iframe src="https://calendar.google.com/calendar/embed?height=500&amp;wkst=1&amp;bgcolor=%23fbfbfb&amp;ctz=Europe%2FLisbon&amp;src=cHQtcHQucG9ydHVndWVzZSNob2xpZGF5QGdyb3VwLnYuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&amp;color=%230f172a&amp;showTitle=0&amp;showNav=1&amp;showDate=1&amp;showPrint=0&amp;showTabs=0&amp;showCalendars=0&amp;showTz=0" style="border-width:0" width="1000" height="450" frameborder="0" scrolling="no"></iframe>
+            </div>
+            
+        </div>-->
+    </Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Coordenador">
+    <Authorized>
+        <!-- INÍCIO #004 -->
+        <div class="cardstyle text-center">
+            <div class="row">
+                <div class="col-md-4" text-center>
+                    <a href="CalendarCoor" class="corbotao hvr-underline-from-left" role="button">
+                        <img src="img/dashboard/baseline_event_white_48dp.png">
+                        <span class="text-center">CALENDÁRIO</span>
+                    </a>
+                </div>
+                <div class="col-md-4" text-center>
+                    <a a href="Avaliacao" class="corbotao hvr-underline-from-center" role="button">
+                        <img src="img/dashboard/outline_inventory_white_48dp.png">
+                        <span class="text-center">AVALIAÇÕES</span>
+                    </a>
+                </div>
+                <div class="col-md-4" text-center>
+                    <a href="Turmas" class="corbotao hvr-underline-from-right" role="button">
+                        <img src="img/dashboard/baseline_groups_white_48dp.png">
+                        <span class="text-center">TURMAS</span>
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4" text-center>
+                    <a href="Formandos" class="corbotao hvr-underline-from-left">
+                        <img src="img/dashboard/baseline_school_white_48dp.png">
+                        <span class="text-center">FORMANDOS</span>
+                    </a>
+                </div>
+                <div class="col-md-4" text-center>
+                    <a href="Formadores" class="corbotao hvr-underline-from-center" role="button">
+                        <img src="img/dashboard/baseline_assignment_ind_white_48dp.png">
+                        <span class="text-center">FORMADORES</span>
+                    </a>
+                </div>
+                <div class="col-md-4" text-center>
+                    <a href="Cursos" class="corbotao hvr-underline-from-right" role="button">
+                        <img src="img/dashboard/baseline_class_white_48dp.png">
+                        <span class="text-center">CURSOS</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!--<div class="cardstyle text-center">
+             Google Calendar doesn't work well this way. Also, as is doesn't provide any use to the app.
+            <div class="calendartop">
+                <iframe src="https://calendar.google.com/calendar/embed?height=500&amp;wkst=1&amp;bgcolor=%23fbfbfb&amp;ctz=Europe%2FLisbon&amp;src=cHQtcHQucG9ydHVndWVzZSNob2xpZGF5QGdyb3VwLnYuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&amp;color=%230f172a&amp;showTitle=0&amp;showNav=1&amp;showDate=1&amp;showPrint=0&amp;showTabs=0&amp;showCalendars=0&amp;showTz=0" style="border-width:0" width="1000" height="450" frameborder="0" scrolling="no"></iframe>
+            </div>
+
+        </div>-->
+        <!-- FIM #004 -->
+    </Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Formador">
+    <Authorized>
+        <div class="cardstyle text-center">
+            <div class="row">
+                <div class="col-md-4" text-center>
+                    <a href="/Sumarios" class="corbotao hvr-underline-from-left" role="button">
+                    <!-- <a href="/Sumarios/123?from=index" class="corbotao hvr-underline-from-left" role="button"> -->
+                        <img src="img/dashboard/baseline_event_white_48dp.png">
+                        <!-- INÍCIO #004 -->
+                        <span class="text-center">CALENDÁRIO</span>
+                        <!-- FIM #004 -->
+                    </a>
+                </div>
+
+                <div class="col-md-4" text-center>
+                    <a a href="/AvaliacaoPorFormador" class="corbotao hvr-underline-from-center" role="button">
+                        <img src="img/dashboard/outline_inventory_white_48dp.png">
+                        <span class="form-text text-center">AVALIAÇÕES</span>
+                    </a>
+                </div>
+
+                <div class="col-md-4" text-center>
+                    <a href="/TurmasPorFormador" class="corbotao hvr-underline-from-right" role="button">
+                        <img src="img/dashboard/baseline_groups_white_48dp.png">
+                        <span class="form-text text-center">TURMAS</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!--<div class="cardstyle text-center">
+             Google Calendar doesn't work well this way. Also, as is doesn't provide any use to the app.
+            <div class="calendartop">
+                <iframe src="https://calendar.google.com/calendar/embed?height=500&amp;wkst=1&amp;bgcolor=%23fbfbfb&amp;ctz=Europe%2FLisbon&amp;src=cHQtcHQucG9ydHVndWVzZSNob2xpZGF5QGdyb3VwLnYuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&amp;color=%230f172a&amp;showTitle=0&amp;showNav=1&amp;showDate=1&amp;showPrint=0&amp;showTabs=0&amp;showCalendars=0&amp;showTz=0" style="border-width:0" width="1000" height="450" frameborder="0" scrolling="no"></iframe>
+            </div>
+
+        </div>-->
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    public DateTime? DropVal { get; set; } = DateTime.Now;
+}

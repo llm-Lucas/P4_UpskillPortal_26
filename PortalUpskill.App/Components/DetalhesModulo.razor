@@ -1,0 +1,49 @@
+﻿@page "/Detalhes/Modulo/{ModuloId:int}"
+
+@inject IModuloData ModuloData
+
+<span>Modulo:</span>
+<h2>@modulo.Nome</h2>
+
+<RadzenCard Style="margin-bottom: 20px;">
+	<div class="row">
+		<div class="col-md-12">
+			<div>Duração em horas:</div>
+			<b>@modulo.Horas</b>
+			<div style="margin-top:20px">
+				<div>Objetivos:</div>
+				<b>@modulo.Objetivos</b>
+			</div>
+			<div style="margin-top:20px">
+				<div>Conteudos Programáticos:</div>
+				<b>@modulo.ConteudosProgramaticos</b>
+			</div>
+			<div style="margin-top:20px">
+				<div>Sistema de Avaliação:</div>
+				<b>@modulo.SistemaAvaliacao</b>
+			</div>
+			<div style="margin-top:20px">
+				<div>Bibliografia:</div>
+				<b>@modulo.Bibliografia</b>
+			</div>
+			<div style="margin-top:20px">
+				<div>Software e Hardware:</div>
+				<b>@modulo.SoftwareHardware</b>
+			</div>
+		</div>
+	</div>
+</RadzenCard>
+
+@code {
+
+	Modulo modulo;
+
+	[Parameter]
+	public int ModuloId { get; set; }
+
+	protected async override void OnInitialized()
+	{
+		modulo = ModuloData.GetById(ModuloId);
+	}
+
+}

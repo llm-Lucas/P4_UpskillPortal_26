@@ -1,0 +1,120 @@
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+a, .btn-link {
+    color: #0366d6;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+.btn {
+    background-color: DodgerBlue; /* Blue background */
+    border: none; /* Remove borders */
+    color: white; /* White text */
+    padding: 12px 16px; /* Some padding */
+    font-size: 16px; /* Set a font size */
+    cursor: pointer; /* Mouse pointer on hover */
+}
+
+    /* Darker background on mouse-over */
+    .btn:hover {
+        background-color: #0D28C2;
+    }
+
+.btn-block {
+    background: #141E30;
+    background: -webkit-linear-gradient(to left, #243B55, #141E30);
+    background: linear-gradient(to left, #243B55, #141E30);
+}
+
+.cardstyle {
+    background-color: #eee;
+    border-radius: 10px;
+    border: none;
+    position: relative;
+    margin-bottom: 25px;
+    padding: 20px;
+    box-shadow: 0 0.46875rem 2.1875rem rgba(90,97,105,0.1), 0 0.9375rem 1.40625rem rgba(90,97,105,0.1), 0 0.25rem 0.53125rem rgba(90,97,105,0.12), 0 0.125rem 0.1875rem rgba(90,97,105,0.1);
+}
+
+
+@keyframes fadeOut {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+@keyframes fadeIn{
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.fade-in {
+    animation: fadeIn linear .2s;
+}
+
+.transparent, .transparent img{
+    opacity: 0;
+}
+
+.e-sidebar {
+    -ms-overflow-style: none; 
+    scrollbar-width: none;
+}
+
+.no-title-fieldset .rz-fieldset-legend {
+    display: none;
+}
+
+.no-title-fieldset .rz-fieldset {
+    padding-top: 0.5rem; /* ou menos, conforme visual desejado */
+}

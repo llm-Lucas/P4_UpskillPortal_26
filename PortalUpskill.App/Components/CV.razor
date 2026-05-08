@@ -1,0 +1,28 @@
+﻿@page "/CV/{Id:int}"
+
+@layout BlankLayout
+
+@inject IPessoaData pessoaData
+@inject FileManagerService FMS  
+
+<div class="embed-responsive embed-responsive-16by9">
+	<iframe class="embed-responsive-item" src="@cv" name="_top" title="@pessoa.Nome"></iframe>
+</div>
+
+@code {
+	[Parameter]
+	public int Id { get; set; }
+
+	Pessoa pessoa = new Pessoa();
+
+	string cv;
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (Id != 0)
+		{
+			pessoa = pessoaData.GetById(Id);
+			cv = FMS.PathToBase64String(pessoa.CV);
+		}
+	}
+}

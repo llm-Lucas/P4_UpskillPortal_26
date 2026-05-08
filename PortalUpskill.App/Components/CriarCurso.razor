@@ -1,0 +1,118 @@
+﻿
+@inject ICursoData cursoData
+@inject RefreshService refreshService
+
+<div class="cardstyle">
+    <EditForm Model="@cursoVM" OnValidSubmit="CheckCurso">
+        <DataAnnotationsValidator />
+        <RadzenFieldset class="no-title-fieldset">
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Nome" />
+                </div>
+                <div class="col-md-8">
+                    <RadzenTextBox class="form-control w-100" @bind-Value="@cursoVM.Nome" />
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Duração em Horas" />
+                </div>
+                <div class="col-md-8 d-flex align-items-center">
+                    <span>@DuracaoTotal</span>
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Objetivos" />
+                </div>
+                <div class="col-md-8">
+                    <RadzenTextArea class="form-control w-100" @bind-Value="@cursoVM.Objetivos" Rows="3" />
+                </div>
+            </div>
+            <!-- INÍCIO #004 -->
+            <div class="row justify-content-center">
+                <div class="col-md-12 d-flex align-items-end justify-content-center" style="gap: 16px;">
+                    <!-- Botão de Voltar -->
+                    <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                                  Icon="cancel"
+                                  style="margin-left: 10px;"
+                                  Text="Voltar"
+                                  Click="@(() => navManager.NavigateTo($"Cursos"))" />
+
+                    <!-- Botão de Gravar -->
+                    <RadzenButton ButtonType="ButtonType.Submit"
+                                  ButtonStyle="ButtonStyle.Success"
+                                  Icon="save"
+                                  Text="Gravar" />
+                </div>
+            </div>
+            <!-- FIM #004-->
+        </RadzenFieldset>
+    </EditForm>
+</div>
+
+
+@code {
+    CursoViewModel cursoVM = new CursoViewModel();
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public double DuracaoTotal { get; set; }
+
+    [Parameter]
+    public EventCallback<Curso> InserirCurso { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        refreshService.Refresh += () => ResetFields();
+
+        if (Id != 0)
+        {
+            Curso curso = cursoData.GetById(Id);
+            cursoVM.FromModel(curso);
+        }
+    }
+
+    async void CheckCurso(EditContext editContext)
+    {
+        //pedido de confirmação quando o utilizador está a editar um formando
+        if (Id != 0 && editContext.Validate())
+        {
+            await ConfirmEdit();
+        }
+        else//actua quando se insere um novo formando
+        {
+            ValidacaoCurso();
+        }
+    }
+
+    void ValidacaoCurso()
+    {
+        Curso novoCurso = cursoVM.CreateModel();
+        novoCurso.DuracaoHoras = DuracaoTotal;
+        InserirCurso.InvokeAsync(novoCurso);
+    }
+
+    void ResetFields()
+    {
+        cursoVM = new CursoViewModel();
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        notificationService.Notify(message);
+    }
+
+    async Task ConfirmEdit() => await dialogService.OpenAsync("Confirmação de edição", ds =>
+    @<div>
+        <p Style="margin-bottom: 1rem">Tem a certeza que pretende gravar as alterações que efetuou?</p>
+        <div class="row col-md-12 d-flex justify-content-center">
+            <RadzenButton class="w-150 mx-2" Text="Sim" ButtonStyle="ButtonStyle.Primary" Click="ValidacaoCurso" Style="margin-bottom: 10px;" />
+            <RadzenButton class="w-150 mx-2" Text="Não" ButtonStyle="ButtonStyle.Secondary" Click="() => ds.Close(false)" Style="margin-bottom: 10px;" />
+        </div>
+    </div>
+    );
+}

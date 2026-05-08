@@ -1,0 +1,214 @@
+﻿@page "/Coordenadores"
+
+@inject IFormadorData formadorData
+
+<div class="cardstyle">
+	<h2>@Title</h2>
+	@if (Mode != "Add")
+	{
+		@if (filteredFormadores.Count == 0)
+		{
+			<span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="/Formadores">Enviar email aos Coordenadores</a>
+			<br />
+			<span style="margin-left:5px; font-size:10px; color:darkgray">(Filtrar os coordenadores por estado)</span>
+		}
+		else
+		{
+			<span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@email">Enviar email aos Coordenadores</a>
+			<br />
+			<span style="margin-left:5px; font-size:10px; color:darkgray">(Filtrar os coordenadores por estado)</span>
+		}
+		<br />
+				<AuthorizeView Roles="Administrador, Secretariado">
+			<Authorized>
+		<RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Coordenador" Icon="add" Click="@(() => dialogService.Open<CriarCoordenador>(
+                                                                                                           "Criar Coordenador",
+                                                                                                           new Dictionary<string, object>()
+																										   {
+																											   { "RedirectAfterCreation", IsViewedAsChild ? false : true}
+																										   },
+                                                                                                           new DialogOptions()
+                                                                                                           {
+																											   Width = "90%",
+																											   Height = "90%"
+                                                                                                           }))" />
+			</Authorized>
+		</AuthorizeView>
+	}
+
+	<RadzenGrid Data="@filteredFormadores"
+	TItem="Formador"
+	AllowSorting="true"
+	AllowFiltering="true"
+	FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+	AllowPaging="true"
+	PageSize="10">
+		<Columns>
+			<RadzenGridColumn TItem="Formador" Property="Nome" Title="Nome" />
+			<RadzenGridColumn TItem="Formador" Property="Email" Title="Email" />
+			<RadzenGridColumn TItem="Formador" Property="ContactoTelemovel" Title="Telemóvel" />
+			<RadzenGridColumn TItem="Formador" Property="ContactoTelefone" Title="Telefone" />
+			<RadzenGridColumn TItem="Formador" Title="Estado" Sortable="false">
+				<FilterTemplate>
+					<RadzenDropDown @bind-Value="@filtroEstado" TextProperty="Text" ValueProperty="Value" Style="width:100%"
+					Change=@FiltrarPorEstado
+					Data="@(Estados.Select(t => new { Text = $"{t}", Value = t }))" />
+
+				</FilterTemplate>
+				<Template Context="Formador">
+					<span>@Formador.Estado.Nome</span>
+				</Template>
+			</RadzenGridColumn>
+
+			@if (Mode == "Add")
+			{
+				<RadzenGridColumn Title="Adicionar" TItem="Formador" Sortable="false" Filterable="false">
+					<Template Context="Formador">
+						<RadzenButton Title="Associar Coordenador" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="add" Click="@(() => SendCoordenador(Formador.Id))" />
+					</Template>
+				</RadzenGridColumn>
+			}
+			else
+			{
+			<AuthorizeView Roles="Administrador, Secretariado">
+			<Authorized>
+				<RadzenGridColumn Title="Opções" TItem="Formador" Sortable="false" Filterable="false">
+					<Template Context="Formador">
+						<RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesFormador>($"Detalhes",
+                                                                                       new Dictionary<string, object>() { { "FormadorId", Formador.Id } },
+                                                                                       new DialogOptions(){ Width = "80%", Height = "90%" })) />
+						<RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Coordenador/{Formador.Id}"))" />
+						<RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Formador))" />
+					</Template>
+				</RadzenGridColumn>
+					</Authorized>
+				</AuthorizeView>
+			}
+
+		</Columns>
+	</RadzenGrid>
+</div>
+
+<!-- INÍCIO #004 -->
+<!-- Botão de Voltar -->
+@if (!IsViewedAsChild)
+{
+	<div class="row justify-content-center">
+		<div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+			<!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
+			<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
+		</div>
+	</div>
+	<br />
+}
+<!-- FIM -->
+
+@code {
+
+	List<Formador> formadores;
+	List<Formador> filteredFormadores;
+
+	//Mode serve para esconder/mostrar os botões da última coluna
+	// - "Add" serve para quando este componente é usado dentro de uma página de criação
+	// - qualquer outra coisa mostra os botões de editar e apagar
+	[Parameter]
+	public string Mode { get; set; }
+
+	//Evento que comunica com os componentes exteriores
+	[Parameter]
+	public EventCallback<int> OutgoingCoordenador { get; set; }
+
+	[Parameter]
+	public string Title { get; set; } = "Coordenadores";
+
+	string email;
+	string mail;
+
+	/// <summary>
+	/// Caso este componente seja visto através de uma tab e precise de comunicar com <CriarCoordenador />
+	/// para que este não redirecione após criação
+	/// </summary>
+	[Parameter]
+	public bool IsViewedAsChild { get; set; } = false;
+
+	//Na inicialização do componente...
+	protected override async Task OnInitializedAsync()
+	{
+		LoadFormadores();
+	}
+
+	/// <summary>
+	/// Carrega a lista de formadores da BD
+	/// </summary>
+	void LoadFormadores()
+	{
+		formadores = formadorData.GetAll().Where(f => f.PerfilId == 2 || f.PerfilId == 5).ToList();
+		filteredFormadores = formadores.OrderBy(f => f.Nome).ToList();
+
+		mail = "";
+
+		foreach (var formador in filteredFormadores)
+		{
+			mail = mail + formador.Email + ";";
+		}
+
+		email = $"mailto:{mail}";
+	}
+
+	/// <summary>
+	/// Incova o evento acionado pelo botão Acionar.
+	/// O componente que subescrever o evento irá receber ToSendId
+	/// </summary>
+	private async Task SendCoordenador(int ToSendId)
+	{
+		//evento que vai ser apanhado pelo componente que estiver a ouvir por ele
+		await OutgoingCoordenador.InvokeAsync(ToSendId);
+	}
+
+	async Task ConfirmDelete(Formador formador)
+	{
+		await dialogService.OpenAsync("Confimar apagar", ds =>
+		@<div>
+			<p>Tem a certeza que pretende apagar @formador.Nome?</p>
+			<p class="mb1 text-danger">Esta acção é irreversível.</p>
+			<div class="row">
+				<div class="col-md-12 d-flex justify-content-center">
+					<RadzenButton class="w-150 mx-2" Text="Ok" Click="() => { FileManagerService.RemoveFile(formador.Foto); FileManagerService.RemoveFile(formador.CV);
+																				formadorData.Remove(formador.Id); ds.Close(true); LoadFormadores(); }" />
+					<RadzenButton class="w-150 mx-2" Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" />
+				</div>
+			</div>
+		</div>);
+	}
+
+	/// <summary>
+	/// Opções disponíveis para o filtro da coluna de Estado
+	/// </summary>
+	List<string> Estados = new List<string>
+	{
+		"Filtrar por Estado",
+		"Ativo",
+		"Inativo"
+	};
+
+	/// <summary>
+	/// Filtro da coluna Estado que está activo
+	/// </summary>
+	string filtroEstado = "Filtrar por Estado";
+
+	/// <summary>
+	/// Corre quando o filtro da coluna Estado é alterado
+	/// </summary>
+	void FiltrarPorEstado()
+	{
+		filteredFormadores = formadores.Where(f => filtroEstado != "Filtrar por Estado" ? f.Estado.Nome == filtroEstado : true).OrderBy(f => f.Nome).ToList();
+
+		mail = "";
+		foreach (var formador in filteredFormadores)
+		{
+			mail = mail + formador.Email + ";";
+		}
+
+		email = $"mailto:{mail}";
+	}
+}

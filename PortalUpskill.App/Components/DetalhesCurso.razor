@@ -1,0 +1,44 @@
+﻿@page "/Detalhes/Curso/{CursoId:int}"
+
+@inject ICursoData cursoData
+@inject IModuloData moduloData
+
+<span>Modulo:</span>
+<h2>@curso.Nome</h2>
+
+<RadzenCard Style="margin-bottom: 20px;">
+	<div class="row">
+		<div class="col-md-12">
+			<div>Duração em horas:</div>
+			<b>@curso.DuracaoHoras</b>
+			<div style="margin-top:20px">
+				<div>Objetivos:</div>
+				<b>@curso.Objetivos</b>
+			</div>
+			<div style="margin-top:20px">
+				<div>Módulos associados:</div>
+				@foreach (var modulo in modulos)
+				{
+					<b>@modulo.Nome</b><br />
+				}
+			</div>
+			
+		</div>
+	</div>
+</RadzenCard>
+
+@code {
+
+	Curso curso;
+	List<Modulo> modulos = new List<Modulo>();
+
+	[Parameter]
+	public int CursoId { get; set; }
+
+	protected async override void OnInitialized()
+	{
+		curso = cursoData.GetById(CursoId);
+		modulos = moduloData.GetModulosByCurso(CursoId);
+	}
+
+}

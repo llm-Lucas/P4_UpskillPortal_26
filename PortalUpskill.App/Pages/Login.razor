@@ -1,0 +1,71 @@
+﻿@attribute [AllowAnonymous]
+@layout LoginLayout
+@page "/"
+
+@inject AuthenticationStateProvider authStateProvider
+@inject ProtectedSessionStorage sessionStorage
+@inject IPessoaData pessoaData
+
+<h2>Login</h2>
+<EditForm class="col-8 m-auto" Model="loginVM" OnValidSubmit="ValidateUser">
+    <DataAnnotationsValidator/>
+    <div class="form-group">
+            <RadzenLabel Text="Email" />
+            <RadzenTextBox class="form-control" @bind-Value="@loginVM.Email" />
+            <ValidationMessage For="@(() => loginVM.Email)"/>
+    </div>
+    <div class="form-group">
+            <RadzenLabel Text="Password" />
+            <RadzenPassword class="form-control" @bind-Value="@loginVM.Password" />
+            <ValidationMessage For="@(() => loginVM.Password)" />
+    </div>
+    <RadzenButton class="my-2" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="login" Text="Log in" />
+</EditForm>
+
+@code {
+
+    LoginViewModel loginVM = new LoginViewModel();
+
+    [CascadingParameter]
+    Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+        if (authState.User.Identity.IsAuthenticated)
+        {
+            navManager.NavigateTo("Index");
+        }
+    }
+
+    async Task ValidateUser()
+    {
+        var pessoa = pessoaData.GetByEmail(loginVM.Email);
+
+        if( pessoa != null )
+        {
+
+            var a = loginVM.Password;
+            var b = pessoa.Password;
+            if ((loginVM.Password == pessoa.Password) && pessoa.Perfil.Nome != null )
+            {
+
+                ((UpskillAuthenticationStateProvider)authStateProvider).MarkUserAsAuthenticated(pessoa);
+                navManager.NavigateTo("Index");
+
+                //guardar user em SessionStorage. Isto faz com que se houver um refresh o user continue logged in
+                string userJson = JsonConvert.SerializeObject(pessoa);
+                await sessionStorage.SetAsync("user", userJson);
+                
+            }
+            else
+            {
+                notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Password errada", Duration = 4000 });
+            }
+        }
+        else
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Email não encontrado", Duration = 4000 });
+        }
+    }
+}

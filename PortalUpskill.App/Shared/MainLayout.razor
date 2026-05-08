@@ -1,0 +1,109 @@
+﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider authStateProvider
+@inject IPessoaData pessoaData
+
+@using Syncfusion.Blazor.Navigations
+@using Syncfusion.Blazor.Buttons
+
+<RadzenDialog />
+<RadzenNotification />
+
+<div class="page">
+
+
+    <SfSidebar Width="250px" DockSize="60px" EnableDock="true" Position="@Position" @ref="Sidebar" HtmlAttributes="@HtmlAttribute" @bind-IsOpen="SidebarToggle">
+        <ChildContent>
+            <div class="dock">
+                @if (SidebarToggle == false)
+                {
+                    <a href="/Index"><img href="/Index" class="left" src="/img/MetaDigital_sem_fundo_negativo.png" /></a>
+                }           
+                
+                <AuthorizeView Roles="Administrador, Secretariado">
+                    <Authorized>
+                        <div class="sidebar" @onclick="@Toggletrue">
+                            <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggletrue" />
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+                <AuthorizeView Roles="Coordenador">
+                    <div class="sidebar" @onclick="@Toggletrue">
+                        <UpSkillCoordenadorNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggletrue" />
+                    </div>
+                </AuthorizeView>
+                <AuthorizeView Roles="Formador">
+                    <div class="sidebar" @onclick="@Toggletrue">
+                        <UpsKillFormadorNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggletrue" />
+                    </div>
+                </AuthorizeView>
+            </div>
+        </ChildContent>
+    </SfSidebar>
+
+    <div class="main">
+        <div class="top-row d-flex justify-content-between px-2">
+            <div @onclick="@Toggle">
+                <img class="hvr-back-pulse" src="img/dashboard/outline_menu_black_48dp.png" style="margin-left: -2rem; height: 3rem"/>
+            </div>
+            
+            <div class="d-flex flex-row align-items-center">
+                <AuthorizeView>
+                    <Authorized>
+                        <span>Olá, @context.User.Identity.Name </span> 
+                        <a href="/AreaPessoal"><img class="cog" src="/img/baseline_settings_black_48dp.png" /></a>
+                        <a href="" @onclick="@(()=> { ((UpskillAuthenticationStateProvider)authStateProvider).MarkUserAsLoggedOut(); })"><img class="logout" src="img/dashboard/outline_logout_black_48dp.png"></a>
+                </Authorized>
+                <Authorizing>
+                </Authorizing>
+                <NotAuthorized>
+                    <a href="/">Login</a>
+                </NotAuthorized>
+            </AuthorizeView>
+            </div>
+            
+        </div>
+
+        <div class="content px-4" @onclick="Togglefalse">
+            @Body
+        </div>
+    </div>
+</div>
+
+@code {
+
+    List<Pessoa> pessoas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        LoadPessoas();
+    }
+
+    void LoadPessoas()
+    {
+        pessoas = pessoaData.GetAll();
+    }
+
+    SfSidebar Sidebar;
+    private SidebarPosition Position { get; set; }
+    public bool SidebarToggle = false;
+    public void Toggle()
+    {
+        SidebarToggle = !SidebarToggle;
+    }
+
+    Dictionary<string, object> HtmlAttribute = new Dictionary<string, object>()
+{
+        {"class", "dockSidebar" }
+    };
+
+    public void Toggletrue()
+    {
+        SidebarToggle = true;
+    }
+
+    public void Togglefalse()
+    {
+        SidebarToggle = false;
+    }
+}
+

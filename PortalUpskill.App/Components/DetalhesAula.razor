@@ -1,0 +1,512 @@
+@page "/DetalhesAula/"
+@page "/DetalhesAula/{AulaId:int}"
+
+<!--INICIO #008-->
+<!--Adicionei o Idf e o Idt para poder navegar entre paginas, dependo das turmas selecionadas antes-->
+<!--Adicionei source para o caso de estar a vir do calendario conseguir voltar para la-->
+@page "/DetalhesAula/{AulaId:int}/{Idf:int}/{Idt:int}/{source?}"
+<!--FIM-->
+
+@inject IAulaData aulaData
+@inject IFormandoData formandoData
+@inject IFaltaData faltaData
+@inject ITurmaData turmaData
+@inject IPessoaData pessoaData
+@inject IJSRuntime JSRuntime
+@inject ProtectedSessionStorage sessionStorage
+@inject FileManagerService FileMngSrv
+
+<div class="cardstyle">
+	<h2>Aula de @aulaVM.HoraInicio.ToShortDateString()</h2>
+	<br />
+	<h3>Turma @TurmaSelecionada()</h3>
+	<h5>@FormadorSelecionado()</h5>
+
+	<p><b>Hora de Início:</b> @aulaVM.HoraInicio.ToShortTimeString() | <b>Hora de Término:</b> @aulaVM.HoraFim.ToShortTimeString()</p>
+
+	<AuthorizeView Roles="Formador">
+		<Authorized Context="authContext">
+			<EditForm Model="@aulaVM" @ref="form" OnValidSubmit="InserirSumario">
+				<DataAnnotationsValidator />
+				<div class="form-group col-md-8">
+					<div class="row col-md-2 d-flex">
+						<RadzenLabel Text="Sumário" Style="font-weight:bold" />
+					</div>
+
+					<div class="row col-md-12">
+						<RadzenTextArea class="w-100" @bind-Value="@aulaVM.Sumario" />
+					</div>
+				</div>
+			</EditForm>
+		</Authorized>
+	</AuthorizeView>
+
+	<AuthorizeView Roles="Administrador, Secretariado, Coordenador">
+		<Authorized>
+			<div class="form-group col-md-8">
+				<div class="row col-md-2 d-flex">
+					<b>Sumário</b>
+				</div>
+
+				<div class="row col-md-12">
+					@*<p>@aulaVM.Sumario</p>*@
+					@*INICIO #008*@
+					@*Se a aula ja tiver Sumario, metemos uma caixa de texto com o Sumario e um botao para poder editar o Sumario*@
+					@*Quando se carrega no botao Guardar, o novo Sumario e guardado na base de dados*@
+					@*Depois de se carregar no botao Guardar, a caixa de texto volta para Disabled e o que mostra e o novo Sumario*@
+
+					@if (aulaVM.Sumario != null)
+					{
+						<RadzenTextBox @bind-Value="aulaVM.Sumario" Disabled="@isSumarioDisabled" Style="width: 60%;" />
+						<br />
+						<RadzenButton Text="@botaoSumarioLabel" ButtonStyle="ButtonStyle.Primary" Style="margin-left: 5px" Click="@ToggleSumarioEdicao" />
+					}
+
+					@*FIM #008*@
+				</div>
+			</div>
+		</Authorized>
+	</AuthorizeView>
+
+	<div class="row" style="margin-top:1em">
+		<div class="col-md-12">
+			<AuthorizeView Roles="Administrador, Secretariado, Formador">
+				<Authorized>
+					<div class="row form-group">
+						<div class="col-md-3">
+							<b>Formandos</b>
+						</div>
+						<div class="col-md-1">
+							<b>Faltou</b>
+						</div>
+						@if (faltasDictionary.Values.Count(v => v.Falta == true) > 0)
+                        {
+						<div class="col-md-1">
+							<b>Hora de Início</b>
+						</div>
+						<div class="col-md-1">
+							<b>Hora de Fim</b>
+						</div>
+
+						// INÍCIO #008
+						// Condição para se for "Formador" não mostra as colunas de "Falta Justificada" e "Anexo"
+						@if (!authStateTask.Result.User.IsInRole("Formador"))
+						{
+							<div class="col-md-1">
+								<b>Falta Justificada</b>
+							</div>
+							<div class="col-md-3">
+								<b>Anexo</b>
+							</div>
+						}
+							// FIM
+
+							/*
+                            <div class="col-md-1">
+								<b>Falta Justificada</b>
+                            </div>
+                            <div class="col-md-3">
+                                <b>Anexo</b>
+                            </div>
+							*/
+																																																				}
+                    </div>
+                    @foreach (var formando in formandos)
+																																		{
+                        <div class="row form-group">
+                            <div class="col-md-3 align-items-center d-flex">
+                                <span>@formando.Nome</span>
+
+                            </div>
+                            <div class="col-md-1 align-items-center d-flex">
+                                <RadzenCheckBox @bind-Value="@faltasDictionary[formando.Id].Falta" TValue="bool" Change=@(x => { if (!x && faltasDictionary[formando.Id].Justificada)
+																													  faltasDictionary[formando.Id].Justificada = false; }) />
+                            </div>
+                            @if (faltasDictionary[formando.Id].Falta)
+																																			{
+
+                                <div class="col-md-1 align-items-center d-flex">
+                                    <RadzenDatePicker TValue="DateTime" ShowTime="true" TimeOnly="true" DateFormat="HH:mm" MinutesStep="30" @bind-Value="@faltasDictionary[formando.Id].HoraInicio" /> @*Change=@(args => OnChange(args)) />*@
+                                </div>
+                                <div class="col-md-1 align-items-center d-flex">
+                                    <RadzenDatePicker TValue="DateTime" ShowTime="true" TimeOnly="true" DateFormat="HH:mm" MinutesStep="30" @bind-Value="@faltasDictionary[formando.Id].HoraFim" /> @*Change=@(args => OnChange(args)) />*@
+                                </div>
+
+								// INÍCIO #008
+								// Adicionar condição para se for "Formador" ou não
+								@if (!authStateTask.Result.User.IsInRole("Formador"))
+								{
+									<div class="col-md-1 align-items-center d-flex">
+										<RadzenCheckBox @bind-Value="@faltasDictionary[formando.Id].Justificada" TValue="bool" />
+									</div>
+									<div class="col-md-3">
+										<InputFile OnChange="@(e => OnInputJustificacao(e, formando.Id))" />
+										@if (faltasDictionary[formando.Id].Anexo != null)
+										{
+							<p>@anexoMsg</p>
+										}
+									</div>
+									<div class="col-md-2 align-items-center d-flex">
+										@if (faltasDictionary[formando.Id].Anexo != null)
+										{
+							<RadzenButton class="w-150 mx-2" Text="Download Anexo" ButtonStyle="ButtonStyle.Primary" Click="@(() => DownloadAnexo(formando, faltasDictionary[formando.Id].HoraInicio))" />
+										}
+									</div>
+								}
+								// FIM
+
+                            }
+                        </div>
+                    }
+                </Authorized>
+            </AuthorizeView>
+			<!-- INICIO #008 -->
+			<!-- Botao Voltar-->
+			<!-- Comentei o Botao Guardar -->
+            <div class="row justify-content-center">
+                <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+					<!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
+					<AuthorizeView Roles="Administrador, Secretariado">
+                        <Authorized>
+                            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Calendar"))" />
+                        </Authorized>
+                    </AuthorizeView>
+                    <AuthorizeView Roles="Formador">
+                        <Authorized>
+                            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@Voltar" />
+                        </Authorized>
+                    </AuthorizeView>
+					<AuthorizeView Roles="Coordenador">
+						<Authorized>
+							<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@Voltar" />
+						</Authorized>
+					</AuthorizeView>
+                </div>
+            </div>
+			<!-- FIM -->
+        </div>
+    </div>
+</div>
+
+@code {
+
+	// INÍCIO #008
+	// Chamar as variaveis Idf e Idt para o botão de voltar
+	// Also chamar a variavel source para o botão de voltar
+	[Parameter]
+	public int Idf { get; set; } // Formador ID
+
+	[Parameter]
+	public int Idt { get; set; } // Turma ID
+
+	[Parameter]
+	public string? source { get; set; }
+
+	// Metodo para voltar para a pagina anterior
+	void Voltar()
+	{
+		if (source == "Sumarios" && authStateTask.Result.User.IsInRole("Formador"))
+		{
+	navManager.NavigateTo($"Sumarios/{aulaVM.TurmaId}");
+		}
+		else if (source == "ListaAula" && authStateTask.Result.User.IsInRole("Formador"))
+		{
+	navManager.NavigateTo($"ListaAula/{Idf}/{Idt}");
+		}
+		else if (source == "CalendarCoor" && authStateTask.Result.User.IsInRole("Coordenador"))
+		{
+	navManager.NavigateTo($"CalendarCoor/{aulaVM.TurmaId}");
+		}
+		else
+		{
+	// fallback if source isn't defined
+	navManager.NavigateTo("/");
+		}
+	}
+	// FIM
+
+	[Parameter]
+	public int AulaId { get; set; }
+	public Pessoa user { get; set; }
+	public int TurmaId { get; set; }
+
+	[CascadingParameter]
+	Task<AuthenticationState> authStateTask { get; set; }
+
+	// INICIO #008
+	Turma turmaSelecionada; // Variavel para guardar a turma selecionada
+	Pessoa formadorSelecionado; // Variavel para guardar o formador selecionado
+
+	// Metodo para retornar uma string que e a turma que foi selecionada
+	string TurmaSelecionada()
+	{
+		return turmaSelecionada?.Nome ?? "N/A";
+	}
+
+	// Metodo para buscar a string do Formador da aula
+	string FormadorSelecionado()
+	{
+		return formadorSelecionado?.Nome ?? "N/A";
+	}
+
+	// Metodo para a caixa de Sumario
+	private bool isSumarioDisabled = true;
+
+	private string botaoSumarioLabel => isSumarioDisabled ? "Editar" : "Guardar";
+
+	private async Task ToggleSumarioEdicao()
+	{
+		if (isSumarioDisabled)
+		{
+			// Tornar editável
+			isSumarioDisabled = false;
+		}
+		else
+		{
+			// Guardar na base de dados (exemplo)
+			await GuardarSumarioNaBD(aulaVM.Id, aulaVM.Sumario);
+
+			// Voltar a desativar textbox
+			isSumarioDisabled = true;
+		}
+	}
+
+	private async Task GuardarSumarioNaBD(int aulaId, string novoSumario)
+	{
+		// Aqui colocas a tua lógica de update ao sumário
+		// Exemplo: await AulaDataService.UpdateSumarioAsync(aulaId, novoSumario);
+			
+		// Atualizar o sumário na ViewModel
+		aulaVM.Sumario = novoSumario;
+
+		// Atualizar o Sumario na base de dados
+		Aula aula = aulaData.GetById(aulaId);
+		aula.Sumario = novoSumario;
+
+		aulaData.Update(aula);
+	}
+
+	// FIM
+
+	EditForm form;
+
+	AulaViewModel aulaVM = new AulaViewModel();
+	List<Formando> formandos = new List<Formando>();
+	List<Falta> faltasEstadoInicial = new List<Falta>();
+
+	string sumarioInicial;
+
+	Dictionary<int, FaltaFormando> faltasDictionary = new Dictionary<int, FaltaFormando>();//int = formando.Id e bool = faltas
+
+	IBrowserFile selectedFile;
+	Dictionary<int, IBrowserFile> selectedFiles = new Dictionary<int, IBrowserFile>();
+	string anexoMsg = "Já existe um anexo registado, caso queira atualizar selecione o novo ficheiro";
+
+	protected override async Task OnInitializedAsync()
+	{
+		//se AulaId for 0, é para criar aula nova
+		if (AulaId == 0)
+		{
+			string userEmail = (await authStateTask).User.Identity.Name;
+			user = pessoaData.GetByEmail(userEmail);
+			//O calendário guarda um array com as horas de inicio e fim na sessionStorage
+			var jsonResult = await sessionStorage.GetAsync<string>("CriarAula");
+			string json = string.Empty;
+		if (jsonResult.Success)
+		{
+			json = jsonResult.Value;
+		}
+			Aula novaAula = JsonConvert.DeserializeObject<Aula>(json);
+			formandos = turmaData.GetById((int)novaAula.TurmaId).Formandos;
+
+			// INICIO #008
+			turmaSelecionada = turmaData.GetById(novaAula.TurmaId.Value); // Adicionei para mostrar a turma selecionada
+			formadorSelecionado = pessoaData.GetById(aulaVM.FormadorId.Value) as Pessoa;
+			// FIM
+
+			//depois da leitura da sessionStorage, apagar o valor
+			await sessionStorage.DeleteAsync("CriarAula");
+
+			aulaVM.FromModel(novaAula);
+			aulaVM.Id = novaAula.Id;
+		}
+		else //caso seja para obter informações de uma aula já existente
+		{
+			Aula aula = aulaData.GetById(AulaId);
+			aulaVM.FromModel(aula);
+			formandos = turmaData.GetById(aula.TurmaId.Value).Formandos;//vai buscar a lista de formandos através da turma
+
+			// INICIO #008
+			turmaSelecionada = turmaData.GetById(aula.TurmaId.Value); // Adicionei para mostrar a turma selecionada
+			formadorSelecionado = pessoaData.GetById(aulaVM.FormadorId.Value) as Pessoa;
+			// FIM
+		}
+
+		LoadData();
+	}
+
+	void LoadData()
+	{
+		faltasEstadoInicial = faltaData.GetByAulaId(aulaVM.Id);
+		sumarioInicial = aulaVM.Sumario;
+
+		faltasDictionary = new Dictionary<int, FaltaFormando>();
+		//vai buscar as faltas (se existirem na bd) e regista no dicionário
+		if (faltasEstadoInicial.Count != 0)
+		{
+			foreach (var falta in faltasEstadoInicial)
+			{
+				faltasDictionary.Add(falta.FormandoId, FaltaFormando.AtribuirFalta(falta));
+			}
+		}
+		//(os formandos que não tiverem faltas) atribui uma nova instancia FaltaFormando(dicionário) com Falta a false
+		foreach (var formando in formandos)
+		{
+			if (!faltasDictionary.ContainsKey(formando.Id))
+			{
+				faltasDictionary.Add(formando.Id, new FaltaFormando { Falta = false, HoraInicio = aulaVM.HoraInicio, HoraFim = aulaVM.HoraFim });
+			}
+		}
+	}
+
+	void InserirSumario()//ou inserir aula (depende dos dados que vao ser necessários ser introduzidos)
+	{
+		if (aulaVM.Id != 0)//modificação de uma aula
+		{
+			//verificar se o sumario mudou
+			if(aulaVM.Sumario != sumarioInicial)
+			{
+				Aula aula = aulaVM.CreateModel();
+				aulaData.Update(aula);
+			}
+		}
+		else//criacao de uma aula nova
+		{
+			Aula aulaNova = aulaVM.CreateModel();
+			aulaNova.FormadorId = user.Id;
+			aulaData.Create(aulaNova);
+			aulaVM.Id = aulaData.GetByTurma(aulaVM.TurmaId.Value).Where(x => x.HoraInicio == aulaVM.HoraInicio && x.HoraFim == aulaVM.HoraFim).FirstOrDefault().Id;
+		}
+	}
+
+	async void MarcarFaltas()
+	{
+		List<Falta> faltasNovas = new List<Falta>();
+		List<Falta> faltasUpdate = new List<Falta>();
+		List<Falta> faltasParaRemover = new List<Falta>();
+
+		InserirSumario();
+
+		foreach (var formando in formandos)
+		{
+			if (faltasDictionary[formando.Id].Falta)
+			{
+				Falta falta = new Falta();
+
+				if (faltasDictionary[formando.Id].HoraInicio >= aulaVM.HoraInicio && faltasDictionary[formando.Id].HoraFim <= aulaVM.HoraFim)
+				{
+					falta.HoraInicio = faltasDictionary[formando.Id].HoraInicio;
+					falta.HoraFim = faltasDictionary[formando.Id].HoraFim;
+					falta.Duracao = Convert.ToInt32((faltasDictionary[formando.Id].HoraFim.Subtract(faltasDictionary[formando.Id].HoraInicio)).TotalMinutes);
+				}
+				else
+				{
+					continue;
+				}
+				falta.FormandoId = formando.Id;
+				falta.AulaId = aulaVM.Id;
+				falta.Justificada = faltasDictionary[formando.Id].Justificada;
+
+				if (selectedFiles.ContainsKey(formando.Id) && falta.Justificada) //adiciona o ficheiro de justificao para cada aluno na base de dados
+				{
+					falta.Anexo = FileMngSrv.FilePath(selectedFiles[formando.Id], "justificacao", formando.Id, aulaVM.Id);
+					await FileMngSrv.UploadFile(selectedFiles[formando.Id], falta.Anexo);
+				}
+				else if (!selectedFiles.ContainsKey(formando.Id) && faltasEstadoInicial.Exists(x => x.FormandoId == formando.Id))
+				{
+					falta.Anexo = faltasDictionary[formando.Id].Anexo;
+				}
+
+				if (!faltasEstadoInicial.Exists(x => x.FormandoId == formando.Id))//verifica se é uma falta nova
+				{
+					faltasNovas.Add(falta);
+				}
+				else if (!faltasEstadoInicial.Where(x => x.FormandoId == formando.Id).FirstOrDefault().Equal(falta))//verifica se a falta já existia e se foi modificada
+				{
+					faltasUpdate.Add(falta);
+				}
+			}
+			else if (!faltasDictionary[formando.Id].Falta && faltasEstadoInicial.Exists(x => x.FormandoId == formando.Id))//para o caso que a uma falta seja retirada
+			{
+				faltasParaRemover.Add(faltasEstadoInicial.Where(x => x.FormandoId == formando.Id).FirstOrDefault());
+			}
+			if (form != null)
+			{
+				await form.OnValidSubmit.InvokeAsync();
+			}
+		}
+
+		if (faltasNovas.Count() > 0)
+			faltaData.Create(faltasNovas);
+		if (faltasUpdate.Count() > 0)
+			faltaData.Update(faltasUpdate);
+		if (faltasParaRemover.Count() > 0)
+		{
+			foreach (var falta in faltasParaRemover)
+			{
+				if (falta.Anexo != null) { FileManagerService.RemoveFile(falta.Anexo); }
+			}
+			faltaData.Remove(faltasParaRemover);
+		}
+
+		LoadData();//actualiza as faltasEstadoInicial e o dicionário após submeter as faltas para caso seja preciso marcar mais faltas
+
+		if (authStateTask.Result.User.IsInRole("Administrador"))
+		{
+			navManager.NavigateTo($"Calendar/{aulaVM.TurmaId}");
+			notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Aula actualizada com sucesso", Duration = 2000 });
+		}
+		else
+		{
+			navManager.NavigateTo($"Sumarios/{aulaVM.TurmaId}");
+			notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Aula actualizada com sucesso", Duration = 2000 });
+		}
+	}
+
+	public class FaltaFormando
+	{
+		public bool Falta { get; set; }
+		public DateTime HoraInicio { get; set; }
+		public DateTime HoraFim { get; set; }
+		public bool Justificada { get; set; }
+		public string Anexo { get; set; }
+		public int Duracao { get; set; }
+
+		public static FaltaFormando AtribuirFalta(Falta falta)
+		{
+			var faltaFormando = new FaltaFormando
+			{
+				Falta = true,
+				HoraInicio = falta.HoraInicio,
+				HoraFim = falta.HoraFim,
+				Justificada = falta.Justificada,
+				Anexo = falta.Anexo,
+				Duracao = falta.Duracao
+			};
+			return faltaFormando;
+		}
+	}
+
+	void OnInputJustificacao(InputFileChangeEventArgs e, int formandoId)
+	{
+		selectedFile = e.File;
+		selectedFiles.Add(formandoId, selectedFile);
+		this.StateHasChanged();
+	}
+
+	async void DownloadAnexo(Formando formando, DateTime date)
+	{
+		string data = FileMngSrv.PathToBase64String(faltasDictionary[formando.Id].Anexo);
+		await JSRuntime.InvokeAsync<object>("saveAsFile", $"Justificação_{formando.Nome}_{date.ToShortDateString()}", data);
+	}
+}

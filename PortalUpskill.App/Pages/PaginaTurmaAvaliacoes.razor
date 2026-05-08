@@ -1,0 +1,435 @@
+﻿@page "/TurmaAvaliacoes/{TurmaId:int}"
+
+@inject IFormandoData formandoData
+@inject IAvaliacaoModularData avaliacaoModularData
+@inject IModuloData moduloData
+@inject ITurmaData turmaData
+@inject IPessoaData pessoaData
+@inject IJSRuntime JSRuntime
+@inject RefreshService refreshService
+@inject FileManagerService FMS
+
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Inputs
+
+<style>
+	form .row {
+	margin-bottom: 16px;
+	}
+</style>
+
+<div class="cardstyle">
+	<h2>Avaliações dos módulos da turma @turma.Nome</h2>
+
+	<h3>Selecione um módulo</h3>
+
+	<RadzenDropDown Data="@modulos" @bind-Value="selectedModuloId"
+	AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+	ValueProperty="Id" TextProperty="Nome" AllowClear="true" Change=@OnModuloSelected>
+	</RadzenDropDown>
+	<!--Início #004-->
+	@if (selectedModuloId != 0)
+	{
+
+
+		<div class="row mx-0" style="margin-bottom: 2rem;">
+			<AuthorizeView Roles="Secretariado, Administrador, Coordenador">
+				<Authorized>
+					<RadzenFieldset class="col-md-4 d-flex justify-content-center" Text="Upload da Pauta de Avaliação">
+						<div>
+							<p><b>Selecione um ficheiro para importar a pauta</b></p>
+							<InputFile OnChange="OnInputExcel" />
+							<p style="margin-top: 1rem;">@msg</p>
+							<p style="font-size: small"><i>@fileMsg2</i></p>
+						</div>
+					</RadzenFieldset>
+				</Authorized>
+			</AuthorizeView>
+			<RadzenFieldset class="col-md-4 d-flex justify-content-center" Text="Download da Pauta de Avaliação">
+				<div>
+					<p><b>Download da pauta</b></p>
+					<!--INICIO #008-->
+					<!--Se não houver ficheiro, o botão Download está disabled, caso contrário , enabled-->
+					<RadzenButton class="w-150 mx-2" Text="Download" ButtonStyle="ButtonStyle.Primary" Click="DownloadAvaliacao" Disabled="@string.IsNullOrEmpty(fileMsg1)" />
+					<!-- <RadzenButton class="w-150 mx-2" Text="Download" ButtonStyle="ButtonStyle.Primary" Click="DownloadAvaliacao" /> -->
+					<p style="margin-top: 1rem;">@fileMsg1</p>
+				</div>
+			</RadzenFieldset>
+
+
+
+
+			<div style="display: flex; flex-direction: column;justify-content: space-between;margin-top: 11px;">
+				<AuthorizeView Roles="Secretariado, Administrador, Coordenador">
+					<Authorized>
+						<div style="padding: 26px">
+							<RadzenButton Size="ButtonSize.Small" class="w-150 mx-2" Text="Download Tabela" ButtonStyle="ButtonStyle.Success" Click="DownloadTabela" />
+						</div>
+					</Authorized>
+				</AuthorizeView>
+				<AuthorizeView Roles="Secretariado, Administrador">
+					<Authorized>
+						<div style="padding: 26px">
+							<RadzenButton Size="ButtonSize.Small" class="w-150 mx-2" Text="Reset Pauta" ButtonStyle="ButtonStyle.Danger" Click="ResetPauta" />
+						</div>
+					</Authorized>
+				</AuthorizeView>
+			</div>
+
+		</div>
+
+		@*INICIO #008*@
+		@*Nova Tabela em SyncFusion para as Avaliacoes*@
+
+		<SfGrid TValue="Formando" DataSource="@formandos" AllowPaging="true" Height="315" Toolbar="@(new List<string>() { "Edit", "Update", "Cancel" })">
+
+
+			<GridEditSettings AllowEditing="true" AllowAdding="false" AllowDeleting="false" Mode="EditMode.Dialog"></GridEditSettings>
+			<GridColumns>
+				<!-- Read-only Nome column -->
+				<GridColumn Field="@nameof(Formando.Nome)" 
+				HeaderText="Nome" 
+				IsPrimaryKey="true"
+				AllowEditing="false"></GridColumn>
+
+				<!-- Editable Nota Final column -->
+				<GridColumn HeaderText="Nota Final do Módulo" 
+				EditType="EditType.DefaultEdit"
+				AllowEditing="@editar">
+					<Template>
+						@{
+							var formando = (Formando)context;
+							if (formando.DictAvaliacaoModular.ContainsKey(selectedModuloId))
+							{
+								<span>@formando.DictAvaliacaoModular[selectedModuloId].NotaFinal</span>
+							}
+							else
+							{
+								<span>Sem nota</span>
+							}
+						}
+					</Template>
+				</GridColumn>
+
+				<!-- Read-only Comentários column -->
+				<GridColumn HeaderText="Comentários" AllowEditing="@editar" EditType="EditType.DefaultEdit">
+					<Template>
+						@{
+							var formando = (Formando)context;
+							if (formando.DictAvaliacaoModular.ContainsKey(selectedModuloId) && 
+						formando.DictAvaliacaoModular[selectedModuloId].Comentarios != null)
+							{
+								<span>@formando.DictAvaliacaoModular[selectedModuloId].Comentarios</span>
+							}
+							else
+							{
+								<span>Sem comentários</span>
+							}
+						}
+					</Template>
+				</GridColumn>
+			</GridColumns>
+		</SfGrid>
+
+		@*FIM #008*@
+		<!--Fim #004-->
+
+		@*
+			INICIO #008
+			Comentei a tabela antiga, just in case
+		*@
+		<!--
+		<RadzenGrid Data="@formandos"
+		TItem="Formando"
+		AllowSorting="true"
+		AllowFiltering="true"
+		FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+		AllowPaging="true"
+		PageSize="10">
+		<Columns>
+		<RadzenGridColumn TItem="Formando" Property="Nome" Title="Nome" />
+		<RadzenGridColumn TItem="Formando" Property="" Title="Nota Final Módulo" Sortable="false">
+		<Template Context="Formando">
+		@if (Formando.DictAvaliacaoModular.ContainsKey(selectedModuloId))
+		{
+		<span>@(Formando.DictAvaliacaoModular[selectedModuloId].NotaFinal.ToString("0.##"))</span>
+		}
+		else
+		{
+		<span>Sem nota</span>
+		}
+		</Template>
+		</RadzenGridColumn>
+		<RadzenGridColumn TItem="Formando" Property="" Title="Comentários" Sortable="false">
+		<Template Context="Formando">
+		@if (Formando.DictAvaliacaoModular.ContainsKey(selectedModuloId) && Formando.DictAvaliacaoModular[selectedModuloId].Comentarios != null)
+		{
+		<span>@(Formando.DictAvaliacaoModular[selectedModuloId].Comentarios)</span>
+		}
+		else
+		{
+		<span>Sem comentários</span>
+		}
+		</Template>
+		</RadzenGridColumn>
+		</Columns>
+		</RadzenGrid>
+		-->
+		@*FIM #008*@
+
+	}
+</div>
+
+<!-- INÍCIO #008 -->
+<div class="row justify-content-center">
+	<div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+		<!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
+		<AuthorizeView Roles="Administrador, Secretariado">
+			<Authorized>
+				<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Avaliacao"))" />
+			</Authorized>
+		</AuthorizeView>
+		<AuthorizeView Roles="Coordenador">
+			<Authorized>
+				<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Avaliacao"))" />
+			</Authorized>
+		</AuthorizeView>
+		<AuthorizeView Roles="Formador">
+			<Authorized>
+				<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"AvaliacaoPorFormador"))" />
+			</Authorized>
+		</AuthorizeView>
+	</div>
+</div>
+<!-- FIM -->
+
+@code {
+	void OnQueryCellClick()
+	{
+		
+	}
+	private bool editar;
+
+	void CalcularEditarStatus()
+	{
+		// Verifica se qualquer formando tem uma avaliação para o módulo selecionado
+		editar = !(formandos.Any(f => f.DictAvaliacaoModular.ContainsKey(selectedModuloId)));
+	}
+
+	List<Modulo> modulos;
+	List<Formando> formandos = new List<Formando>();
+	List<Formando> formandosNotaEstadoInicial;
+	List<Formando> formandosNotasUpdate;
+	List<Formando> formandosNotasCreate;
+	Turma turma;
+
+	[CascadingParameter]
+	Task<AuthenticationState> authStateTask { get; set; }
+
+	int selectedModuloId;
+	int selectedCursoId;
+	int formadorId;
+	string fileMsg1 = "", fileMsg2 = "";
+
+	[Parameter]
+	public int TurmaId { get; set; }
+
+	// INICIO #008
+	// Para poder editar as notas
+	private string GetNotaFinalExpression()
+	{
+		return "";
+	}
+	// FIM
+
+	protected override async Task OnInitializedAsync()
+	{
+		string user = (await authStateTask).User.Identity.Name;
+		Pessoa pessoa = new Pessoa();
+		pessoa = pessoaData.GetByEmail(user);
+
+		if (pessoa.Perfil.Id == 3)
+		{
+			modulos = moduloData.GetModulosComFormadorByTurma(TurmaId).Where(m => m.Formador.Id == pessoa.Id).ToList();
+		}
+		else
+		{
+			modulos = moduloData.GetModulosComFormadorByTurma(TurmaId);
+		}
+		formandos = formandoData.GetAllByTurmaWithAvaliacao(TurmaId);
+		turma = turmaData.GetById(TurmaId);
+		selectedCursoId = (int)turma.CursoId;
+	}
+
+	async Task OnModuloSelected()
+	{
+		//cria uma cópia dos formandos para gravar as notas iniciais para comparar mais tarde
+		formandosNotaEstadoInicial = new List<Formando>(formandos.Count);
+		formandos.ForEach(f => formandosNotaEstadoInicial.Add(new Formando(f)));
+		if (modulos.Count() != 0 && selectedModuloId != 0)
+		{
+			formadorId = modulos.Single(m => m.Id == selectedModuloId).Formador.Id;
+		}
+		fileMsg1 = ""; fileMsg2 = "";
+		if (FMS.FileExists(turma.Nome, selectedModuloId))
+		{
+			fileMsg1 = $"pauta_turma_{turma.Nome}_M{ selectedModuloId}.xlsm";
+			fileMsg2 = "Já existe uma pauta registada, caso queira atualizar selecione a nova pauta";
+		}
+		CalcularEditarStatus();
+	}
+
+	IBrowserFile selectedExcel;
+	string msg = "", path;
+
+	async void OnInputExcel(InputFileChangeEventArgs e)
+	{
+		selectedExcel = e.File;
+		this.StateHasChanged();
+
+		//guarda o path do ficheiro
+		path = FMS.ExcelPath(selectedExcel, turma.Nome, selectedModuloId);
+		if (path != "")
+		{
+			msg = "";
+			//cria o ficheiro no path anterior
+			await FMS.UploadFile(selectedExcel, path);
+			ImportExcel();
+
+			formandosNotasUpdate = new List<Formando>();
+			formandosNotasCreate = new List<Formando>();
+			foreach (var formando in formandos)
+			{
+				if (formando.DictAvaliacaoModular.Count != 0)
+				{
+					//verifica se existe alguma nota no estado inicial
+					if (formandosNotaEstadoInicial.Single(f => f.Id == formando.Id).DictAvaliacaoModular.ContainsKey(selectedModuloId))
+					{
+						//verifica se a nota é diferente do estado inicial => UPDATE (se for igual não acontece nada)
+						if (formando.DictAvaliacaoModular[selectedModuloId].NotaFinal != formandosNotaEstadoInicial.Single(f => f.Id == formando.Id).DictAvaliacaoModular[selectedModuloId].NotaFinal)
+						{
+							formandosNotasUpdate.Add(formando);
+						}
+					}
+					//verifica se existe uma nota nova => CREATE
+					else if (formando.DictAvaliacaoModular.ContainsKey(selectedModuloId) && formando.DictAvaliacaoModular[selectedModuloId].NotaFinal != 0)
+					{
+						formandosNotasCreate.Add(formando);
+					}
+				}
+			}
+
+			//cria ou faz update as notas dos formandos na bd
+			if (formandosNotasCreate.Count() > 0)
+				formandoData.CreateAvaliacaoModular(formandosNotasCreate, selectedModuloId, formadorId);
+			if (formandosNotasUpdate.Count() > 0)
+				formandoData.UpdateAvaliacaoModular(formandosNotasUpdate, selectedModuloId);
+
+			if (formandosNotasCreate.Count() > 0 || formandosNotasUpdate.Count() > 0)
+				notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Operação efetuada com sucesso!", Duration = 4000 });
+			else
+				notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Ou as notas já estão em sistema ou o ficheiro está vazio.", Duration = 4000 });
+
+			//faz load aos formandos
+			formandos = formandoData.GetAllByTurmaWithAvaliacao(TurmaId);
+			fileMsg1 = $"pauta_turma_{turma.Nome}_M{selectedModuloId}.xlsm";
+			StateHasChanged();
+		}
+		else
+		{
+			//aparece a seguinte mensagem se o ficheiro for diferente de uma das extensoes de baixo
+			msg = "O ficheiro que seleccionou não é do tipo .xlsx/.xls/.xlsm";
+		}
+	}
+
+	public void ImportExcel()
+	{
+		if (path != "")
+		{
+			//Started reading the Excel path.
+			using (XLWorkbook workbook = new XLWorkbook(path))
+			{
+				IXLWorksheet worksheet = workbook.Worksheet(1);
+
+				//começa a ler o ficheiro na linha 9
+				var currentRow = worksheet.Row(9);
+				while (!currentRow.Cell(2).IsEmpty())
+				{
+					//vai buscar o nome à pauta de cada formando linha a linha
+					string nome = currentRow.Cell(2).GetValue<string>();
+					//faz o split do nome de cima
+					string[] nomeSplit = nome.Split(' ');
+
+					//faz a procura pelo nome da pauta na lista de formandos
+					foreach (var formando in formandos)
+					{
+						bool nomeIgual = false;
+						bool match = false;
+						do
+						{
+							for (int i = 0; i < nomeSplit.Length; i++)
+							{
+								if (formando.Nome.Contains(nomeSplit[i]))
+								{
+									nomeIgual = true;
+									if (i == (nomeSplit.Length - 1))
+									{
+										if (currentRow.Cell(23).CachedValue.ToString() != "")//!currentRow.Cell(23).IsEmpty()
+										{
+											formando.DictAvaliacaoModular.Remove(selectedModuloId);
+											//guarda a nota final do modulo no dicionário para o respectivo formando
+											formando.DictAvaliacaoModular.Add(selectedModuloId, new AvaliacaoModular() { NotaFinal = Convert.ToInt32(currentRow.Cell(23).CachedValue) });
+
+											if (!currentRow.Cell(24).IsEmpty())
+											{
+												//guarda os comentários no dicionário
+												formando.DictAvaliacaoModular[selectedModuloId].Comentarios = currentRow.Cell(24).GetValue<string>();
+											}
+										}
+										nomeIgual = false;//serve para sair do while
+										match = true;//o formando foi encontrado e serve para dar break ao foreach
+									}
+								}
+								else
+								{
+									nomeIgual = false;
+									break;
+								}
+							}
+						} while (nomeIgual == true);
+
+						//se o formando for encontrado faz break ao foreach
+						if (match == true) break;
+					}
+
+					//passa para a linha seguinte
+					currentRow = currentRow.RowBelow();
+				}
+			}
+		}
+	}
+
+	async void DownloadAvaliacao()
+	{
+		string data = FMS.PathToBase64String(selectedModuloId, turma.Nome);
+		if (data != "")
+		{
+			await JSRuntime.InvokeAsync<object>("saveAsFile", $"pauta_turma_{turma.Id}_M{selectedModuloId}.xlsm", data);
+		}
+		else
+		{
+			notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Não existe nenhum documento gravado em sistema!", Duration = 4000 });
+		}
+	}
+	//inicio #004
+	async Task ResetPauta()
+	{
+		//introduzir logica aqui #004
+	}
+
+    async Task DownloadTabela()
+    {
+        //introduzir logica aqui #004
+    }
+	//fim #004
+}

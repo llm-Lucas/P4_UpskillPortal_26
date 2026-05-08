@@ -1,0 +1,338 @@
+﻿@inject ITurmaData TurmaData
+@inject ICursoData cursoData
+@inject RefreshService refreshService
+
+<div class="cardstyle">
+    <EditForm Model="@turmaVM" OnValidSubmit="CheckTurma">
+        <DataAnnotationsValidator />
+        <RadzenFieldset class="no-title-fieldset">
+
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Nome" />
+                </div>
+                <div class="col-md-8">
+                    <RadzenTextBox class="form-control w-100" @bind-Value="@turmaVM.Nome" />
+                </div>
+            </div>
+            <!--INÍCIO #004-->
+            <!-- falta implementar a lógica com BE -->
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Ano Letivo" />
+                </div>
+                <div class="col-md-8">
+                    <RadzenDropDown class="form-control"
+                                    TValue="int?" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    ValueProperty="Id" TextProperty="Nome" AllowClear="false">
+                        <Template Context="curso">
+                            <!--introduzir logica para os anos letivos aqui-->
+                        </Template>
+                    </RadzenDropDown>
+                </div>
+            </div>
+            <!--FIM #004-->
+
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Data de Início" />
+                </div>
+                <div class="col-md-8">
+                    <RadzenDatePicker class="w-100" DateFormat="dd/MM/yyyy" Placeholder="dd/mm/aaaa" ShowTime="false" @bind-Value="turmaVM.DataInicioCurso" />
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Data de Fim" />
+                </div>
+                <div class="col-md-8">
+                    <RadzenDatePicker class="w-100" DateFormat="dd/MM/yyyy" Placeholder="dd/mm/aaaa" ShowTime="false" @bind-Value="turmaVM.DataFimCurso" />
+                </div>
+            </div>
+
+
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Tempo Lectivo" />
+                </div>
+                <div class="col-md-4 offset-md-4 ">
+                    <RadzenNumeric class="w-100" TValue="int" Min="0" Step="15" @bind-Value="turmaVM.TempoLectivo" />
+                </div>
+            </div>
+
+            <div class="row form-group">
+                <div class="col-md-8 align-items-center d-flex">
+                    <RadzenLabel Text="Percentagem máx de faltas justificadas" />
+                </div>
+                <div class="col-md-4">
+                    <!--#004 falta introduzir bind value logica com BE-->
+                    <RadzenNumeric class="w-100" TValue="int" Min="0" Step="1" Max="100"/>
+                </div>
+            </div>
+
+            <div class="row form-group">
+                <div class="col-md-8 align-items-center d-flex">
+                    <RadzenLabel Text="Percentagem máx de faltas injustificadas" />
+                </div>
+                <div class="col-md-4">
+                    <!--#004 falta introduzir bind value logica com BE-->
+                    <RadzenNumeric class="w-100" TValue="int" Min="0" Step="1" Max="100" />
+                </div>
+            </div>
+
+            <!--INÍCIO #004-->
+            <!-- falta implementar a lógica com BE 
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Segunda-feira" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenLabel Text="Início" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenLabel Text="Fim" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+            </div>
+
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Terça-feira" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+            </div>
+
+
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Quarta-feira" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+            </div>
+
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Quinta-feira" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+            </div>
+
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Sexta-feira" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+            </div>
+
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Sábado" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+            </div>
+
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex">
+                    <RadzenLabel Text="Domingo" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+
+                <div class="col-md-4">
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
+                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                </div>
+            </div>-->
+            <!--FIM #004-->
+
+
+            @if (Id != 0)
+            {
+                <div class="row form-group">
+                    <div class="col-md-6 align-items-center d-flex">
+                        <RadzenLabel Text="Curso" />
+                    </div>
+                    <div class="col-md-6">
+                        <RadzenTextBox class="form-control w-100" @bind-Value="@turma.Curso.Nome" />
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="row form-group">
+                    <div class="col-md-6 align-items-center d-flex">
+                        <RadzenLabel Text="Curso" />
+                    </div>
+                    <div class="col-md-6">
+                        <RadzenDropDown class="form-control" @bind-Value="@turmaVM.CursoId" Data="@cursos"
+                                        TValue="int?" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                        ValueProperty="Id" TextProperty="Nome" AllowClear="false" Change="@(() => CursoAlterado.InvokeAsync(turmaVM.CursoId))">
+                            <Template Context="curso">
+                                <span>@curso.Nome</span>
+                            </Template>
+                        </RadzenDropDown>
+                    </div>
+                </div>
+            }
+            <!-- INÍCIO #004 -->
+            <div class="row justify-content-center">
+                <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px; gap: 16px;">
+                    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Turmas"))" />
+                    <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Gravar" />
+                </div>
+            </div>
+            <!-- FIM #004-->
+
+        </RadzenFieldset>
+    </EditForm>
+</div>
+
+@code {
+    TurmaViewModel turmaVM = new TurmaViewModel();
+
+    List<Curso> cursos = new List<Curso>();
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public EventCallback<Turma> SendTurma { get; set; }
+
+    [Parameter]
+    public EventCallback<int?> CursoAlterado { get; set; }
+
+    Turma turma = new Turma();
+
+    protected override async Task OnInitializedAsync()
+    {
+        refreshService.Refresh += () => ResetFields();
+        cursos = cursoData.GetAllWithModulos();
+        if (Id != 0)
+        {
+            turma = TurmaData.GetById(Id);
+            turmaVM.FromModel(turma);
+        }
+    }
+
+    async void CheckTurma(EditContext editContext)
+    {
+        //pedido de confirmação quando o utilizador está a editar um formando
+        if (Id != 0 && editContext.Validate())
+        {
+            await ConfirmEdit();
+        }
+        else//actua quando se insere um novo formando
+        {
+            ValidacaoTurma();
+        }
+    }
+
+    void ValidacaoTurma()
+    {
+        Turma novaTurma = turmaVM.CreateModel();
+        SendTurma.InvokeAsync(novaTurma);
+    }
+
+    void ResetFields()
+    {
+        turmaVM = new TurmaViewModel();
+    }
+
+    void ShowNotification(NotificationMessage message)
+    {
+        notificationService.Notify(message);
+    }
+
+    async Task ConfirmEdit() => await dialogService.OpenAsync("Confirmação de edição", ds =>
+    @<div>
+        <p Style="margin-bottom: 1rem">Tem a certeza que pretende gravar as alterações que efetuou?</p>
+        <div class="row col-md-12 d-flex justify-content-center">
+            <RadzenButton class="w-150 mx-2" Text="Sim" ButtonStyle="ButtonStyle.Primary" Click="ValidacaoTurma" Style="margin-bottom: 10px;" />
+            <RadzenButton class="w-150 mx-2" Text="Não" ButtonStyle="ButtonStyle.Secondary" Click="() => ds.Close(false)" Style="margin-bottom: 10px;" />
+        </div>
+    </div>
+    );
+
+}
+

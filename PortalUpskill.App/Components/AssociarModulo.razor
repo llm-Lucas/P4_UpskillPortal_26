@@ -1,0 +1,108 @@
+﻿@page "/AssociarModulo/{FormadorId:int}"
+
+@inject RefreshService refreshService
+@inject IFormadorData formadorData
+@inject IModuloData moduloData
+
+<h2>Associar Módulos</h2>
+
+<h3>Formador: @Formador.Nome</h3>
+
+<div class="cardstyle">
+	<RadzenFieldset Text="Módulos Associados ao Formador">
+		@if (Formador.Modulos.Count == 0)
+		{
+<p>Não existem Módulos associados a este formador.</p>
+					<p>Procure um módulo abaixo e clique em "Adicionar".</p> }
+									else
+									{
+					<table class="table-borderless table-sm">
+						@foreach (var modulo in Formador.Modulos)
+						{
+	<tr>
+		<td>
+			<RadzenButton ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => RemoveModulo(modulo))" Icon="remove" />
+		</td>
+		<td>
+			@modulo.Nome
+		</td>
+	</tr>}
+					</table>}
+	</RadzenFieldset>
+
+	<div class="row justify-content-center">
+		<div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+			<RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Gravar" Click=@(() => AtualizarModulos(Formador)) />
+		</div>
+	</div>
+</div>
+<div class="cardstyle">
+	<div class="my-4">
+		<ListarModulos OutgoingModulo=@ReceiveModulo Mode="Add" />
+	</div>
+</div>
+
+@code { [Parameter]
+			public int FormadorId { get; set; }
+
+			Formador Formador = new Formador();
+			List<Modulo> Modulos = new List<Modulo>();
+
+			Formador FormadorEstadoInicial = new Formador();
+			List<Modulo> ModulosEstadoInicial = new List<Modulo>();
+
+			protected override async Task OnInitializedAsync()
+			{
+				if (FormadorId != 0)
+				{
+					Formador = formadorData.GetById(FormadorId);
+
+					//Guardar a lista original dos módulos caso haja uma alteração na listagem
+					FormadorEstadoInicial.Modulos = new List<Modulo>();
+					foreach (var modulo in Formador.Modulos)
+					{
+						FormadorEstadoInicial.Modulos.Add(modulo);
+					}
+				}
+			}
+
+			///Trata da lógica necessária para adicionar outras entidades eg: adicionar modulos a formadores
+			private void ReceiveModulo(int ModuloId)
+			{
+				if (Formador.Modulos.FirstOrDefault(m => m.Id == ModuloId) != null)
+				{
+					notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Este Módulo já está associado ao Formador", Duration = 4000 });
+				}
+				else
+				{
+					Formador.Modulos.Add(moduloData.GetById(ModuloId));
+				}
+			}
+
+			/// <summary>
+			/// Remove o módulo passado como argumento do Formador que a página está a editar
+			/// </summary>
+			/// <param name="modulo">Modulo a remover</param>
+			private void RemoveModulo(Modulo modulo)
+			{
+				Formador.Modulos.Remove(modulo);
+			}
+
+			void AtualizarModulos(Formador formador)
+			{
+				var modulosQueEntraram = Formador.Modulos.Except(FormadorEstadoInicial.Modulos).ToList();
+				var modulosQueSairam = FormadorEstadoInicial.Modulos.Except(Formador.Modulos).ToList();
+
+				if (modulosQueSairam.Count > 0)
+				{
+					formadorData.RemoveModulos(formador, modulosQueSairam);
+				}
+				if (modulosQueEntraram.Count > 0)
+				{
+					formadorData.InsertModulos(formador, modulosQueEntraram);
+				}
+
+				notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = $"Operação efetuada com sucesso.", Duration = 4000 });
+				//navManager.NavigateTo($"/Formadores");
+				navManager.NavigateTo($"Formadores");
+			} }

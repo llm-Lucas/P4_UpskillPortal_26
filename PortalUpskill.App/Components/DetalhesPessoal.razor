@@ -1,0 +1,93 @@
+﻿@page "/Detalhes/Colaborador/{ColaboradorId:int}"
+
+@inject IPessoalData pessoalData
+@inject ICNAEFData CNAEFData
+@inject IHabilitacoesData HabilitacoesData
+@inject IPaisesData PaisesData
+@inject FileManagerService FileMngSrv
+@inject IJSRuntime JSRuntime
+
+<span>Nome Completo:</span>
+<h2>@colaborador.Nome</h2>
+<span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@email">Enviar email</a>
+
+<RadzenCard Style="margin-bottom: 20px;">
+    <div class="row">
+        <div class="col-md-6">
+            <div>Data de Nascimento:</div>
+            <b>@String.Format("{0:d}", colaborador.DataNascimento)</b>
+            <div style="margin-top:20px">Email:</div>
+            <b>@colaborador.Email</b>
+            <div style="margin-top:20px">Género:</div>
+            <b>@colaborador.Sexo</b>
+            <div style="margin-top:20px">Cartão de Cidadão:</div>
+            <b>@colaborador.CC</b>
+            <div style="margin-top:20px">NIF:</div>
+            <b>@colaborador.NIF</b>
+            <div style="margin-top:20px">Contacto Telemóvel:</div>
+            <b>@colaborador.ContactoTelemovel</b>
+            <div style="margin-top:20px">Contacto Telefone:</div>
+            <b>@colaborador.ContactoTelefone</b>
+            <br />
+            <img src="@foto" width="100" alt="" style="margin-top:1em;" />
+        </div>
+        <div class="col-md-6">
+            <div>Morada:</div>
+            <b>@colaborador.Morada</b>
+            <div style="margin-top:20px">Código Postal:</div>
+            <b>@colaborador.CP</b>
+            <div style="margin-top:20px">CNAEF:</div>
+            <b>@cnaef</b>
+            <div style="margin-top:20px">Habilitações Literárias:</div>
+            <b>@habilitacoesLiterarias</b>
+            <div style="margin-top:20px">Nacionalidade:</div>
+            <b>@nacionalidade</b>
+            <br />
+            @if (colaborador.CV != null)
+            {
+                <RadzenButton Click="VisualizarCV" Text="Visualizar o currículo" Style="margin-top:1em;" />
+            }
+        </div>
+    </div>
+</RadzenCard>
+
+@code {
+    [Parameter] public int ColaboradorId { get; set; }
+
+    Pessoal colaborador = new Pessoal();
+
+    string foto, cnaef, habilitacoesLiterarias, nacionalidade;
+
+    string email;
+
+    protected async override void OnInitialized()
+    {
+        colaborador = pessoalData.GetById(ColaboradorId);
+
+        string mail = colaborador.Email;
+
+        email = $"mailto:{mail}";
+
+        if (colaborador.CodigoCNAEF != null)
+        {
+            cnaef = CNAEFData.GetById(Convert.ToInt32(colaborador.CodigoCNAEF)).AreaFormacao;
+        }
+        if (colaborador.HabilitacoesLiterarias != 0)
+        {
+            habilitacoesLiterarias = HabilitacoesData.GetById(colaborador.HabilitacoesLiterarias).HabilitacoesLiterarias;
+        }
+        if (colaborador.Nacionalidade != null)
+        {
+            nacionalidade = PaisesData.GetById(colaborador.Nacionalidade).nome;
+        }
+        if (colaborador.Foto != null)
+        {
+            foto = FileMngSrv.PathToBase64String(colaborador.Foto);
+        }
+    }
+
+    public async void VisualizarCV()
+    {
+        await JSRuntime.InvokeAsync<object>("open", new CancellationToken(), $"CV/{colaborador.Id}", "_blank");
+    }
+}

@@ -1,0 +1,143 @@
+﻿@page "/Detalhes/Formador/{FormadorId:int}"
+
+@inject IFormadorData FormadorData
+@inject ICNAEFData CNAEFData
+@inject IHabilitacoesData HabilitacoesData
+@inject IPaisesData PaisesData
+@inject FileManagerService FileMngSrv
+@inject IJSRuntime JSRuntime
+
+<span>Nome Completo:</span>
+<h2>@formador.Nome</h2>
+<br />
+
+@*INICIO #008*@
+@*Fotografia Formador*@
+<div>
+    <img src="@foto" width="100" alt="" style="margin-top:1em;" />
+</div>
+
+@*Botao para fazer Download do CV*@
+<RadzenButton Text="Download CV" Icon="" Click="@DownloadCv" Style="margin-bottom:20px" />
+<br />
+@*FIM #008*@
+
+<span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@email">Enviar email</a>
+
+<RadzenCard Style="margin-bottom: 20px;">
+	<div class="row">
+		<div class="col-md-6">
+			<div>Data de Nascimento:</div>
+			<b>@String.Format("{0:d}", formador.DataNascimento)</b>
+			<div style="margin-top:20px">Email:</div>
+			<b>@formador.Email</b>
+			<div style="margin-top:20px">Género:</div>
+			<b>@formador.Sexo</b>
+			<div style="margin-top:20px">Cartão de Cidadão:</div>
+			<b>@formador.CC</b>
+			<div style="margin-top:20px">NIF:</div>
+			<b>@formador.NIF</b>
+			<div style="margin-top:20px">Contacto Telemóvel:</div>
+			<b>@formador.ContactoTelemovel</b>
+			<div style="margin-top:20px">Contacto Telefone:</div>
+			<b>@formador.ContactoTelefone</b>
+			<br />
+			<img src="@foto" width="100" alt="" style="margin-top:1em;" />
+		</div>
+		<div class="col-md-6">
+			<div>Morada:</div>
+			<b>@formador.Morada</b>
+			<div style="margin-top:20px">Código Postal:</div>
+			<b>@formador.CP</b>
+			<div style="margin-top:20px">CCP:</div>
+			@if (formador.CCP)
+			{<b>Sim</b> }
+			else
+			{ <b>Não</b>}
+			<div style="margin-top:20px">CNAEF:</div>
+			<b>@cnaef</b>
+			<div style="margin-top:20px">Habilitações Literárias:</div>
+			<b>@habilitacoesLiterarias</b>
+			<div style="margin-top:20px">Nacionalidade:</div>
+			<b>@nacionalidade</b>
+			<div style="margin-top:20px">Docente de Ensino Superior:</div>
+			@if (formador.DocenteEnsSuperior)
+			{<b>Sim</b> }
+			else
+			{ <b>Não</b>}
+			<div style="margin-top:20px">Estado:</div>
+			<b>@formador.Estado.Nome</b>
+			<br />
+			@if (formador.CV != null)
+			{
+				<RadzenButton Click="VisualizarCV" Text="Visualizar o currículo" Style="margin-top:1em;" />
+			}
+		</div>
+	</div>
+	<div class="row" style="margin-top:1em;">
+		<div class="col-md-12">
+			<h3>Histórico do Formador</h3>
+			<RadzenGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+						Data="@historicoFormador" TItem="EstadosFormador" ColumnWidth="200px">
+				<Columns>
+					<RadzenGridColumn TItem="EstadosFormador" Property="Estado.Nome" Title="Estado" />
+					<RadzenGridColumn TItem="EstadosFormador" Property="Data" Title="Data">
+						<Template Context="EstadosFormador">
+							@String.Format("{0:d}", EstadosFormador.Data)
+						</Template>
+					</RadzenGridColumn>
+					<RadzenGridColumn TItem="EstadosFormador" Property="Observacoes" Title="Observações" />
+				</Columns>
+			</RadzenGrid>
+		</div>
+	</div>
+</RadzenCard>
+
+@code {
+	[Parameter] public int FormadorId { get; set; }
+
+	Formador formador = new Formador();
+	List<EstadosFormador> historicoFormador = new List<EstadosFormador>();
+	string foto, cnaef, habilitacoesLiterarias, nacionalidade;
+
+	string email;
+
+	protected async override void OnInitialized()
+	{
+		formador = FormadorData.GetById(FormadorId);
+		historicoFormador = FormadorData.ObterHistoricoDoFormador(FormadorId);
+
+		string mail = formador.Email;
+		email = $"mailto:{mail}";
+
+		if (formador.CodigoCNAEF != null)
+		{
+			cnaef = CNAEFData.GetById(Convert.ToInt32(formador.CodigoCNAEF)).AreaFormacao;
+		}
+		if (formador.HabilitacoesLiterarias != 0)
+		{
+			habilitacoesLiterarias = HabilitacoesData.GetById(formador.HabilitacoesLiterarias).HabilitacoesLiterarias;
+		}
+		if (formador.Nacionalidade != null)
+		{
+			nacionalidade = PaisesData.GetById(formador.Nacionalidade).nome;
+		}
+		if (formador.Foto != null)
+		{
+			foto = FileMngSrv.PathToBase64String(formador.Foto);
+		}
+	}
+
+	public async void VisualizarCV()
+	{
+		await JSRuntime.InvokeAsync<object>("open", new CancellationToken(), $"CV/{formador.Id}", "_blank");
+	}
+
+	// INICIO #008
+	// Metodo para fazer download do CV
+	void DownloadCv()
+	{
+
+	}
+	// FIM #008
+}

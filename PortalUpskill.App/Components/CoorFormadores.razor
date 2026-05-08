@@ -1,0 +1,150 @@
+﻿@page "/Coor/Formadores/{TurmaId:int}"
+
+@inject IFormadorData FormadorData
+@inject ITurmaData TurmaData
+
+<div class="cardstyle">
+    <h2>Formadores da turma @turma.Nome</h2>
+
+    <!-- INICIO #008 -->
+    <!-- O RadzenButton nao sei como meter a funcionar -->
+    <!-- <RadzenButton Text="Enviar Email" Icon="email" Disabled="@(!selectedFormandos.Any())" Click="@EnviarEmailParaSelecionados" /> -->
+    <span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@BuildMailToLink()" disabled="@(selectedFormandos.Count == 0)">Enviar Email</a>
+    <!--FIM-->
+
+    <br />
+
+    <RadzenGrid Data="@formadores"
+                TItem="Formador"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowPaging="true"
+                PageSize="10">
+        <Columns>
+            @*  
+                INICIO #008
+                Adicionei checkbox para selecionar o mail da row especifica
+            *@
+            <RadzenGridColumn TItem="Formador" Title="Selecionar" Sortable="false" Filterable="false" Width="50px">
+                <HeaderTemplate>
+                    <RadzenCheckBox TValue="bool"
+                                    Value="@selectAll"
+                                    ValueChanged="@((bool value) => ToggleSelectAll(value))"
+                                    Change="@((args) => {})" /> <!-- required to trigger change -->
+                </HeaderTemplate>
+                <Template Context="formador">
+                    <RadzenCheckBox TValue="bool"
+                                    Value="@IsSelected(formador.Id)"
+                                    ValueChanged="@((bool checkedValue) => ToggleSelection(formador.Id, checkedValue))"
+                                    Change="@((args) => {})" />
+                </Template>
+            </RadzenGridColumn>
+            @*FIM*@
+            <RadzenGridColumn TItem="Formador" Property="Nome" Title="Nome" />
+            <RadzenGridColumn TItem="Formador" Property="Email" Title="Email" />
+            <RadzenGridColumn TItem="Formador" Property="ContactoTelemovel" Title="Telemovel" />
+            <RadzenGridColumn TItem="Formador" Property="ContactoTelefone" Title="Telefone" />
+            <RadzenGridColumn TItem="Formador" Property="Estado.Nome" Title="Estado" Sortable="false">
+                <Template Context="Formador">
+                    <span>@Formador.Estado.Nome</span>
+                </Template>
+            </RadzenGridColumn>
+            <!-- INICIO #008 -->
+            <!-- Comentei a coluna para Ver Opcoes do Formador -->
+            <!--
+            <RadzenGridColumn Title="Opções" TItem="Formador" Sortable="false" Filterable="false">
+                <Template Context="Formador">
+                    <RadzenButton Title="Visualizar detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesFormador>("Detalhes do Formador",
+                                                                                       new Dictionary<string, object>() { { "FormadorId", Formador.Id } },
+                                                                                       new DialogOptions(){ Width = "80%", Height = "90%" })) />
+                </Template>
+            </RadzenGridColumn>
+            -->
+            <!-- FIM -->
+        </Columns>
+    </RadzenGrid>
+</div>
+
+<!-- INÍCIO #008 -->
+<!-- Botão de Voltar -->
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Cursos"))" />
+    </div>
+</div>
+<!-- FIM -->
+
+@code {
+
+    // INICIO #008
+
+    HashSet<int> selectedFormandos = new();
+    bool selectAll = false;
+
+    bool IsSelected(int id) => selectedFormandos.Contains(id);
+
+    void ToggleSelection(int id, bool isSelected)
+    {
+        if (isSelected)
+        {
+            selectedFormandos.Add(id);
+        }
+        else
+        {
+            selectedFormandos.Remove(id);
+            selectAll = false; // Uncheck Select All if one is deselected
+        }
+    }
+
+    void ToggleSelectAll(bool isSelected)
+    {
+        selectAll = isSelected;
+
+        if (isSelected)
+        {
+            selectedFormandos = formadores.Select(f => f.Id).ToHashSet();
+        }
+        else
+        {
+            selectedFormandos.Clear();
+        }
+    }
+
+    string BuildMailToLink()
+    {
+        if (!selectedFormandos.Any()) return "#";
+
+        var selectedEmails = formadores
+            .Where(f => selectedFormandos.Contains(f.Id))
+            .Select(f => f.Email)
+            .Where(email => !string.IsNullOrWhiteSpace(email))
+            .Distinct();
+
+        var mailto = "mailto:" + string.Join(",", selectedEmails);
+        return mailto;
+    }
+
+    // FIM
+
+    List<Formador> formadores;
+    Turma turma;
+    string email;
+    string mail;
+
+    [Parameter]
+    public int TurmaId { get; set; } //id Turma
+
+    protected override async Task OnInitializedAsync()
+    {
+        formadores = FormadorData.GetFormadoresByTurma(TurmaId);
+        mail = "";
+        foreach (var formador in formadores)
+        {
+            mail = mail + formador.Email + ";";
+        }
+
+        email = $"mailto:{mail}";
+        turma = TurmaData.GetById(TurmaId);
+    }
+}

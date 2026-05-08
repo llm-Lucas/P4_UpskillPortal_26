@@ -1,0 +1,143 @@
+﻿@page "/Avaliacao"
+
+@inject ITurmaData turmaData
+
+<div class="cardstyle">
+    <h2>Avaliações</h2>
+
+    <RadzenGrid Data="@turmas"
+    TItem="Turma"
+    AllowSorting="true"
+    AllowFiltering="true"
+    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+    AllowPaging="true"
+    PageSize="10">
+
+        <Columns>
+            <RadzenGridColumn TItem="Turma" Property="Nome" Title="Nome" />
+
+            <RadzenGridColumn TItem="Turma" Property="Curso.Nome" Title="Curso">
+                <!-- INICIO #008-->
+                <!-- Dropdown de Curso Nome -->
+                <FilterTemplate>
+					<RadzenDropDown @bind-Value="@filtroCursoNome" TextProperty="Nome" ValueProperty="Id" Style="width:100%" Placeholder="Selecione um Curso"
+                    Change=@FiltrarPorCurso
+                    Data="@(@turmas.Select(t => t.Curso.Nome).Distinct())" />
+                </FilterTemplate>
+                <Template Context="Turma">
+                    @if (Turma.Curso != null)
+                    {
+                        @Turma.Curso.Nome
+                    }
+                </Template>
+            </RadzenGridColumn>
+
+            <!-- INICIO #008 -->
+            <!-- Campo do Ano Letivo -->
+            <RadzenGridColumn TItem="Turma" Property="AnoLetivo" Title="Ano Letivo">
+                @*INICIO #008*@
+                @*Filtro de ano letivo*@
+                <FilterTemplate>
+                    <RadzenDropDown @bind-Value="@filtroAnoLetivo" TextProperty="Nome" ValueProperty="Id" Style="width:100%" Placeholder="Filtrar por Ano Letivo" />
+                    @*Inserir Logica de Filtragem Ano Letivo
+                        - string filtroAnoLetivo ja existe
+                        - pode ser necessario colocar em mais sitios
+                        - metodo de filtrar - ApplyFilters()
+                        - ver os outros filtros, tem de ser semelhante
+                        - falta ano letivo na minha base de dados (Roman)
+                        - ver ListarFormando.razor
+
+                        Change="@(_ => ApplyFilters())"
+                        Data="@(estados.Select(t => t.Nome))" />
+                    *@
+                </FilterTemplate>
+                @*END #008*@
+                <Template Context="Turma">
+                    2022
+                </Template>
+            </RadzenGridColumn>
+            <!-- FIM #008 -->
+
+            <RadzenGridColumn TItem="Turma" Sortable="false" Filterable="false" Title="Avaliações">
+                <Template Context="Turma">
+
+                    <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Text="Modular" Click="@(() => navManager.NavigateTo($"TurmaAvaliacoes/{Turma.Id}"))" />
+                    <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Text="Final" Click="@(() => navManager.NavigateTo($"Detalhes/Turma/{Turma.Id}"))" />
+
+                </Template>
+            </RadzenGridColumn>
+
+        </Columns>
+    </RadzenGrid>
+</div>
+
+<!-- INÍCIO #008 -->
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
+
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
+
+    </div>
+</div>
+<!-- FIM -->
+
+@code {
+
+    // INICIO #008
+    string filtroCursoNome = "Todos";
+
+    void FiltrarPorCurso()
+    {
+        // Inserir lógica para filtrar pelo curso selecionado
+    }
+    // FIM #008
+
+    List<Turma> turmas;
+
+    [Parameter]
+    public string Mode { get; set; }
+    [Parameter]
+    public string Title { get; set; } = "Listagem de Turmas";
+
+    [Parameter]
+    public Func<Turma, bool> Filter { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OutgoingTurma { get; set; }
+
+    // INICIO #008
+    // Para o filtro do ano letivo
+    string filtroAnoLetivo = "Selecionar Ano Letivo";
+
+    // Metodo para os filtros funcionarem Juntos
+    void ApplyFilters()
+    {
+        // Adicionar Logica
+    }
+    // FIM #008
+
+    protected override async Task OnInitializedAsync()
+    {
+        LoadTurmas();
+    }
+
+    /// <summary>
+    /// Carrega as turmas da BD para o componente.
+    /// Se existir um filtro do tipo Func<Turma, bool> passado ao componente como parametro
+    /// as turmas são filtradas
+    /// </summary>
+    void LoadTurmas()
+    {
+        turmas = turmaData.GetAll();
+        if (Filter != null)
+        {
+            turmas = turmas.Where(Filter).ToList();
+        }
+    }
+
+    private async Task SendTurma(int ToSendId)
+    {
+        await OutgoingTurma.InvokeAsync(ToSendId);
+    }
+}

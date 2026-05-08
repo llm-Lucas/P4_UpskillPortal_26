@@ -1,0 +1,242 @@
+﻿@page "/TurmasPorFormador"
+
+@inject IFormadorData FormadorData
+@inject IPessoaData PessoaData
+@inject ITurmaData TurmaData
+@inject ICursoData CursoData
+@inject DialogService dialogService
+@inject RefreshService refreshService
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage _sessionStorage
+@inject FileManagerService fileManager
+
+<div class="cardstyle">
+    <h2>@Title</h2>
+
+    <RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
+
+    <RadzenGrid Data="@filteredTurmas"
+    TItem="Turma"
+    AllowSorting="true"
+    AllowFiltering="true"
+    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+    AllowPaging="true"
+    PageSize="10">
+
+        <Columns>
+            <RadzenGridColumn TItem="Turma" Property="Nome" Title="Nome" />
+
+            <!--INÍCIO #004-->
+            <!-- falta tornar drop down e implementar a lógica com BE -->
+            <RadzenGridColumn TItem="Turma" Property="AnoLetivo" Title="Ano Letivo">
+                @*INICIO #008*@
+                @*Filtro de ano letivo*@
+                <FilterTemplate>
+                    <RadzenDropDown @bind-Value="@filtroAnoLetivo" TextProperty="Nome" ValueProperty="Id" Style="width:100%" Placeholder="Filtrar por Ano Letivo" />
+                    @*Inserir Logica de Filtragem Ano Letivo
+                        - string filtroAnoLetivo ja existe
+                        - pode ser necessario colocar em mais sitios
+                        - metodo de filtrar - ApplyFilters()
+                        - ver os outros filtros, tem de ser semelhante
+                        - falta ano letivo na minha base de dados (Roman)
+                        - ver ListarFormando.razor
+
+                        Change="@(_ => ApplyFilters())"
+                        Data="@(estados.Select(t => t.Nome))" />
+                    *@
+                </FilterTemplate>
+                @*END #008*@
+                <Template Context="Turma">
+                    2022
+                </Template>
+            </RadzenGridColumn>
+            <!--FIM #004-->
+
+            <RadzenGridColumn TItem="Turma" Property="Curso.Nome" Title="Curso">
+                <Template Context="Turma">
+                    @if (Turma.Curso != null)
+                    {
+                        @Turma.Curso.Nome
+                    }
+                </Template>
+            </RadzenGridColumn>
+
+            <RadzenGridColumn TItem="Turma" Property="DataInicioCurso" Title="Data de Início do Curso">
+                <Template Context="Turma">
+                    <span>@Turma.DataInicioCurso.Value.ToString("dd/MM/yyy")</span>
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="Turma" Property="DataFimCurso" Title="Data de Fim de curso">
+                <Template Context="Turma">
+                    <span>@Turma.DataFimCurso.Value.ToString("dd/MM/yyy")</span>
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn Title="Opções" TItem="Turma" Sortable="false" Filterable="false">
+                <Template Context="Turma">
+                    <RadzenButton Title="Ver Formandos" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="groups" Click="@(() => navManager.NavigateTo($"ConsultaAlunos/{Turma.Id}"))" />
+                    <RadzenButton Title="Ver Modulos" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Info" Icon="grid_view" Click="@(() => navManager.NavigateTo($"ModulosFormadorTurma/{Idf}/{Turma.Id}"))" />
+                    <RadzenButton Title="Ver Aulas" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="assignment" Click="@(() => navManager.NavigateTo($"ListaAula/{Idf}/{Turma.Id}"))" />
+                </Template>
+            </RadzenGridColumn>
+
+        </Columns>
+    </RadzenGrid>
+</div>
+
+<!-- INÍCIO #008 -->
+<!-- Botão de Voltar -->
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
+        <AuthorizeView Roles="Administrador, Secretariado">
+            <Authorized>
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Calendar/{aulaVM.TurmaId}"))" />
+            </Authorized>
+        </AuthorizeView>
+        <AuthorizeView Roles="Formador">
+            <Authorized>
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</div>
+<!-- FIM -->
+
+@code {
+
+    List<Turma> filteredTurmas;
+
+    // INÍCIO #008
+    // Instancia a ViewModel para a Aula
+    // É necessário para o botão de Voltar
+    AulaViewModel aulaVM = new AulaViewModel();
+
+    // Para o filtro do ano letivo
+    string filtroAnoLetivo = "Selecionar Ano Letivo";
+
+    // Metodo para os filtros funcionarem Juntos
+    void ApplyFilters()
+    {
+        // Adicionar Logica
+    }
+    // FIM
+
+    [Parameter]
+    public int Idf { get; set; } // id do Formador
+
+    [Parameter]
+    public string Title { get; set; } = "Minhas Turmas";
+
+    protected override async Task OnInitializedAsync()
+    {
+        //Vai recolher o id da Pessoa(Formador) recorrendo à SessionStorage
+        Pessoa user = null;
+        var readUserFromSession = await _sessionStorage.GetAsync<string>("user");
+        if (readUserFromSession.Success)
+        {
+            user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
+            Idf = user.Id;
+        }
+
+        filteredTurmas = FormadorData.GetTurmaByIdFormador(Idf); // List<Turma> que são deste formador
+    }
+
+    /// <summary>
+    /// Usando ClosedXML https://github.com/closedxml/closedxml/wiki
+    /// 1: Criar um novo workbook, com uma worksheet
+    /// 2: Preencher e formatar as células com o conteúdo
+    /// 3: Exportar usando fileManager
+    /// </summary>
+    async void Exportar(string extension)
+    {
+        IXLWorkbook workbook = new XLWorkbook();
+        IXLWorksheet worksheet = workbook.Worksheets.Add("turmas");
+
+
+        #region Template Topo
+        var currentRow = 1;
+        var currentColumn = 1;
+
+        //Imagens Topo
+        worksheet.AddPicture("wwwroot/img/pauta/iefp.png")
+                 .MoveTo(worksheet.Cell(currentRow, currentColumn));
+        currentColumn += 3;
+        worksheet.AddPicture("wwwroot/img/pauta/iscte.png")
+                 .MoveTo(worksheet.Cell(currentRow, currentColumn))
+                 .Scale(.07);
+        currentColumn += 3;
+        worksheet.AddPicture("wwwroot/img/pauta/upskill.png")
+             .MoveTo(worksheet.Cell(currentRow, currentColumn));
+
+        currentRow += 5;
+        currentColumn -= 6;
+        #endregion
+
+
+        #region Cabeçalho
+        var rngCabeçalhoFirstColumn = currentColumn;
+
+        worksheet.Cell(currentRow, currentColumn++).Value = "Turma";
+        worksheet.Cell(currentRow, currentColumn++).Value = "Curso";
+        worksheet.Cell(currentRow, currentColumn++).Value = "Data de início";
+        worksheet.Cell(currentRow, currentColumn++).Value = "Data de fim";
+        worksheet.Cell(currentRow, currentColumn).Value = "Horário";
+
+        var rngCabeçalho = worksheet.Range(currentRow, rngCabeçalhoFirstColumn, currentRow, currentColumn);
+        rngCabeçalho.Columns().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        rngCabeçalho.Style.Font.FontName = "Century Gothic";
+        rngCabeçalho.Style.Font.FontSize = 15;
+        rngCabeçalho.Style.Font.Bold = true;
+        rngCabeçalho.Style.Fill.BackgroundColor = XLColor.FromArgb(204, 255, 255);
+
+        currentColumn = rngCabeçalhoFirstColumn;
+        #endregion
+
+
+        #region Corpo
+        List<Turma> exportTurmas = filteredTurmas;
+
+        var rngCorpo = worksheet.Range(1, 1, 1, 1);
+        var rngCorpoFirstRow = currentRow;
+        var rngCorpoFirstColumn = currentColumn;
+
+        foreach (var turma in exportTurmas)
+        {
+            currentRow++;
+
+            worksheet.Cell(currentRow, currentColumn++).Value = turma.Nome;
+            worksheet.Cell(currentRow, currentColumn).Style.Font.Bold = true;
+
+            worksheet.Cell(currentRow, currentColumn++).Value = turma.Curso.Nome;
+            worksheet.Cell(currentRow, currentColumn++).Value = turma.DataInicioCurso;
+            worksheet.Cell(currentRow, currentColumn++).Value = turma.DataFimCurso;
+
+            DateTime ManhaInicio = Convert.ToDateTime(turma.HorarioAssincronoInicio);
+            DateTime ManhaFim = Convert.ToDateTime(turma.HorarioAssincronoFim);
+            DateTime TardeInicio = Convert.ToDateTime(turma.HorarioSincronoInicio);
+            DateTime TardeFim = Convert.ToDateTime(turma.HorarioSincronoFim);
+            worksheet.Cell(currentRow, currentColumn).Value = ManhaInicio.ToString("HH : mm") + " - " + ManhaFim.ToString("HH : mm") + " | " + TardeInicio.ToString("HH : mm") + " - " + TardeFim.ToString("HH : mm");
+
+            rngCorpo = worksheet.Range(rngCorpoFirstRow, rngCorpoFirstColumn, currentRow, currentColumn);
+
+            currentColumn = rngCorpoFirstColumn;
+        }
+
+        rngCorpo.Columns().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        rngCorpo.Cells().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+        worksheet.Columns().AdjustToContents();
+        #endregion
+
+
+        #region Template rodapé
+        currentRow += 3;
+        worksheet.AddPicture("wwwroot/img/pauta/gov.jpg")
+                 .MoveTo(worksheet.Cell(currentRow + 3, 4))
+                 .Scale(.74);
+        #endregion
+
+        var timestamp = Convert.ToString(DateTime.Now);
+
+        await fileManager.DownloadWorkbook(workbook, extension, timestamp + "_Formandos");
+    }
+}

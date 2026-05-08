@@ -1,0 +1,204 @@
+﻿@page "/Coor/CursosTurmas"
+
+@inject ITurmaData turmaData
+@inject IFormadorData formadorData
+@inject RefreshService refreshService
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage _sessionStorage
+@inject FileManagerService fileManager
+
+<div class="cardstyle">
+	<h2>@Title</h2>
+
+	<!--#004 falta logica on click-->
+	<RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Curso" Icon="add" Click="@(() => navManager.NavigateTo("Curso"))" />
+
+	<RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
+
+	<RadzenGrid Data="@turmas"
+				TItem="Turma"
+				AllowSorting="true"
+				AllowFiltering="true"
+				FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+				AllowPaging="true"
+				PageSize="10">
+
+		<Columns>
+			<RadzenGridColumn TItem="Turma" Property="Curso.Nome" Title="Curso">
+				<Template Context="Turma">
+					@if (Turma.Curso != null)
+					{
+						@Turma.Curso.Nome
+					}
+				</Template>
+			</RadzenGridColumn>
+
+			<RadzenGridColumn TItem="Turma" Property="Nome" Title="Turma" />
+
+			<RadzenGridColumn TItem="Turma" Property="DataInicioCurso" Title="Data de Início do Curso">
+				<Template Context="Turma">
+					@if (Turma.DataInicioCurso != null)
+					{
+						<span>@Turma.DataInicioCurso.Value.ToString("dd/MM/yyyy")</span>
+					}
+				</Template>
+			</RadzenGridColumn>
+
+			<RadzenGridColumn TItem="Turma" Property="DataFimCurso" Title="Data de Fim do Curso">
+				<Template Context="Turma">
+					@if (Turma.DataFimCurso != null)
+					{
+						<span>@Turma.DataFimCurso.Value.ToString("dd/MM/yyyy")</span>
+					}
+				</Template>
+			</RadzenGridColumn>
+
+			<RadzenGridColumn TItem="Turma" Title="Opções" Sortable="false" Filterable="false">
+				<Template Context="Turma">
+					@if (Turma.CursoId != null)
+					{
+						<RadzenButton Title="Ver Formandos" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="groups" Click="@(() => navManager.NavigateTo($"Coor/Formandos/{Turma.Id}"))" />
+						<RadzenButton Title="Ver Modulos" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Info" Icon="grid_view" Click="@(() => navManager.NavigateTo($"Coor/Modulos/{Turma.Id}"))" />
+						<RadzenButton Title="Ver Formadores" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="school" Click="@(() => navManager.NavigateTo($"Coor/Formadores/{Turma.Id}"))" />
+						<RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description"  />
+						<RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Curso/{Turma.CursoId}"))" />
+						}
+				</Template>
+			</RadzenGridColumn>
+
+		</Columns>
+	</RadzenGrid>
+</div>
+
+<!-- INÍCIO #008 -->
+<!-- Botão de Voltar -->
+<div class="row justify-content-center">
+	<div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+		<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
+	</div>
+</div>
+<!-- FIM -->
+
+@code {
+
+	List<Turma> turmas;
+
+	[Parameter]
+	public int IdCoor { get; set; } // id do coordenador
+
+	[Parameter]
+	public string Title { get; set; } = "Os meus Cursos e Turmas";
+
+	protected override async Task OnInitializedAsync()
+	{
+		//Vai recolher o id da Pessoa(Coordenador) recorrendo à SessionStorage
+		Pessoa user = null;
+		var readUserFromSession = await _sessionStorage.GetAsync<string>("user");
+		if (readUserFromSession.Success)
+		{
+			user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
+			IdCoor = user.Id;
+		}
+
+		turmas = formadorData.GetTurmaByIdCoordenador(IdCoor); // List<Turma> que são deste coordenador
+	}
+
+	/// <summary>
+	/// Usando ClosedXML https://github.com/closedxml/closedxml/wiki
+	/// 1: Criar um novo workbook, com uma worksheet
+	/// 2: Preencher e formatar as células com o conteúdo
+	/// 3: Exportar usando fileManager
+	/// </summary>
+	async void Exportar(string extension)
+	{
+		IXLWorkbook workbook = new XLWorkbook();
+		IXLWorksheet worksheet = workbook.Worksheets.Add("turmas");
+
+
+		#region Template Topo
+		var currentRow = 1;
+		var currentColumn = 1;
+
+		//Imagens Topo
+		worksheet.AddPicture("wwwroot/img/pauta/iefp.png")
+				 .MoveTo(worksheet.Cell(currentRow, currentColumn));
+		currentColumn += 3;
+		worksheet.AddPicture("wwwroot/img/pauta/iscte.png")
+				 .MoveTo(worksheet.Cell(currentRow, currentColumn))
+				 .Scale(.07);
+		currentColumn += 3;
+		worksheet.AddPicture("wwwroot/img/pauta/upskill.png")
+			 .MoveTo(worksheet.Cell(currentRow, currentColumn));
+
+		currentRow += 5;
+		currentColumn -= 6;
+		#endregion
+
+
+		#region Cabeçalho
+		var rngCabeçalhoFirstColumn = currentColumn;
+
+		worksheet.Cell(currentRow, currentColumn++).Value = "Turma";
+		worksheet.Cell(currentRow, currentColumn++).Value = "Curso";
+		worksheet.Cell(currentRow, currentColumn++).Value = "Data de início";
+		worksheet.Cell(currentRow, currentColumn++).Value = "Data de fim";
+		worksheet.Cell(currentRow, currentColumn).Value = "Horário";
+
+		var rngCabeçalho = worksheet.Range(currentRow, rngCabeçalhoFirstColumn, currentRow, currentColumn);
+		rngCabeçalho.Columns().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+		rngCabeçalho.Style.Font.FontName = "Century Gothic";
+		rngCabeçalho.Style.Font.FontSize = 15;
+		rngCabeçalho.Style.Font.Bold = true;
+		rngCabeçalho.Style.Fill.BackgroundColor = XLColor.FromArgb(204, 255, 255);
+
+		currentColumn = rngCabeçalhoFirstColumn;
+		#endregion
+
+
+		#region Corpo
+		List<Turma> exportTurmas = turmas;
+
+		var rngCorpo = worksheet.Range(1, 1, 1, 1);
+		var rngCorpoFirstRow = currentRow;
+		var rngCorpoFirstColumn = currentColumn;
+
+		foreach (var turma in exportTurmas)
+		{
+			currentRow++;
+
+			worksheet.Cell(currentRow, currentColumn++).Value = turma.Nome;
+			worksheet.Cell(currentRow, currentColumn).Style.Font.Bold = true;
+
+			worksheet.Cell(currentRow, currentColumn++).Value = turma.Curso.Nome;
+			worksheet.Cell(currentRow, currentColumn++).Value = turma.DataInicioCurso;
+			worksheet.Cell(currentRow, currentColumn++).Value = turma.DataFimCurso;
+
+			DateTime ManhaInicio = Convert.ToDateTime(turma.HorarioAssincronoInicio);
+			DateTime ManhaFim = Convert.ToDateTime(turma.HorarioAssincronoFim);
+			DateTime TardeInicio = Convert.ToDateTime(turma.HorarioSincronoInicio);
+			DateTime TardeFim = Convert.ToDateTime(turma.HorarioSincronoFim);
+			worksheet.Cell(currentRow, currentColumn).Value = ManhaInicio.ToString("HH : mm") + " - " + ManhaFim.ToString("HH : mm") + " | " + TardeInicio.ToString("HH : mm") + " - " + TardeFim.ToString("HH : mm");
+
+			rngCorpo = worksheet.Range(rngCorpoFirstRow, rngCorpoFirstColumn, currentRow, currentColumn);
+
+			currentColumn = rngCorpoFirstColumn;
+		}
+
+		rngCorpo.Columns().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+		rngCorpo.Cells().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+		worksheet.Columns().AdjustToContents();
+		#endregion
+
+
+		#region Template rodapé
+		currentRow += 3;
+		worksheet.AddPicture("wwwroot/img/pauta/gov.jpg")
+				 .MoveTo(worksheet.Cell(currentRow + 3, 4))
+				 .Scale(.74);
+		#endregion
+
+		var timestamp = Convert.ToString(DateTime.Now);
+
+		await fileManager.DownloadWorkbook(workbook, extension, timestamp + "_Formandos");
+	}
+}

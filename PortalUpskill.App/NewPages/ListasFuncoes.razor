@@ -1,0 +1,70 @@
+﻿@page "/ListasFuncoes"
+
+<!-- INÍCIO #004 -->
+
+<div class="cardstyle">
+    <h2>Lista de Funções</h2>
+
+    <!-- Botão para mostrar a caixa de texto -->
+    <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Adicionar Item à Lista" Icon="add" Click="@MostrarCaixaTexto" />
+
+    @if (mostrarCaixaTexto)
+    {
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
+            <RadzenTextBox Placeholder="Digite o nome da função..." style="width: 500px" />
+            <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Gravar" />
+        </div>
+    }
+
+    <RadzenGrid Data="@listasFixas"
+                TItem="ListaInfo"
+                AllowPaging="false"
+                ShowPagingSummary="false"
+                AllowSorting="false"
+                AllowFiltering="false">
+        <Columns>
+
+            <RadzenGridColumn TItem="ListaInfo" Property="Nome" Title="Lista" Width="auto" />
+
+            <RadzenGridColumn TItem="ListaInfo" Title="Opções" Width="25%">
+                <Template Context="item">
+                    <RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" />
+                    <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" />
+                </Template>
+            </RadzenGridColumn>
+
+        </Columns>
+    </RadzenGrid>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"GerirListas"))" />
+    </div>
+</div>
+
+@code {
+    class ListaInfo
+    {
+        public string Nome { get; set; }
+        public string Rota { get; set; }
+    }
+
+    List<ListaInfo> listasFixas = new()
+    {
+        new ListaInfo { Nome = "Função 1"},
+        new ListaInfo { Nome = "Função 2"},
+        new ListaInfo { Nome = "Função 3"},
+        new ListaInfo { Nome = "Função 4"},
+        new ListaInfo { Nome = "Função 5"}
+    };
+
+    // Controla exibição da caixa de texto
+    bool mostrarCaixaTexto = false;
+
+    void MostrarCaixaTexto()
+    {
+        mostrarCaixaTexto = true;
+    }
+}
+<!-- FIM #004 -->

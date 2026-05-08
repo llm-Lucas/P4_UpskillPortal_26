@@ -1,0 +1,38 @@
+﻿@attribute [Authorize]
+@inject DialogService dialogService
+@inject NotificationService notificationService
+@inject NavigationManager navManager
+@using System.Net.Http
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Microsoft.JSInterop
+@using PortalUpskill.App
+@using PortalUpskill.App.Shared
+@using PortalUpskill.App.ViewModels
+@using PortalUpskill.App.Data
+@using PortalUpskill.App.Components
+@using PortalUpskill.App.Pages
+@using PortalUpskill.Data.DataAccessDapper
+@using PortalUpskill.Data.Models
+@using PortalUpskill.App.Utils
+@using Radzen
+@using Radzen.Blazor
+@using System.IO
+@using Syncfusion.Blazor
+@using Syncfusion.Blazor.Calendars
+@using Syncfusion.Blazor.Schedule
+@using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Inputs
+@using System.Threading
+@using System.Threading.Tasks
+@using Plk.Blazor.DragDrop
+@using Newtonsoft.Json
+@using ClosedXML.Excel
+@using Microsoft.AspNetCore.Hosting
+@using System.Globalization
+@using Syncfusion.Blazor.Buttons

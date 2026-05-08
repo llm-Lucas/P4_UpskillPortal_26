@@ -1,0 +1,657 @@
+﻿@page "/Formando/"
+@page "/Formando/{Id:int}"
+
+@inject IFormandoData formandoData
+@inject ICNAEFData cnaefData
+@inject IHabilitacoesData habilitacoesData
+@inject IPaisesData paisesData
+@inject IListaEstadosFormandoData estadosFormandoData
+@inject IJSRuntime JSRuntime
+@inject FileManagerService FileMngSrv
+
+<div class="cardstyle">
+	@if (Id == 0)
+	{
+		<h2>@Title</h2>
+		<div class="col-md-12 d-flex justify-content-end">
+			<RadzenButton Size="ButtonSize.Small" class="w-150 mx-2" Text="Download template" ButtonStyle="ButtonStyle.Info" Click="DownloadTemplate" />
+		</div>
+		<RadzenFieldset class="col-md-4" Text="Upload formandos">
+			<p><b>Selecione um ficheiro para importar formandos</b></p>
+			<InputFile OnChange="OnInputExcel" />
+		</RadzenFieldset>
+	}
+	else
+	{
+		<h2>@formandoVM.Nome</h2>
+	}
+
+	<br />
+
+	<EditForm Model="@formandoVM" OnValidSubmit="CheckFormando">
+		<DataAnnotationsValidator />
+		
+			<div class="row">
+
+				<div class="col-md-6">
+					<RadzenFieldset class="no-title-fieldset">
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Nome Completo" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@formandoVM.Nome" />
+						</div>
+					</div>
+
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Data de Nascimento" />
+						</div>
+						<div class="col-md-8">
+							<RadzenDatePicker DateFormat="dd/MM/yyyy" Placeholder="dd/mm/aaaa" ShowTime="false" style="width: 100%;" @bind-Value="formandoVM.DataNascimento" />
+						</div>
+					</div>
+
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Morada" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@formandoVM.Morada" />
+						</div>
+					</div>
+
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Código Postal" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@formandoVM.CP" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Localidade" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control"/>
+						</div>
+					</div>
+
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Email" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@formandoVM.Email" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Contato Telefone/Telemóvel" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="País de Nascimento" />
+						</div>
+						<div class="col-md-8">
+							<RadzenDropDown class="form-control" Data="@paises"
+							TValue="string" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+							ValueProperty="iso" TextProperty="nome" AllowClear="true">
+								<Template Context="pais">
+									<span>@pais.iso - @pais.nome</span>
+								</Template>
+							</RadzenDropDown>
+						</div>
+					</div>
+
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Nacionalidade (País)" />
+						</div>
+						<div class="col-md-8">
+							<RadzenDropDown class="form-control" @bind-Value="@formandoVM.Nacionalidade" Data="@paises"
+							TValue="string" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+							ValueProperty="iso" TextProperty="nome" AllowClear="true">
+								<Template Context="pais">
+									<span>@pais.iso - @pais.nome</span>
+								</Template>
+							</RadzenDropDown>
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Tipo de Documento de Identificação" />
+						</div>
+						<div class="col-md-8">
+							<RadzenDropDown class="form-control" Data="@cartoes"
+							TValue="string" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+							ValueProperty="id" TextProperty="tipoCartao" AllowClear="true">
+								<Template Context="cartao">
+									<span>@cartao.tipoCartao</span>
+								</Template>
+							</RadzenDropDown>
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Número do Documento de Identificação" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Números de Controlo (Só para portadores de CC" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Número de Segurança Social" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="NIF" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@formandoVM.NIF" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Cidade de Residência" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Género" />
+						</div>
+						<div class="col-md-8">
+							@{
+								var genero = new List<string> { "Feminino", "Masculino", "Outra identificação/não binário", "Prefiro não indicar" };
+							}
+							<RadzenDropDown class="form-control" @bind-Value="@formandoVM.Sexo" Data="@genero" TValue="string" />
+						</div>
+					</div>
+					                    </RadzenFieldset>
+                    <br />
+
+                    <RadzenFieldset class="no-title-fieldset">
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Nível de Habilitações" />
+						</div>
+						<div class="col-md-8">
+							@{
+								var habil = new List<string> { "Doutoramento", "Mestrado", "Licenciatura", "Ensino Secundário", "Outro" };
+							}
+							<RadzenDropDown class="form-control" Data="@habil" TValue="string" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Outro Nível de Formação" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Formação na área das tecnologias" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="É aluno do ISCTE ou Entidades Participadas?" />
+						</div>
+						<div class="col-md-8">
+							@{
+								var alunoISCTE = new List<string> { "Não", "Sim" };
+							}
+							<RadzenDropDown class="form-control" Data="@alunoISCTE" TValue="string" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Número de estudante ISCTE" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="É docente, investigador ou colaborador do ISCTE ou Entidades Participadas?" />
+						</div>
+						<div class="col-md-8">
+							@{
+								var funcionarioISCTE = new List<string> { "Não", "Sim" };
+							}
+							<RadzenDropDown class="form-control" Data="@funcionarioISCTE" TValue="string" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Email institucional ISCTE ou Entidades Participadas" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Situação face ao emprego" />
+						</div>
+						<div class="col-md-8">
+							@{
+								var empregado = new List<string> { "Empregado", "Desempregado, à procura do 1º emprego", "Desempregado à procura de novo emprego", "Estudante" };
+							}
+							<RadzenDropDown class="form-control" Data="@empregado" TValue="string" />
+						</div>
+					</div>
+
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Currículo" />
+						</div>
+						<div class="col-md-8">
+							<InputFile OnChange="OnInputCV" />
+							<p style="font-size: small">@cvMsg</p>
+						</div>
+					</div>
+
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Foto" />
+						</div>
+						<div class="col-md-8">
+							<InputFile OnChange="OnInputPhoto" />
+							<p style="font-size: small">@fotoMsg</p>
+						</div>
+					</div>
+				</RadzenFieldset>
+				</div>
+
+				<!--há break aqui de colunas-->
+
+				<div class="col-md-6">
+					<RadzenFieldset class="no-title-fieldset">
+					<h2>Dados de Faturação</h2>
+					<p><b>Caso o pagamento e respetiva faturação sejam efetuados por uma
+						entidade, nomeadamente entidade patronal, os campos abaixo devem
+						ser preenchidos com os dados da entidade.
+					</b></p>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Nome da entidade" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+                    <!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Morada da entidade" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Código Postal da entidade" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Localidade da entidade" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+					<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Email da entidade" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+										<!--#004 falta logica bind value  -->
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Número de contribuinte (NIF/NIPC) da entidade" />
+						</div>
+						<div class="col-md-8">
+							<RadzenTextBox style="width: 100%;" class="form-control" />
+						</div>
+					</div>
+
+				</RadzenFieldset>
+
+			</div>
+		</div>
+		<br />
+			<div class="row justify-content-center">
+				<div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+					<RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Gravar" />
+					<!-- INÍCIO #008 -->
+					<!-- Botão de Voltar -->
+					<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Formandos"))" />
+					<!-- FIM -->
+				</div>
+			</div>
+
+	</EditForm>
+</div>
+
+@code {
+	FormandoViewModel formandoVM = new FormandoViewModel();
+	EstadosFormando estadoFormando = new EstadosFormando();
+	List<Formando> formandos = new List<Formando>();
+	List<Formando> formandosExcel = new List<Formando>();
+	List<CNAEF> cnaefs = new List<CNAEF>();
+	List<Habilitacoes> habilitacoes = new List<Habilitacoes>();
+	List<Paises> paises = new List<Paises>();
+	List<ListaEstadosFormando> estadosFormando = new List<ListaEstadosFormando>();
+
+	private List<Cartoes> cartoes = new List<Cartoes>
+		{
+		new Cartoes { id = "1", tipoCartao = "Cartão de Cidadão" },
+		new Cartoes { id = "2", tipoCartao = "Passaporte" },
+		new Cartoes { id = "3", tipoCartao = "Título de Residência" }
+		};
+	public class Cartoes
+	{
+		public string id { get; set; }
+		public string tipoCartao { get; set; }
+	}
+
+
+	int estadoInicial = 0;
+	private string formId = "formandoForm";
+
+	IBrowserFile selectedCV, selectedPhoto, selectedExcel;
+	string cvMsg = "", fotoMsg = "";
+	string foto = "", cv = "";
+	string path;
+
+	[Parameter]
+	public int Id { get; set; }
+
+	[Parameter]
+	public string Title { get; set; } = "Novo Formando";
+
+	/// <summary>
+	/// Parametro para redirecionar para lista de formandos depois da criação de um novo formando
+	/// Isto permite chamar o componente como um modal, sem redirecionar para <ListarFormando />
+	/// </summary>
+	[Parameter]
+	public bool RedirectAfterCreation { get; set; } = true;
+
+	protected override async Task OnInitializedAsync()
+	{
+		cnaefs = cnaefData.GetAll();
+		habilitacoes = habilitacoesData.GetAll();
+		paises = paisesData.GetAll();
+		estadosFormando = estadosFormandoData.GetAll();
+
+		if (Id != 0)
+		{
+			Formando formando = formandoData.GetById(Id);
+			estadoInicial = formando.EstadoId;
+			formandoVM.FromModel(formando);
+			if (formandoVM.CV != null)
+				cvMsg = "Já existe um currículo registado, caso queira atualizar selecione o novo ficheiro";
+			if (formandoVM.Foto != null)
+				fotoMsg = "Já existe uma foto registada, caso queira atualizar selecione o novo ficheiro";
+		}
+	}
+
+	async void CheckFormando(EditContext editContext)
+	{
+		//pedido de confirmação quando o utilizador está a editar um formando
+		if (Id != 0 && editContext.Validate())
+		{
+			await ConfirmEdit();
+		}
+		else//actua quando se insere um novo formando
+		{
+			InserirFormando();
+		}
+	}
+
+	async void InserirFormando()
+	{
+		if (formandoVM.Id != 0)
+		{
+			Formando formandoUpdate = formandoVM.CreateModel();
+
+			formandoUpdate.Id = formandoVM.Id;
+
+			if (selectedCV != null)
+			{
+				cv = FileMngSrv.FilePath(selectedCV, "cv", formandoUpdate.Id);
+				if (cv != "")
+				{
+					formandoUpdate.CV = cv;
+					await FileMngSrv.UploadFile(selectedCV, formandoUpdate.CV);
+				}
+				else { cvMsg = "O ficheiro que seleccionou não é do tipo .pdf"; }
+			}
+			if (selectedPhoto != null)
+			{
+				foto = FileMngSrv.FilePath(selectedPhoto, "foto", formandoUpdate.Id);
+				if (foto != "")
+				{
+					formandoUpdate.Foto = foto;
+					await FileMngSrv.UploadFile(selectedPhoto, formandoUpdate.Foto);
+				}
+				else { fotoMsg = "O ficheiro que seleccionou não é do tipo .jpeg/.jpg/.png"; }
+			}
+
+			formandoData.Update(formandoUpdate);
+
+			if (formandoUpdate.EstadoId != estadoInicial)
+			{
+				formandoUpdate.EstadosFormando.Observacoes = estadoFormando.Observacoes;
+				formandoData.UpdateHistEstado(formandoUpdate);
+			}
+
+			notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Formando atualizado com sucesso.", Duration = 4000 });
+			navManager.NavigateTo("Formandos");
+		}
+		else
+		{
+			Formando novoFormando = formandoVM.CreateModel();
+			novoFormando.Password = "#UPskill2021Formando#";
+			novoFormando.PerfilId = 4;
+			novoFormando.EstadosFormando.Observacoes = estadoFormando.Observacoes;
+
+			novoFormando.Id = formandoData.CreateReturnId(novoFormando);
+			Id = novoFormando.Id;
+
+			if (selectedCV != null)
+			{
+				cv = FileMngSrv.FilePath(selectedCV, "cv", novoFormando.Id);
+				if (cv != "")
+				{
+					novoFormando.CV = cv;
+					await FileMngSrv.UploadFile(selectedCV, novoFormando.CV);
+				}
+				else { cvMsg = "O ficheiro que seleccionou não é do tipo .pdf"; }
+			}
+			if (selectedPhoto != null)
+			{
+				foto = FileMngSrv.FilePath(selectedPhoto, "foto", novoFormando.Id);
+				if (foto != "")
+				{
+					novoFormando.Foto = foto;
+					await FileMngSrv.UploadFile(selectedPhoto, novoFormando.Foto);
+				}
+				else { fotoMsg = "O ficheiro que seleccionou não é do tipo .jpeg/.jpg/.png"; }
+			}
+
+			//faz update aos path dos ficheiros na bd apenas se efectivamente for feito um upload
+			if (selectedCV != null || selectedPhoto != null)
+			{
+				formandoData.Update(novoFormando);
+			}
+
+			notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Formando criado com sucesso.", Duration = 4000 });
+			if (RedirectAfterCreation)
+				navManager.NavigateTo("Formandos");
+			else
+				dialogService.Close();
+		}
+
+		Cancel();
+	}
+
+	//limpar campos do formulário
+	void Cancel()
+	{
+		formandoVM = new FormandoViewModel();
+	}
+
+	async void OnInputExcel(InputFileChangeEventArgs e)
+	{
+		selectedExcel = e.File;
+		this.StateHasChanged();
+
+		//guarda o path do ficheiro
+		path = FileMngSrv.ExcelPath(selectedExcel, "", 0);
+		//cria o ficheiro no path anterior
+		await FileMngSrv.UploadFile(selectedExcel, path);
+		formandosExcel = FileManagerService.ReadExcel(path);
+		foreach (var formando in formandosExcel)
+		{
+			formando.Password = "#UPskill2021Formando#";
+		}
+		await ImportarFormandos();
+	}
+
+	async Task ImportarFormandos() => await dialogService.OpenAsync("Confirmação para inserir formandos", ds =>
+	@<div>
+		<p Style="margin-bottom: 1rem">Está a fazer upload de @(formandosExcel.Count()) formandos. Pretende gravar as informações?</p>
+		<div class="row col-md-12">
+			<div class="row col-md-12">Lista de Nomes:</div>
+			@foreach (var formando in formandosExcel)
+			{
+				<div class="row col-md-12">@(formando.Nome)</div>
+			}
+		</div>
+		<div class="row col-md-12 d-flex justify-content-center" Style="margin-top: 1rem">
+			<RadzenButton class="w-150 mx-2" Text="Sim" ButtonStyle="ButtonStyle.Primary" Click="InserirFormandosExcel" Style="margin-bottom: 10px;" />
+			<RadzenButton class="w-150 mx-2" Text="Não" ButtonStyle="ButtonStyle.Secondary" Click="() => ds.Close(false)" Style="margin-bottom: 10px;" />
+		</div>
+	</div>
+	);
+
+	void InserirFormandosExcel()
+	{
+		formandoData.Create(formandosExcel);
+		notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Formandos criados com sucesso.", Duration = 4000 });
+		if (RedirectAfterCreation)
+			navManager.NavigateTo("Formandos");
+		else
+			dialogService.Close();
+	}
+
+	void OnInputCV(InputFileChangeEventArgs e)
+	{
+		selectedCV = e.File;
+		this.StateHasChanged();
+	}
+
+	void OnInputPhoto(InputFileChangeEventArgs e)
+	{
+		selectedPhoto = e.File;
+		this.StateHasChanged();
+	}
+
+	async Task ConfirmEdit() => await dialogService.OpenAsync("Confirmação de edição", ds =>
+	@<div>
+		<p Style="margin-bottom: 1rem">Tem a certeza que pretende gravar as alterações que efetuou?</p>
+		<div class="row col-md-12 d-flex justify-content-center">
+			<RadzenButton class="w-150 mx-2" Text="Sim" ButtonStyle="ButtonStyle.Primary" Click="InserirFormando" Style="margin-bottom: 10px;" />
+			<RadzenButton class="w-150 mx-2" Text="Não" ButtonStyle="ButtonStyle.Secondary" Click="() => ds.Close(false)" Style="margin-bottom: 10px;" />
+		</div>
+	</div>
+	);
+
+	async Task DownloadTemplate()
+	{
+		string data = FileMngSrv.PathToBase64String("template");
+		await JSRuntime.InvokeAsync<object>("saveAsFile", "template.xlsm", data);
+	}
+
+}

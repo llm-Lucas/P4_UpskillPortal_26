@@ -1,0 +1,198 @@
+﻿@page "/Modulo/"
+@page "/Modulo/{Id:int}"
+
+@inject IModuloData moduloData
+
+<div class="cardstyle">
+    @if (Id == 0)
+    {
+        <h2>@Title</h2>
+    }
+    else
+    {
+        <h2>@moduloVM.Nome</h2>
+    }
+
+    <EditForm Model="@moduloVM" OnValidSubmit="CheckModulo">
+        <DataAnnotationsValidator />
+        <RadzenFieldset class="no-title-fieldset">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row form-group">
+                        <div class="col-md-4 align-items-center d-flex">
+                            <RadzenLabel Text="Nome" />
+                        </div>
+                        <div class="col-md-8">
+                            <RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@moduloVM.Nome" />
+                        </div>
+                    </div>
+
+                    <div class="row form-group">
+                        <div class="col-md-4 align-items-center d-flex">
+                            <RadzenLabel Text="Horas" />
+                        </div>
+                        <div class="col-md-8">
+                            <RadzenNumeric style="width: 100%;" class="form-control" TValue="double" @bind-Value="@moduloVM.Horas" />
+                        </div>
+                    </div>
+
+                    <div class="row form-group">
+                        <div class="col-md-4 align-items-center d-flex">
+                            <RadzenLabel Text="Objetivos" />
+                        </div>
+                        <div class="col-md-8">
+                            <RadzenTextArea style="width: 100%;" class="form-control" @bind-Value="@moduloVM.Objetivos" />
+                        </div>
+                    </div>
+
+                    <div class="row form-group">
+                        <div class="col-md-4 align-items-center d-flex">
+                            <RadzenLabel Text="Conteúdos Programáticos" />
+                        </div>
+                        <div class="col-md-8">
+                            <RadzenTextArea style="width: 100%;" class="form-control" @bind-Value=@moduloVM.ConteudosProgramaticos />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row form-group">
+                        <div class="col-md-4 align-items-center d-flex">
+                            <RadzenLabel Text="Sistema de Avaliação" />
+                        </div>
+                        <div class="col-md-8">
+                            <RadzenTextArea style="width: 100%;" class="form-control" @bind-Value=@moduloVM.SistemaAvaliacao />
+                        </div>
+                    </div>
+
+                    <div class="row form-group">
+                        <div class="col-md-4 align-items-center d-flex">
+                            <RadzenLabel Text="Bibliografia" />
+                        </div>
+                        <div class="col-md-8">
+                            <RadzenTextArea style="width: 100%;" class="form-control" @bind-Value=@moduloVM.Bibliografia />
+                        </div>
+                    </div>
+
+                    <div class="row form-group">
+                        <div class="col-md-4 align-items-center d-flex">
+                            <RadzenLabel Text="Software/Hardware" />
+                        </div>
+                        <div class="col-md-8">
+                            <RadzenTextArea style="width: 100%;" class="form-control" @bind-Value=@moduloVM.SoftwareHardware />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- INÍCIO #004 -->
+
+            <div class="row justify-content-center">
+                <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px; gap: 16px;">
+                    @if (!IsViewedAsChild)
+                    {
+                        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Modulos"))" />
+                    }
+                    <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Gravar" />
+                </div>
+            </div>
+
+            <!-- FIM #004-->
+        </RadzenFieldset>
+    </EditForm>
+</div>
+
+@code {
+
+    ModuloViewModel moduloVM = new ModuloViewModel();
+    List<Modulo> modulos = new List<Modulo>();
+
+    [Parameter]
+    public bool IsViewedAsChild { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public string Title { get; set; } = "Novo Módulo";
+
+    protected override async Task OnInitializedAsync()
+    {
+        modulos = moduloData.GetAll();
+
+        if (Id != 0)
+        {
+            Modulo modulo = moduloData.GetById(Id);
+            moduloVM.FromModel(modulo);
+        }
+    }
+
+    async void CheckModulo(EditContext editContext)
+    {
+        //pedido de confirmação quando o utilizador está a editar um formando
+        if (Id != 0 && editContext.Validate())
+        {
+            await ConfirmEdit();
+        }
+        else//actua quando se insere um novo formando
+        {
+            InserirModulo();
+        }
+    }
+
+    void InserirModulo()
+
+    {
+        if (moduloVM.Id != 0)
+        {
+            Modulo moduloUpdate = moduloVM.CreateModel();
+
+            moduloUpdate.Id = moduloVM.Id;
+
+            moduloData.Update(moduloUpdate);
+
+            modulos = moduloData.GetAll();
+
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Módulo actualizado com sucesso.", Duration = 4000 });
+            if (!IsViewedAsChild)
+            {
+                navManager.NavigateTo("Modulos");
+            }
+        }
+        else
+        {
+            Modulo novoModulo = moduloVM.CreateModel();
+
+            moduloData.Create(novoModulo);
+
+            modulos = moduloData.GetAll();
+
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Módulo criado com sucesso.", Duration = 4000 });
+            if (!IsViewedAsChild)
+            {
+                navManager.NavigateTo("Modulos");
+            }
+        }
+        moduloVM = new ModuloViewModel();
+    }
+
+    //limpar campos do formulário
+    void Cancel()
+    {
+        moduloVM = new ModuloViewModel();
+    }
+
+    //mostrar mensagem de notificação
+    void ShowNotification(NotificationMessage message)
+    {
+        notificationService.Notify(message);
+    }
+
+    async Task ConfirmEdit() => await dialogService.OpenAsync("Confirmação de edição", ds =>
+    @<div>
+        <p Style="margin-bottom: 1rem">Tem a certeza que pretende gravar as alterações que efetuou?</p>
+        <div class="row col-md-12 d-flex justify-content-center">
+            <RadzenButton class="w-150 mx-2" Text="Sim" ButtonStyle="ButtonStyle.Primary" Click="InserirModulo" Style="margin-bottom: 10px;" />
+            <RadzenButton class="w-150 mx-2" Text="Não" ButtonStyle="ButtonStyle.Secondary" Click="() => ds.Close(false)" Style="margin-bottom: 10px;" />
+        </div>
+    </div>
+    );
+}

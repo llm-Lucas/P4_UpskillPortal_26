@@ -1,0 +1,97 @@
+﻿@page "/ListaAula/{Idf:int}/{Idt:int}"
+
+@inject IAulaData AulaData
+@inject ITurmaData TurmaData
+@inject IFormadorData FormadorData
+@inject IPessoaData PessoaData
+
+@*INICIO #008*@
+@*Nome da Turma*@
+<h2>Turma @getTurmaAtual()</h2>
+@*FIM #008*@
+
+<div class="cardstyle">
+    <RadzenGrid Data="@aulas"
+                TItem="Aula"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowPaging="true"
+                PageSize="10">
+        <Columns>
+
+            <RadzenGridColumn TItem="Aula" Property="Sumario" Title="Sumário" />
+            <RadzenGridColumn TItem="Aula" Property="HoraInicio" Title="Data">
+                <Template Context="Aula">
+                    <span>@Aula.HoraInicio.ToString("dd/MM/yyyy")</span>
+                </Template>
+            </RadzenGridColumn>
+
+            <RadzenGridColumn TItem="Aula" Property="DuracaoHoras" Title="Duração (Horas)" />
+
+            <RadzenGridColumn TItem="Aula" Title="Detalhes" Sortable="false" Filterable="false">
+                <Template Context="Aula">
+                    <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Title="Ver/Editar detalhes" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"/DetalhesAula/{Aula.Id}/{Idf}/{Idt}/ListaAula"))" />
+                </Template>
+            </RadzenGridColumn>
+        </Columns>
+    </RadzenGrid>
+</div>
+
+<!-- INÍCIO #008 -->
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
+        <AuthorizeView Roles="Administrador, Secretariado">
+            <Authorized>
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Calendar/{aulaVM.TurmaId}"))" />
+            </Authorized>
+        </AuthorizeView>
+        <AuthorizeView Roles="Formador">
+            <Authorized>
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"TurmasPorFormador"))" />
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</div>
+<!-- FIM -->
+
+@code {
+
+    // INÍCIO #008
+    // Instancia a ViewModel para a Aula
+    // É necessário para o botão de Voltar
+    AulaViewModel aulaVM = new AulaViewModel();
+    // FIM
+
+    List<Aula> aulas = new List<Aula>();
+    Turma turma = new Turma();
+
+    [Parameter]
+    public int Idf { get; set; }//id do Formador
+
+    [Parameter]
+    public int Idt { get; set; }//id da Turma
+
+    protected override async Task OnInitializedAsync()
+    {
+        aulas = AulaData.GetByTurmaFormador(Idt, Idf);
+    }
+
+	// INICIO #008
+    // Receber a Turma Atual que foi carregada
+    string turmaAtual = "";
+
+    // Metodo para ir buscar a turma selecionada e guardar na string turmaAtual
+    public string getTurmaAtual()
+    {
+        var turma = TurmaData.GetById(Idt);
+        if (turma != null)
+        {
+            turmaAtual = turma.Nome;
+        }
+
+        return turmaAtual;
+    }
+    // FIM
+}

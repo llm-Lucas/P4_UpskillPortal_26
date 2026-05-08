@@ -1,0 +1,116 @@
+﻿@page "/Cursos"
+
+@inject ICursoData cursoData
+@inject RefreshService refreshService
+
+<div class="cardstyle">
+    <h2>Cursos</h2>
+
+    <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Curso" Icon="add" Click="@(() => navManager.NavigateTo("Curso"))" />
+
+    <RadzenGrid Data="@cursos"
+                TItem="Curso"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowPaging="true"
+                PageSize="10">
+        <Columns>
+            <RadzenGridColumn TItem="Curso" Property="Nome" Title="Nome" />
+            <RadzenGridColumn TItem="Curso" Property="DuracaoHoras" Title="Duração em Horas" Sortable="false" Filterable="false" />
+
+            @if (Mode == "Add")
+            {
+                <RadzenGridColumn TItem="Curso" Title="Adicionar" Sortable="false" Filterable="false">
+                    <Template Context="Curso">
+                        <RadzenButton Title="Adicionar Curso" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="add" Click="@(() => SendCurso(Curso.Id))" />
+                    </Template>
+                </RadzenGridColumn>
+            }
+            else
+            {
+                <RadzenGridColumn TItem="Curso"  Title="Opções" Sortable="false" Filterable="false">
+                    <Template Context="Curso">
+                        <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesCurso>("Detalhes do curso",
+                                                                                       new Dictionary<string, object>() { { "CursoId", Curso.Id } },
+                                                                                       new DialogOptions(){ Width = "80%", Height = "90%" })) />
+                        <RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Curso/{Curso.Id}"))" />
+                        <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Curso))" />
+                    </Template>
+                </RadzenGridColumn>
+            }
+
+
+        </Columns>
+    </RadzenGrid>
+</div>
+<!-- INÍCIO #004 -->
+<!-- Botão de Voltar -->
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
+    </div>
+</div>
+<br />
+<!-- FIM -->
+
+@code {
+
+    List<Curso> cursos;
+
+    [Parameter]
+    public string Mode { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OutgoingCurso { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        LoadCursos();
+    }
+
+    void LoadCursos()
+    {
+        cursos = cursoData.GetAll().OrderBy(c => c.Nome).ToList();
+    }
+
+    private async Task SendCurso(int ToSendId)
+    {
+        await OutgoingCurso.InvokeAsync(ToSendId);
+    }
+
+    async Task ConfirmDelete(Curso curso)
+    {
+        await dialogService.OpenAsync("Confimar apagar", ds =>
+        @<div>
+            <p>Tem a certeza que pretende apagar @curso.Nome?</p>
+            <p class="mb1 text-danger">Esta acção é irreversível.</p>
+            <div class="row">
+                <div class="col-md-12 d-flex justify-content-center">
+                    <RadzenButton class="w-150 mx-2" Text="Ok" Click="() => DeleteCursoAction(curso, ds)" />
+                    <RadzenButton class="w-150 mx-2" Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" />
+                </div>
+            </div>
+        </div>);
+    }
+
+    /// <summary>
+    /// Criada para encapsular a lógica condicional chamada dentro do modal em ConfirmDelete()
+    /// </summary>
+    /// <param name="curso">Curso que se está a apagar</param>
+    /// <param name="ds">DialogService(modal) para fechar</param>
+    void DeleteCursoAction(Curso curso, DialogService ds)
+    {
+        if (cursoData.RemoveWithReturn(curso.Id))
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Curso removido com sucesso", Duration = 2000 });
+        }
+        else
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Curso não foi removido", Detail = "Por favor confirme que não existem entidades associadas ao curso", Duration = 5000 });
+        }
+        ds.Close(true);
+        LoadCursos();
+    }
+}

@@ -1,0 +1,114 @@
+﻿@page "/Modulos"
+
+@inject IModuloData moduloData
+
+<div class="cardstyle">
+    <h2>@Title</h2>
+
+    @if (Mode == "Add")
+    {
+
+    }
+    else
+    {
+        <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Módulo" Icon="add" Click="@(() => navManager.NavigateTo("Modulo"))" />
+    }
+
+    <RadzenGrid Data="@modulos"
+    TItem="Modulo"
+    AllowSorting="true"
+    AllowFiltering="true"
+    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+    AllowPaging="true"
+    PageSize="10">
+        <Columns>
+            <RadzenGridColumn TItem="Modulo" Property="Nome" Title="Nome" />
+            <RadzenGridColumn TItem="Modulo" Property="Horas" Title="Duração em Horas" Sortable="false" Filterable="false" />
+
+            @if (Mode == "Add")
+            {
+                <RadzenGridColumn Title="Adicionar" TItem="Modulo" Sortable="false" Filterable="false">
+                    <Template Context="Modulo">
+                        <RadzenButton Title="Associar Módulo" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="add" Click="@(() => SendModulo(Modulo.Id))" />
+                    </Template>
+                </RadzenGridColumn>
+            }
+            else
+            { <RadzenGridColumn Title="Opções" TItem="Modulo" Sortable="false" Filterable="false">
+                    <Template Context="Modulo">
+                        <RadzenButton Title="Ver detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesModulo>($"Detalhes",
+                                                                                           new Dictionary<string, object>() { { "ModuloId", Modulo.Id } },
+                                                                                           new DialogOptions(){ Width = "80%", Height = "90%" })) />
+
+                        <RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Modulo/{Modulo.Id}"))" />
+                        <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Modulo))" />
+                        <!-- INÍCIO #004 -->
+                        <!-- Remover o botao Associar formador ao módulo -->
+                        <!--<RadzenButton Title="Associar Formador" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="person_add" Click="@(() => navManager.NavigateTo($"AssociarFormador/{Modulo.Id}"))" />--->
+                        <!-- FIM -->
+                        </Template>
+                </RadzenGridColumn>
+            }
+        </Columns>
+    </RadzenGrid>
+</div>
+
+<!-- INÍCIO #004 -->
+<!-- Botão de Voltar -->
+@if (!IsViewedAsChild)
+{
+    <div class="row justify-content-center">
+        <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+            <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
+        </div>
+    </div>
+    <br />
+}
+<!-- FIM -->
+@code {
+
+    List<Modulo> modulos;
+
+    [Parameter]
+    public bool IsViewedAsChild { get; set; }
+
+    [Parameter]
+    public string Mode { get; set; }
+
+    [Parameter]
+    public string Title { get; set; } = "Módulos";
+
+    [Parameter]
+    public EventCallback<int> OutgoingModulo { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        LoadModulos();
+    }
+
+    void LoadModulos()
+    {
+        modulos = moduloData.GetAll().OrderBy(m => m.Nome).ToList();
+    }
+
+    private async Task SendModulo(int ToSendId)
+    {
+        await OutgoingModulo.InvokeAsync(ToSendId);
+    }
+
+    async Task ConfirmDelete(Modulo modulo)
+    {
+        await dialogService.OpenAsync("Confimar apagar", ds =>
+        @<div>
+            <p>Tem a certeza que pretende apagar @modulo.Nome?</p>
+            <p class="mb1 text-danger">Esta acção é irreversível.</p>
+            <div class="row">
+                <div class="col-md-12 d-flex justify-content-center">
+                    <RadzenButton class="w-150 mx-2" Text="Ok" Click="() => { moduloData.Remove(modulo.Id); ds.Close(true); LoadModulos(); }" />
+                    <RadzenButton class="w-150 mx-2" Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" />
+                </div>
+            </div>
+        </div>);
+    }
+}

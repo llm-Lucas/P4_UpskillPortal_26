@@ -1,0 +1,76 @@
+﻿@attribute [Authorize]
+@page "/AreaPessoal"
+
+@inject IPessoaData pessoaData
+@inject NavigationManager Navigation
+
+<a href="javascript:history.go(-1)"><img src="/img/outline_arrow_back_black_48dp.png" /></a>
+<br />
+<RadzenNotification />
+<br />
+<h3>Área Pessoal</h3>
+<EditForm class="col-4" Model="npVM" OnValidSubmit="NovaPassword">
+    <DataAnnotationsValidator />
+    <div class="form-group">
+        <RadzenLabel Text="Password Atual" />
+        <RadzenPassword class="form-control" @bind-Value="@npVM.PasswordActual" />
+        <ValidationMessage For="@(() => npVM.PasswordActual)" />
+    </div>
+    <div class="form-group">
+        <RadzenLabel Text="Nova Password" />
+        <RadzenPassword class="form-control" @bind-Value="@npVM.NovaPassword" />
+        <ValidationMessage For="@(() => npVM.NovaPassword)" />
+    </div>
+    <div class="form-group">
+        <RadzenLabel Text="Confirmar Nova Password" />
+        <RadzenPassword class="form-control" @bind-Value="@npVM.Confirmacao" />
+        <ValidationMessage For="@(() => npVM.Confirmacao)" />
+    </div>
+    <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="autorenew" Text="Mudar Password" />
+</EditForm>
+
+@code {
+
+    NovaPassViewModel npVM = new NovaPassViewModel();
+    Pessoa user;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authStateTask { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string userEmail = (await authStateTask).User.Identity.Name;
+        user = pessoaData.GetByEmail(userEmail);
+
+        base.OnInitialized();
+    }
+
+    async Task NovaPassword()
+    {
+        if (npVM.PasswordActual == user.Password)
+        {
+            pessoaData.UpdatePassword(user, npVM.NovaPassword);
+            notificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Password Alterada com Sucesso",
+                    Duration = 5000,  });// Não desaparece automaticamente
+
+            // Aguardar 1 segundo antes de redirecionar
+            await Task.Delay(50);
+
+            // Após 1 segundo, redireciona para a página desejada
+            Redirecionar();
+
+        }
+        else
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Por favor confirme a sua Password Actual", Duration = 4000 });
+        }
+    }
+    void Redirecionar()
+    {
+        // Redireciona para a página inicial ou outra página desejada
+        Navigation.NavigateTo("/Index");
+    }
+}

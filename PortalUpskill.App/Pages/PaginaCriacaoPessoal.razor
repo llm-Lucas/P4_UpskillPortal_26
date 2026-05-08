@@ -1,0 +1,396 @@
+﻿@page "/Pessoalabc/"
+@page "/Pessoalabc/{Id:int}"
+
+@inject IFormadorData formadorData
+@inject ICNAEFData cnaefData
+@inject IHabilitacoesData habilitacoesData
+@inject IPaisesData paisesData
+@inject IListaEstadosFormadorData estadosFormadorData
+@inject IPessoalData pessoalData
+@inject IPessoaData pessoaData
+@inject IFuncoesData funcoesData
+@inject ICoordenadorFormadorData coordenadorformadorData
+@inject FileManagerService FileMngSrv
+
+<style>
+    form .row {
+        margin-bottom: 16px;
+    }
+</style>
+
+<EditForm Model="@coordenadorformadorVM" OnValidSubmit="InserirFormadorCoordenador">
+    <DataAnnotationsValidator />
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <h3>
+                    Escolha uma função:
+                </h3>
+                <RadzenDropDown class="form-control" @bind-Value="@coordenadorformadorVM.Funcao" Data="@funcoes" TValue="string"
+                                AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                ValueProperty="Nome" TextProperty="Nome" AllowClear="true">
+                    <Template Context="Funcao">
+                        <span>@Funcao.Nome</span>
+                    </Template>
+                </RadzenDropDown>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        @if (coordenadorformadorVM.Funcao == "Coordenador")
+                        {
+                            <div class="row form-group">
+                                <div class="col-md-4 align-items-center d-flex">
+                                    <RadzenLabel Text="É Formador?" />
+                                </div>
+                                <div class="col-md-8">
+                                    <RadzenRadioButtonList @bind-Value=@value TValue="int">
+                                        <Items>
+                                            <RadzenRadioButtonListItem Text="Sim" Value="1" />
+                                            <RadzenRadioButtonListItem Text="Não" Value="2" />
+                                        </Items>
+                                    </RadzenRadioButtonList>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                @if (value == 1)
+                                {
+                                    <RadzenFieldset Text="Inserir Novo Formador">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Nome Completo" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@coordenadorformadorVM.Nome" />
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Data de Nascimento" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenDatePicker DateFormat="dd/MM/yyyy" Placeholder="dd/mm/aaaa" ShowTime="false" style="width: 100%;" @bind-Value="coordenadorformadorVM.DataNascimento" />
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Email" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@coordenadorformadorVM.Email" />
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Género" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        @{
+                                                            var genero = new List<string> { "Feminino", "Masculino", "Outro" };
+                                                        }
+                                                        <RadzenDropDown class="form-control" @bind-Value="@coordenadorformadorVM.Sexo" Data="@genero" TValue="string"
+                                                                        AllowClear="true" />
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="NIF" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@coordenadorformadorVM.NIF" />
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Cartão de Cidadão" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@coordenadorformadorVM.CC" />
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Contato Telemóvel" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@coordenadorformadorVM.ContactoTelemovel" />
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Contato Telefone" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@coordenadorformadorVM.ContactoTelefone" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Morada" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@coordenadorformadorVM.Morada" />
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Código Postal" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@coordenadorformadorVM.CP" />
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="CNAEF" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenDropDown class="form-control" @bind-Value="@coordenadorformadorVM.CodigoCNAEF" Data="@cnaefs" TValue="string"
+                                                                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                                        ValueProperty="CodigoCNAEF" TextProperty="AreaFormacao" AllowClear="true">
+                                                            <Template Context="Cnaef">
+                                                                <span>@Cnaef.CodigoCNAEF - @Cnaef.AreaFormacao</span>
+                                                            </Template>
+                                                        </RadzenDropDown>
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Habilitações Literárias" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenDropDown class="form-control" @bind-Value="@coordenadorformadorVM.HabilitacoesLiterarias" Data="@habilitacoes"
+                                                                        TValue="int" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                                        ValueProperty="Codigo" TextProperty="HabilitacoesLiterarias" AllowClear="true">
+                                                            <Template Context="hl">
+                                                                <span>@hl.Codigo - @hl.HabilitacoesLiterarias</span>
+                                                            </Template>
+                                                        </RadzenDropDown>
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Nacionalidade" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenDropDown class="form-control" @bind-Value="@coordenadorformadorVM.Nacionalidade" Data="@paises"
+                                                                        TValue="string" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                                        ValueProperty="iso" TextProperty="nome" AllowClear="true">
+                                                            <Template Context="pais">
+                                                                <span>@pais.iso - @pais.nome</span>
+                                                            </Template>
+                                                        </RadzenDropDown>
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="CCP" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenCheckBox @bind-Value="@coordenadorformadorVM.CCP" TValue="bool" />
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Ensino Superior" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenCheckBox @bind-Value="@coordenadorformadorVM.DocenteEnsSuperior" TValue="bool" />
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Estado" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <RadzenDropDown class="form-control" @bind-Value="@coordenadorformadorVM.EstadoId" Data="@estadosFormador"
+                                                                        TValue="int" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                                        ValueProperty="Id" TextProperty="Nome" AllowClear="true">
+                                                            <Template Context="estado">
+                                                                <span>@estado.Id - @estado.Nome</span>
+                                                            </Template>
+                                                        </RadzenDropDown>
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Currículo" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <InputFile OnChange="OnInputCV" />
+                                                        <p>@cvMsg</p>
+                                                    </div>
+                                                </div>
+                                                <div class="row form-group">
+                                                    <div class="col-md-4 align-items-center d-flex">
+                                                        <RadzenLabel Text="Foto" />
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <InputFile OnChange="OnInputPhoto" />
+                                                        <p>@fotoMsg</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row justify-content-center">
+                                            <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+                                                <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Gravar" />
+                                            </div>
+                                        </div>
+                                    </RadzenFieldset>
+                                }
+                                else
+                                {
+                                    <CriarPessoal Funcao="@coordenadorformadorVM.Funcao">
+                                    </CriarPessoal>
+                                }
+                            </div>
+                        }
+                        else if (coordenadorformadorVM.Funcao == "Secretario" || coordenadorformadorVM.Funcao == "Administrador")
+                        {
+                            <CriarPessoal Funcao="@coordenadorformadorVM.Funcao">
+                            </CriarPessoal>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+	FormadorCoordenadorViewModel coordenadorformadorVM = new FormadorCoordenadorViewModel();
+	List<CNAEF> cnaefs = new List<CNAEF>();
+	List<Funcoes> funcoes = new List<Funcoes>();
+	List<Habilitacoes> habilitacoes = new List<Habilitacoes>();
+	List<Paises> paises = new List<Paises>();
+	List<ListaEstadosFormador> estadosFormador = new List<ListaEstadosFormador>();
+
+	int estadoInicial = 0;
+
+	IBrowserFile selectedCV, selectedPhoto;
+	string cvMsg = "";
+	string fotoMsg = "";
+
+	[Parameter]
+	public int Id { get; set; }
+
+	[Parameter]
+	public string Funcao { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		cnaefs = cnaefData.GetAll();
+		funcoes = funcoesData.GetAll();
+		habilitacoes = habilitacoesData.GetAll();
+		paises = paisesData.GetAll();
+		estadosFormador = estadosFormadorData.GetAll();
+
+		if (Id != 0)
+		{
+			Formador formador = formadorData.GetById(Id);
+			Pessoal pessoal = pessoalData.GetById(Id);
+			Pessoa pessoa = pessoaData.GetById(Id);
+			CoordenadorFormador coordenadorformador = coordenadorformadorData.GetById(Id);
+
+			estadoInicial = formador.EstadoId;
+			coordenadorformadorVM.FromModelPessoa(coordenadorformador);
+			if (coordenadorformadorVM.CV != null)
+				cvMsg = "Já existe um currículo registado, caso queira atualizar selecione o novo ficheiro";
+			if (coordenadorformadorVM.Foto != null)
+				fotoMsg = "Já existe uma foto registada, caso queira atualizar selecione o novo ficheiro";
+		}
+	}
+
+	async void InserirFormadorCoordenador()
+	{
+		if (coordenadorformadorVM.Id != 0)
+		{
+			CoordenadorFormador coordenadorformadorUpdate = coordenadorformadorVM.CreateModelPessoa();
+			coordenadorformadorUpdate.Id = coordenadorformadorVM.Id;
+
+			if (selectedCV != null)
+			{
+				coordenadorformadorUpdate.CV = FileMngSrv.FilePath(selectedCV, "cv", coordenadorformadorUpdate.Id);
+				await FileMngSrv.UploadFile(selectedCV, coordenadorformadorUpdate.CV);
+			}
+			if (selectedPhoto != null)
+			{
+				coordenadorformadorUpdate.Foto = FileMngSrv.FilePath(selectedPhoto, "foto", coordenadorformadorUpdate.Id);
+				await FileMngSrv.UploadFile(selectedPhoto, coordenadorformadorUpdate.Foto);
+			}
+
+			coordenadorformadorData.Update(coordenadorformadorUpdate);
+
+			if (coordenadorformadorUpdate.EstadoId != estadoInicial)
+			{
+				formadorData.UpdateHistEstado(coordenadorformadorUpdate);
+			}
+
+			notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Pessoal actualizado com sucesso", Duration = 4000 });
+			navManager.NavigateTo("Formadores");
+		}
+		else
+		{
+			CoordenadorFormador novoCoordenadorFormador = coordenadorformadorVM.CreateModelPessoa();
+			novoCoordenadorFormador.Password = "#FormadorUpskill2021#";
+			novoCoordenadorFormador.PerfilId = 5;
+
+			if (value == 1)
+			{
+				novoCoordenadorFormador.Funcao = "Coordenador e Formador";
+			}
+
+			novoCoordenadorFormador.Id = coordenadorformadorData.CreateReturnId(novoCoordenadorFormador);
+
+			if (selectedCV != null)
+			{
+				novoCoordenadorFormador.CV = FileMngSrv.FilePath(selectedCV, "cv", novoCoordenadorFormador.Id);
+				await FileMngSrv.UploadFile(selectedCV, novoCoordenadorFormador.CV);
+			}
+			if (selectedPhoto != null)
+			{
+				novoCoordenadorFormador.Foto = FileMngSrv.FilePath(selectedPhoto, "foto", novoCoordenadorFormador.Id);
+				await FileMngSrv.UploadFile(selectedPhoto, novoCoordenadorFormador.Foto);
+			}
+
+			//faz update aos path dos ficheiros na bd apenas se efectivamente for feito um upload
+			if (selectedCV != null || selectedPhoto != null)
+			{
+				coordenadorformadorData.Update(novoCoordenadorFormador);
+			}
+
+			notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Formador criado com sucesso", Duration = 4000 });
+			navManager.NavigateTo("Formadores");
+		}
+	}
+
+	void OnInputCV(InputFileChangeEventArgs e)
+	{
+		selectedCV = e.File;
+		this.StateHasChanged();
+	}
+
+	void OnInputPhoto(InputFileChangeEventArgs e)
+	{
+		selectedPhoto = e.File;
+		this.StateHasChanged();
+	}
+
+	public class EhFormador
+	{
+		public int Id { get; set; }
+		public string Name { get; set; }
+	}
+
+	IEnumerable<EhFormador>
+	data = new EhFormador[] {
+	new EhFormador(){ Id = 1 , Name = "Sim"}, new EhFormador() { Id = 2 , Name = "Não"} };
+
+	int value = 2;
+}

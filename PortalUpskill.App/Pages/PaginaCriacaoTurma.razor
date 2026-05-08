@@ -1,0 +1,337 @@
+﻿@page "/Turma"
+@page "/Turma/{TurmaId:int}"
+
+@inject RefreshService refreshService
+
+@inject ITurmaData TurmaData
+@inject IPessoaData pessoaData
+@inject IFormandoData FormandoData
+@inject IFormadorData formadorData
+@inject ICursoData cursoData
+@inject IModuloData moduloData
+
+<h1>@(Turma.Nome ?? "Nova Turma")</h1>
+
+<div class="row">
+    <div class="col-6">
+        <CriarTurma SendTurma="ReceiveTurma" Id="Turma.Id" CursoAlterado="@((cursoId) => PassarCursoAModulosFormador(cursoId))" />
+   
+    <!--INÍCIO #004-->
+    <!-- falta trocar a lógica de formando para coordenador e ligar com com BE -->
+    
+        @if (modulos.Count > 0)
+        {
+            <div class="cardstyle">
+                <div>
+
+                    <h4>Formadores Associados</h4>
+                    @if (modulos.Count == 0) //alterar logica para ser formadores.Count == 0 (em formadores da turma)
+                    {
+                        <p>Não existem Formadores associados a esta turma.</p>
+                        <p>Procure um Módulo na lista e clique em "Associar formador".</p>
+                    }
+                    else
+                    {
+                        <table class="table-borderless table-sm">
+                            @foreach (var modulo in modulos) //alterar lógica para ser formadores
+                            {
+                                <tr>
+                                    <td>
+                                        <RadzenButton ButtonStyle="ButtonStyle.Light"
+                                                      Size="ButtonSize.Small"
+                                                      Disabled="true"
+                                                      Icon="info" />
+                                    </td>
+                                    <td>
+                                        <span>@modulo.Nome</span>
+                                    </td>
+                                </tr>
+                            }
+                        </table>
+                    }
+
+                </div>
+            </div>
+        }
+    </div>
+    <div class="col-6">
+        <div class="cardstyle">
+            <div>
+                <h4>Coordenadores Associados</h4>
+                @if (Turma.Formandos.Count == 0)
+                {
+                    <p>Não existem Coordenadores associados a esta turma.</p>
+                    <p>Procure um Coordenador abaixo e clique em "Adicionar".</p>
+                }
+                else
+                {
+                    <table class="table-borderless table-sm">
+                        @foreach (var formando in Turma.Formandos)
+                        {
+                            <tr>
+                                <td>
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => RemoveFormando(formando))" Icon="remove" />
+                                </td>
+                                <td>
+                                    <span>@formando.Nome</span>
+                                </td>
+                            </tr>
+                        }
+                    </table>
+                }
+            </div>
+        </div>
+        @if (Turma.Id != null && Turma.Id != 0)
+        {
+        <div class="cardstyle">
+            <div>
+                
+                    <h4>Associar formadores aos módulos</h4>
+                    @if (modulos.Count == 0)
+                    {
+                        <p>Não existem Módulos associados a esta turma.</p>
+                        <p>Procure um Módulo abaixo e clique em "Adicionar".</p>
+                    }
+                    else
+                    {
+                        <table class="table-borderless table-sm">
+                            @foreach (var modulo in modulos)
+                            {
+                                <tr>
+                                    <td>
+                                        <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="add" Click=@(args => dialogService.Open<AssociarFormador>(
+                                          "Associar Formadores",
+                                          new Dictionary<string, object>() { { "ModuloId", modulo.Id } },
+                                          new DialogOptions() { Width = "80%", Height = "90%" }
+                                          )) />
+                                    </td>
+                                    <td>
+                                        <span>@modulo.Nome</span>
+                                    </td>
+                                </tr>
+                            }
+                        </table>
+                    }
+                
+            </div>
+        </div>
+        }
+
+
+        
+        <!--FIM #004-->
+        <div class="cardstyle">
+            <div>
+                <h4>Formandos Associados</h4>
+                @if (Turma.Formandos.Count == 0)
+                {
+                    <p>Não existem Formandos associados a esta turma.</p>
+                    <p>Procure um Formando abaixo e clique em "Adicionar".</p>
+                }
+                else
+                {
+                    <table class="table-borderless table-sm">
+                        @foreach (var formando in Turma.Formandos)
+                        {
+                            <tr>
+                                <td>
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => RemoveFormando(formando))" Icon="remove" />
+                                </td>
+                                <td>
+                                    <span>@formando.Nome</span>
+                                </td>
+                            </tr>
+                        }
+                    </table>
+
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<div class="my-4">
+    <RadzenTabs style="height: 880px">
+        <Tabs>
+            <RadzenTabsItem Text="Coordenador de Curso">
+                <ListarCoordenador OutgoingCoordenador="@ReceiveCoordenador" Mode="Add" IsViewedAsChild="true" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Formandos">
+                <ListarFormando OutgoingFormando=@ReceiveFormando
+                                Mode="Add" Filter='(f => f.Turma == null)'
+                                Title="Formandos sem turma" IsViewedAsChild="true" />
+            </RadzenTabsItem>
+            <!-- #004 <RadzenTabsItem Text="Formadores">
+                <AssociarFormador OutgoingFormador="@ReceiveFormador"
+                                Title="Associar Formadores aos módulos"  />
+            </RadzenTabsItem>-->
+        </Tabs>
+    </RadzenTabs>
+</div>
+<div class="my-4">
+    
+</div>
+
+
+@code{
+    [Parameter]
+    public int TurmaId { get; set; }
+
+    [Parameter]
+    public int CursoId { get; set; }
+
+    Turma Turma = new Turma();
+    List<Formando> formandos = new List<Formando>();
+
+    List<Formador> Coordenadores = new List<Formador>();
+    List<Formador> CoordenadoresEstadoInicial = new List<Formador>();
+
+    Turma TurmaEstadoInicial = new Turma();
+    List<Formando> FormandosEstadoInicial = new List<Formando>();
+
+    /// <summary>
+    /// Quando o evento CursoAlterado do componente <CriarTurma /> é disparado envia um Curso Id
+    /// Este Id é enviado para o componente <ModulosFormador /> que o usa para retirar os módulos que estão
+    ///     associados a esse curso da BD
+    /// </summary>
+    int? ReceivedCurso = 0;
+
+    /// <summary>
+    /// Assinala ao componente <ModulosFormador /> que a PáginaCriacaoTurma está pronta para receber o
+    ///     dicionário que relaciona os Formadores aos módulos.
+    /// <ModulosFormador /> irá disparar o evento que envia o dicionário quando esta propriedade for 'true'
+    /// </summary>
+    bool RequestModulosFormador = false;
+
+    int turmaId;
+    int moduloId;
+    int formadorId;
+    Curso curso;
+    List<Modulo> modulos = new List<Modulo>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (TurmaId != 0)
+        {
+            
+
+            Turma = TurmaData.GetById(TurmaId);
+            ReceivedCurso = Turma.CursoId;
+
+            TurmaEstadoInicial.Formandos = new List<Formando>();
+            foreach (var formando in Turma.Formandos)
+            {
+                TurmaEstadoInicial.Formandos.Add(formando);
+            }
+            Coordenadores = formadorData.GetCoordByCurso(TurmaId);
+            foreach (var coordenador in Coordenadores)
+            {
+                CoordenadoresEstadoInicial.Add(coordenador);
+            }
+            curso = cursoData.GetById(CursoId);
+            int TurmaCursoId = Turma.CursoId ?? 0;
+            modulos = moduloData.GetModulosByCurso(TurmaCursoId);
+
+        }
+    }
+
+    private void ReceiveCoordenador(int FormadorId)
+    {
+        if (Coordenadores.FirstOrDefault(c => c.Id == FormadorId) != null)
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Este Coordenador já está associado ao Curso", Duration = 2000 });
+        }
+        else
+        {
+            Coordenadores.Add(formadorData.GetById(FormadorId));
+        }
+    }
+
+    private void ReceiveFormador(int FormadorId)
+    {
+        if (Coordenadores.FirstOrDefault(c => c.Id == FormadorId) != null)
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Este Coordenador já está associado ao Curso", Duration = 2000 });
+        }
+        else
+        {
+            Coordenadores.Add(formadorData.GetById(FormadorId));
+        }
+    }
+
+    ///Trata da lógica necessária para adicionar outras entidades eg: adicionar formandos à turma
+    private void ReceiveFormando(int formando)
+    {
+        if (Turma.Formandos.FirstOrDefault(p => p.Id == formando) != null)
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Esta pessoa já está associado à Turma", Duration = 2000 });
+        }
+        else
+        {
+            Turma.Formandos.Add(FormandoData.GetById(formando));
+        }
+    }
+
+    /// <summary>
+    /// Remove o formando passado como argumento da Turma que a página está a editar
+    /// </summary>
+    /// <param name="formando">Formando a remover</param>
+    private void RemoveFormando(Formando formando)
+    {
+        Turma.Formandos.Remove(formando);
+    }
+
+    /// <summary>
+    /// Corre quando o evento SendTurma do componente <CriarTurma /> for disparado
+    /// </summary>
+    void ReceiveTurma(Turma turma)
+    {
+        formandos = Turma.Formandos;
+        
+        Turma = turma;
+        Turma.Formandos = formandos;
+        RequestModulosFormador = true;
+    }
+
+    /// <summary>
+    /// Corre quando o evento SendDictionary do componente <ModulosFormador /> for disparado
+    /// </summary>
+    /// <param name="ModFor">Chaves são os Módulos e os Valores são os Formadores</param>
+    void ReceiveModulosFormador(Dictionary<int, ModuloFormadorHora> ModFor)
+    {
+        InserirTurmaBD(Turma, ModFor);
+        RequestModulosFormador = false;
+    }
+
+    void InserirTurmaBD(Turma turma, Dictionary<int, ModuloFormadorHora> ModFor)
+    {
+        //lógica de criação
+        if (Turma.Id == 0)
+        {
+            turma.Formandos = Turma.Formandos;
+            turmaId = TurmaData.CreateReturnId(turma, ModFor);
+
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = $"Turma criada com sucesso.", Duration = 4000 });
+            navManager.NavigateTo("Turmas");
+        }
+
+        //lógica update
+        else
+        {
+            TurmaData.Update(turma, ModFor);
+
+            var formandosQueEntraram = Turma.Formandos.Except(TurmaEstadoInicial.Formandos).ToList();
+            var formandosQueSairam = TurmaEstadoInicial.Formandos.Except(Turma.Formandos).ToList();
+
+            TurmaData.RemoveFormandos(turma, formandosQueSairam);
+            TurmaData.InsertFormandos(turma, formandosQueEntraram);
+
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = $"Turma actualizada com sucesso.", Duration = 4000 });
+            navManager.NavigateTo("Turmas");
+        }
+    }
+
+    void PassarCursoAModulosFormador(int? cursoId)
+    {
+        ReceivedCurso = cursoId;
+    }
+}

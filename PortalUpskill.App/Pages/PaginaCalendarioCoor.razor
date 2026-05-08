@@ -1,0 +1,397 @@
+﻿@attribute [Authorize(Roles = "Coordenador")]
+@page "/CalendarCoor"
+@page "/CalendarCoor/{Id:int}"
+
+@inject IWebHostEnvironment env
+@inject ITurmaData turmaData
+@inject ICursoData cursoData
+@inject IAulaData aulaData
+@inject IPessoaData pessoaData
+@inject IFormadorData formadorData
+@inject IModuloData moduloData
+@inject ProtectedSessionStorage sessionStorage
+
+<div class="cardstyle">
+    <div style="display: flex; gap: 1rem; align-items: flex-start;">
+        <div style="flex:1">
+    <h3>Selecione uma turma</h3>
+
+    <RadzenDropDown class="w-75" Data="@turmas" @bind-Value="SelectedTurmaId" Change="OnTurmaSelected" TValue="int" ValueProperty="Id" TextProperty="Nome"
+                    AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    AllowClear="false">
+        <Template Context="Turma">
+            <span>@Turma.Nome - @Turma.Curso.Nome</span>
+        </Template>
+    </RadzenDropDown>
+</div>
+        <div style="flex:1">
+        <h3>Selecione o ano letivo</h3>
+        <RadzenDropDown class="w-25"
+                        Data="@AnosLetivos"
+                        @bind-Value="AnoLetivoSelecionado"
+                        Change="OnAnoLetivoChange"
+                        TValue="string"
+                        ValueProperty="Ano"
+                        TextProperty="Ano"
+                        AllowFiltering="true"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        AllowClear="false">
+            <Template Context="ano">
+                <span>@ano.Ano</span>
+            </Template>
+        </RadzenDropDown>
+    </div>
+
+    <!--FIM #004-->
+</div>
+    @if (SelectedTurma != null)
+    {
+        @if(DataSource.Count > 0)
+        {
+
+        <SfSchedule TValue="AppointmentData" @ref="Scheduler" @bind-SelectedDate="@CurrentDate" @bind-CurrentView="@CurrentView">
+            <ScheduleResources>
+                <ScheduleEvents TValue="AppointmentData" OnPopupOpen="@OnPopupOpen"></ScheduleEvents>
+                <ScheduleResource TItem="ResourceData" TValue="int" DataSource="@OwnerData" Field="OwnerId" Title="Owner"
+                                  Name="Owner" TextField="Text" IdField="Id" ColorField="Color"></ScheduleResource>
+            </ScheduleResources>
+
+            <ScheduleEventSettings DataSource="@DataSource"></ScheduleEventSettings>
+
+            <ScheduleQuickInfoTemplates TemplateType="TemplateType.Both">
+                <HeaderTemplate>
+                    <div class="quick-info-header">
+                        <div class="quick-info-header-content" style="@(GetHeaderStyles((context as AppointmentData)))">
+                            <div class="quick-info-title">
+                                @((context as AppointmentData).OwnerId == 0 ? "Calendarizar dia" : (context as AppointmentData).Subject)
+                            </div>
+                            <div class="duration-text">
+                                @((context as AppointmentData).StartTime.ToString("dd/MM/yyyy")
++ " (" + (context as AppointmentData).StartTime.ToString("HH:mm") + "-" + (context as AppointmentData).EndTime.ToString("HH:mm") + ")")
+                            </div>
+                        </div>
+                    </div>
+                </HeaderTemplate>
+                <ContentTemplate>
+
+                    @if ((context as AppointmentData).ElementType != "cell")
+                    {
+                        AppointmentData Data = context as AppointmentData;
+                        <div class="event-content">
+                            <div class="meeting-type-wrap">
+                                <label>Disciplina</label>:
+                                <span>@(Data.Subject)</span>
+                            </div>
+                            <div class="meeting-subject-wrap">
+                                <label>Tipo</label>:
+                                <span>@((Data.OwnerId != 0) ? OwnerData.Where(item => item.Id.Equals(Data.OwnerId)).FirstOrDefault().Text : "")</span>
+                            </div>
+
+                        </div>
+                    }
+                </ContentTemplate>
+                <FooterTemplate>
+                    @if ((context as AppointmentData).ElementType == "cell")
+                    {
+
+                    }
+                    else
+                    {
+                        <div class="cell-footer">
+                            @if ((context as AppointmentData).OwnerId == 3)
+                            {
+                                    <RadzenButton ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Text="Ver Detalhes" Click="@(() => navManager.NavigateTo($"DetalhesAula/{(context as AppointmentData).Id}/{Idf}/{Idt}/CalendarCoor"))" />
+                            }
+                        </div>
+                    }
+                </FooterTemplate>
+            </ScheduleQuickInfoTemplates>
+            <ScheduleViews>
+                <ScheduleView Option="View.Week" StartHour="08:00" EndHour="20:00" DisplayName="Semanal"></ScheduleView>
+                <ScheduleView Option="View.Month" MaxEventsPerRow="10" ShowWeekend="false" DisplayName="Mensal"></ScheduleView>
+                <ScheduleView Option="View.TimelineYear" MaxEventsPerRow="3" DisplayName="Anual" IsSelected="true">
+                    <EventTemplate>
+                        <div class="e-appointment-details">
+                            <div class="e-subject e-text-center">@((context as AppointmentData).Subject)</div>
+                        </div>
+                    </EventTemplate>
+                </ScheduleView>
+            </ScheduleViews>
+        </SfSchedule>
+        }
+        else
+        {
+            <p>Não existem aulas calendarizadas para a turma selecionada.</p>
+        }
+    }
+</div>
+
+<!-- INÍCIO #008 -->
+<!-- Botão de Voltar -->
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
+    </div>
+</div>
+<!-- FIM -->
+
+@code {
+    //#004 Inicio falta alterar a logica para ir buscar os anos letivos à BD
+    private List<AnoLetivo> AnosLetivos { get; set; }
+    private string AnoLetivoSelecionado { get; set; }
+    private class AnoLetivo
+    {
+        public string Ano { get; set; }
+    }
+    private void OnAnoLetivoChange(object value)
+    {
+        AnoLetivoSelecionado = value?.ToString();
+        // Adicionar aqui logica quando o ano letivo é selecionado
+    }
+    //#004 fim
+
+    // INÍCIO #008
+    // Instancia a ViewModel para a Aula
+    // É necessário para o botão de Voltar
+
+    AulaViewModel aulaVM = new AulaViewModel();
+
+    [Parameter]
+    public int Idf { get; set; }//id do Formador
+
+    [Parameter]
+    public int Idt { get; set; }//id da Turma
+
+	// FIM
+
+    [Parameter]
+    public int Id { get; set; }
+
+    // Lista de todas disponíveis para o formador
+    List<Turma> turmas = new List<Turma>();
+
+    // Turma Selectionada pelo dropdown
+    int SelectedTurmaId;
+    Turma SelectedTurma;
+
+    //Aulas associadas à turma selecionada
+    List<Aula> aulas = new List<Aula>();
+
+    //Dicionário com as horas que estão contabilizadas no calendário
+    Dictionary<int, double> HorasPorModulo = new Dictionary<int, double>();
+
+    #region VariaveisSfScheduler
+
+    SfSchedule<AppointmentData> Scheduler;
+    // determina a vista actual do Scheduler. Ao início é TimelineYear
+    View CurrentView = View.TimelineYear;
+
+    //Data para qual o Scheduler está apontado.
+    DateTime CurrentDate = DateTime.Now;
+
+    //Lista de todos os eventos no Scheduler
+    List<AppointmentData> DataSource = new List<AppointmentData>();
+
+    //ResourceData são grupos de eventos
+    //é o que permite ter cores e agrupamento de eventos
+    List<ResourceData> OwnerData = new List<ResourceData>();
+
+    #endregion
+
+    //User que está a consultar a página
+    //isto é para enviar o id do formador para prencher na aula
+    Pessoa user;
+
+    [CascadingParameter]
+    Task<AuthenticationState> authStateTask { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        int idCoor = 0;
+        var readUserFromSession = await sessionStorage.GetAsync<string>("user");
+        if (readUserFromSession.Success)
+        {
+            user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
+            idCoor = user.Id;
+        };
+
+        turmas = formadorData.GetTurmaByIdCoordenador(idCoor);
+        turmas = turmas.Where(t => t.Nome != "Sem turma associada").ToList();
+
+        List<int> idsAutorizados = turmas.Select(t => t.Id).ToList();
+        if (Id != 0 && idsAutorizados.Contains(Id))
+        {
+            SelectedTurmaId = Id;
+            OnTurmaSelected();
+        }
+        AnosLetivos = new List<AnoLetivo>
+        {
+            new AnoLetivo { Ano = "2020/2021" },
+            new AnoLetivo { Ano = "2021/2022" },
+            new AnoLetivo { Ano = "2022/2023" },
+            new AnoLetivo { Ano = "2023/2024" },
+            new AnoLetivo { Ano = "2024/2025" },
+            new AnoLetivo { Ano = "2025/2026" }
+        };
+    }
+
+    /// <summary>
+    /// Prepara a página para quando uma turma é selecionada
+    /// </summary>
+    void OnTurmaSelected()
+    {
+        DataSource.Clear();
+
+        SelectedTurma = turmas.Single(t => t.Id == SelectedTurmaId);
+        SelectedTurma.Curso = cursoData.GetById(SelectedTurma.CursoId.Value);
+        SelectedTurma.Aulas = aulaData.GetByTurma(SelectedTurma);
+
+        //criar uma lista de ResourceData para selecionar a que módulo/interrupção pertence o evento
+        CreateResourceData();
+
+        //se existir uma calendarização prévia, carrega-a
+        string calendarPath = env.ContentRootPath + $"/Files/Calendars/{SelectedTurma.Id}.json";
+        if (File.Exists(calendarPath))
+        {
+            string calendarJson = File.ReadAllText(calendarPath);
+            DataSource = JsonConvert.DeserializeObject<List<AppointmentData>>(calendarJson);
+        }
+        else
+        {
+            DataSource.Clear();
+        }
+
+        //colocar todos os eventos como não editáveis
+        DataSource.ForEach(apt => apt.IsReadonly = true);
+
+        //Para cada aula que já tenha sido sumarizada, colocar o evento correstpondente no grupo certo (OwnerId = 3)
+        foreach (var aula in SelectedTurma.Aulas.OrderBy(a => a.HoraInicio))
+        {
+            var apt = DataSource.Find(apt => apt.StartTime == aula.HoraInicio && apt.OwnerId != 3);
+            if (apt != null)
+            {
+                apt.OwnerId = 3;
+                apt.IsReadonly = true;
+                apt.Id = aula.Id;
+                apt.Subject = "Aula Sumarizada";
+            }
+        }
+
+    }
+
+    /// <summary>
+    /// Cria uma lista de Grupos consoante os módulos que existam no Curso da turma Selecionada
+    /// isto permito agrupar aulas pelos módulos
+    /// </summary>
+    void CreateResourceData()
+    {
+        OwnerData.Clear();
+
+        OwnerData.Add(new ResourceData { Id = 3, Color = "#5db774", Text = "Aulas Sumarizadas" });
+
+        int resourceDataId = 4;
+        foreach (var modulo in SelectedTurma.Curso.Modulos.Keys)
+        {
+            OwnerData.Add(new ResourceData
+            {
+                Id = resourceDataId,
+                Color = "#479cc8",
+                Text = $"M{modulo.Id} - Síncrono",
+                ModuloId = modulo.Id
+            });
+            resourceDataId++;
+            OwnerData.Add(new ResourceData
+            {
+                Id = resourceDataId,
+                Color = "#479ca8",
+                Text = $"M{modulo.Id} - Assíncrono",
+                ModuloId = modulo.Id
+            });
+            resourceDataId++;
+        }
+    }
+
+    /// <summary>
+    ///Prepara um objecto aula guarda em SessionStorage e redireciona para a página de detalhes de
+    /// </summary
+    async Task CriarSumario(AppointmentData data)
+    {
+        Aula novaAula = new Aula
+        {
+            HoraInicio = data.StartTime,
+            HoraFim = data.EndTime,
+            TurmaId = SelectedTurmaId,
+            ModuloId = data.ModuloId
+        };
+        await sessionStorage.SetAsync("CriarAula", JsonConvert.SerializeObject(novaAula));
+        navManager.NavigateTo($"DetalhesAula/");
+    }
+
+    public class ResourceData
+    {
+        public int Id { get; set; }
+        public string Text { get; set; }
+        public string Color { get; set; }
+        public int ModuloId { get; set; }
+    }
+
+    public class AppointmentData
+    {
+        public int Id { get; set; }
+        public string Subject { get; set; }
+        public string Location { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public string Description { get; set; }
+        public bool IsAllDay { get; set; }
+        public string RecurrenceRule { get; set; }
+        public string RecurrenceException { get; set; }
+        public Nullable<int> RecurrenceID { get; set; }
+        public int OwnerId { get; set; }
+        public bool IsReadonly { get; set; }
+        public string ElementType { get; set; }
+        public int ModuloId { get; set; }
+        public string ModuloName { get; set; }
+
+        public void AddWorkingDays(int days)
+        {
+            StartTime = StartTime.AddWorkingDays(1);
+            EndTime = EndTime.AddWorkingDays(1);
+        }
+    }
+
+    /// <summary>
+    /// Muda o estilo do header para o editor de evento do Scheduler
+    /// </summary>
+    private string GetHeaderStyles(AppointmentData data)
+    {
+        try
+        {
+            if (data.ElementType == "cell")
+            {
+                //CellClick Header Styles
+                return "align-items: center ; color: #919191;";
+            }
+            else
+            {
+                //EventClick Header Styles
+
+                return "background:" + this.OwnerData.Where(item => item.Id.Equals(data.OwnerId)).FirstOrDefault().Color + "; color: #FFFFFF;";
+
+            }
+
+        }
+        catch (Exception e) { return e.Message; }
+    }
+
+    //Função que bloqueia a abertura da janela de detalhes do Scheduler
+    void OnPopupOpen(PopupOpenEventArgs<AppointmentData> args)
+    {
+        if (args.Type == PopupType.Editor)
+        {
+            args.Cancel = true;
+        }
+    }
+}
