@@ -406,7 +406,7 @@
     <value>Procurar</value>
   </data>
   <data name="FileManager_ButtonOk" xml:space="preserve">
-    <value>Está bem</value>
+    <value>Ok</value>
   </data>
   <data name="FileManager_ButtonCancel" xml:space="preserve">
     <value>Cancelar</value>
@@ -712,7 +712,7 @@
     <value>Deslocamento</value>
   </data>
   <data name="Gantt_OkText" xml:space="preserve">
-    <value>Está bem</value>
+    <value>Ok</value>
   </data>
   <data name="Gantt_PrevTimeSpan" xml:space="preserve">
     <value>Período anterior</value>
@@ -2164,7 +2164,7 @@
     <value>Manter</value>
   </data>
   <data name="RichTextEditor_PasteDialogOk" xml:space="preserve">
-    <value>Está bem</value>
+    <value>Ok</value>
   </data>
   <data name="RichTextEditor_PasteDialogCancel" xml:space="preserve">
     <value>Cancelar</value>
@@ -2290,7 +2290,7 @@
     <value>Salve </value>
   </data>
   <data name="Grid_OKButton" xml:space="preserve">
-    <value>Está bem</value>
+    <value>Ok</value>
   </data>
   <data name="Grid_CancelButton" xml:space="preserve">
     <value>Cancelar</value>
@@ -2737,7 +2737,7 @@
     <value>Ocorrência</value>
   </data>
   <data name="Schedule_Ok" xml:space="preserve">
-    <value>Está bem</value>
+    <value>Ok</value>
   </data>
   <data name="Schedule_Previous" xml:space="preserve">
     <value>Anterior</value>
@@ -2869,7 +2869,7 @@
     <value> Mostrar página anterior </value>
   </data>
   <data name="PdfViewer_OK" xml:space="preserve">
-    <value> Está bem </value>
+    <value> Ok </value>
   </data>
   <data name="PdfViewer_Open" xml:space="preserve">
     <value> Abrir arquivo </value>
@@ -3259,7 +3259,7 @@
     <value>Célula</value>
   </data>
   <data name="DocumentEditor_Ok" xml:space="preserve">
-    <value>Está bem</value>
+    <value>Ok</value>
   </data>
   <data name="DocumentEditor_Cancel" xml:space="preserve">
     <value>Cancelar</value>
