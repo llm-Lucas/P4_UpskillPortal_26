@@ -33,13 +33,13 @@
         <RadzenPanelMenuItem class="rz-custom-panel-menu" Text="Criar Coordenador" Path="/Coordenador" Icon="add"></RadzenPanelMenuItem>
     </RadzenPanelMenuItem>
 
-    <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/outline_engineering_white_48dp.png" Text="Colaboradores">
-        <RadzenPanelMenuItem class="rz-custom-panel-menu" Text="Ver Colaboradores" Path="/Colaboradores" Icon="view_list"></RadzenPanelMenuItem>
+    <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/outline_engineering_white_48dp.png" Text="Admin">
+        <RadzenPanelMenuItem class="rz-custom-panel-menu" Text="Ver Admin" Path="/Colaboradores" Icon="view_list"></RadzenPanelMenuItem>
         @*INICIO #004*@
         @*Autorizacao para só o admin poder criar novos colaboradores*@
                 <AuthorizeView Roles="Administrador">
             <Authorized>
-         <RadzenPanelMenuItem class="rz-custom-panel-menu" Text="Criar Colaborador" Path="/Colaborador" Icon="add"></RadzenPanelMenuItem>
+                <RadzenPanelMenuItem class="rz-custom-panel-menu" Text="Criar Admin" Path="/Colaborador" Icon="add"></RadzenPanelMenuItem>
             </Authorized>
         </AuthorizeView>
         @*FIM #004*@
