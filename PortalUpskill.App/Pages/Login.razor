@@ -16,7 +16,20 @@
     </div>
     <div class="form-group">
             <RadzenLabel Text="Password" />
-            <RadzenPassword class="form-control" @bind-Value="@loginVM.Password" />
+@*             <RadzenPassword class="form-control" @bind-Value="@loginVM.Password" />
+ *@            
+        <div class="input-group">
+            <input type="@(showPassword ? "text" : "password")"
+                   class="form-control"
+                   @bind="loginVM.Password"
+                   placeholder="Password" />
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    @onclick="TogglePasswordVisibility"
+                    title="@(showPassword ? "Ocultar password" : "Mostrar password")">
+                <i class="@(showPassword ? "oi oi-eye" : "oi oi-lock-locked")"></i>
+            </button>
+        </div>
             <ValidationMessage For="@(() => loginVM.Password)" />
     </div>
     <RadzenButton class="my-2" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="login" Text="Log in" />
@@ -25,6 +38,13 @@
 @code {
 
     LoginViewModel loginVM = new LoginViewModel();
+
+    private bool showPassword = false;
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
 
     [CascadingParameter]
     Task<AuthenticationState> AuthenticationStateTask { get; set; }
