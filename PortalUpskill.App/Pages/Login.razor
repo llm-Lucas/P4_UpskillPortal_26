@@ -18,16 +18,18 @@
             <RadzenLabel Text="Password" />
 @*             <RadzenPassword class="form-control" @bind-Value="@loginVM.Password" />
  *@            
-        <div class="input-group">
-            <input type="@(showPassword ? "text" : "password")"
-                   class="form-control"
-                   @bind="loginVM.Password"
-                   placeholder="Password" />
+        <div style="position: relative;">
+    <input type="@(showPassword ? "text" : "password")"
+           class="form-control"
+           @bind="loginVM.Password"
+           placeholder="Password"
+           style="padding-right: 2.5rem;" />
             <button type="button"
-                    class="btn btn-outline-secondary"
                     @onclick="TogglePasswordVisibility"
-                    title="@(showPassword ? "Ocultar password" : "Mostrar password")">
-                <i class="@(showPassword ? "oi oi-eye" : "oi oi-lock-locked")"></i>
+                    title="@(showPassword ? "Ocultar password" : "Mostrar password")"
+                    style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+                background: none; border: none; padding: 0; cursor: pointer; outline: none;">
+                <i class="@(showPassword ? "oi oi-lock-locked" : "oi oi-eye")"></i>
             </button>
         </div>
             <ValidationMessage For="@(() => loginVM.Password)" />
