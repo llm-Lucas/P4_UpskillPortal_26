@@ -64,6 +64,7 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<FileManagerService>();
 builder.Services.AddScoped<HashingService>();
 builder.Services.AddScoped<IAnoLetivoData, AnoLetivoData>();
+builder.Services.AddScoped<EmailService>();
 
 var app = builder.Build();
 
