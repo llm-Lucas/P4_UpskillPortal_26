@@ -32,7 +32,8 @@ namespace PortalUpskill.Data.Models
         public Curso Curso { get; set; }
         public List<Aula> Aulas { get; set; } = new List<Aula>();
         public List<Formando> Formandos { get; set; } = new List<Formando>();
-
+        public int? AnoLetivoId { get; set; }
+        public AnoLetivo AnoLetivo { get; set; }
         public List<Modulo> Modulos { get; set; } = new List<Modulo>();
     }
 }

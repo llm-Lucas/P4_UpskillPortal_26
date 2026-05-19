@@ -1,6 +1,8 @@
-﻿@inject ITurmaData TurmaData
+﻿@using PortalUpskill.Data.DataAccessDapper.Interfaces
+@inject ITurmaData TurmaData
 @inject ICursoData cursoData
 @inject RefreshService refreshService
+@inject IAnoLetivoData anoLetivoData
 
 <div class="cardstyle">
     <EditForm Model="@turmaVM" OnValidSubmit="CheckTurma">
@@ -23,12 +25,15 @@
                 </div>
                 <div class="col-md-8">
                     <RadzenDropDown class="form-control"
-                                    TValue="int?" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    ValueProperty="Id" TextProperty="Nome" AllowClear="false">
-                        <Template Context="curso">
-                            <!--introduzir logica para os anos letivos aqui-->
-                        </Template>
-                    </RadzenDropDown>
+                                    @bind-Value="turmaVM.AnoLetivoId"
+                                    Data="@anosLetivos"
+                                    TValue="int?"
+                                    AllowFiltering="true"
+                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    ValueProperty="Id"
+                                    TextProperty="Nome"
+                                    AllowClear="false"
+                                    Placeholder="Selecione o ano letivo" />
                 </div>
             </div>
             <!--FIM #004-->
@@ -271,6 +276,8 @@
 @code {
     TurmaViewModel turmaVM = new TurmaViewModel();
 
+    List<AnoLetivo> anosLetivos = new List<AnoLetivo>();
+
     List<Curso> cursos = new List<Curso>();
 
     [Parameter]
@@ -286,6 +293,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        anosLetivos = anoLetivoData.GetAll();
         refreshService.Refresh += () => ResetFields();
         cursos = cursoData.GetAllWithModulos();
         if (Id != 0)

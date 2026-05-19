@@ -26,18 +26,23 @@ namespace PortalUpskill.Data.DataAccessDapper
             {
                 var lookup = new Dictionary<int, Turma>();
 
-                string sql = @"SELECT * FROM Turma AS t
-                                LEFT JOIN TurmaFormando AS tf
-	                                ON tf.TurmaId = t.Id
-                                LEFT JOIN Formando AS f
-	                                ON f.PessoaId = tf.FormandoId
-                                LEFT JOIN Pessoa as p
-	                                ON p.Id = f.PessoaId
-                                LEFT JOIN Curso AS c
-	                                ON t.CursoId = c.Id";
+                string sql = @"SELECT t.Id, t.Nome, t.DataInicioCurso, t.DataFimCurso, t.CursoId,
+                              t.HorarioSincronoInicio, t.HorarioSincronoFim,
+                              t.HorarioAssincronoInicio, t.HorarioAssincronoFim,
+                              t.TempoLectivo, t.AnoLetivoId,
+                              f.PessoaId, f.IBAN, f.Bolsa, f.EstadoId,
+                              p.Id, p.Nome, p.Email,
+                              c.Id, c.Nome, c.DuracaoHoras,
+                              al.Id, al.Nome
+                       FROM Turma AS t
+                       LEFT JOIN TurmaFormando AS tf ON tf.TurmaId = t.Id
+                       LEFT JOIN Formando AS f ON f.PessoaId = tf.FormandoId
+                       LEFT JOIN Pessoa AS p ON p.Id = f.PessoaId
+                       LEFT JOIN Curso AS c ON t.CursoId = c.Id
+                       LEFT JOIN AnoLetivo AS al ON t.AnoLetivoId = al.Id";
 
-                return connection.Query<Turma, Formando, Curso, Turma>(
-                sql, (turma, formando, curso) =>
+                return connection.Query<Turma, Formando, Curso, AnoLetivo, Turma>(
+                sql, (turma, formando, curso, anoLetivo) =>
                 {
                     Turma turmaEntry;
 
@@ -47,16 +52,14 @@ namespace PortalUpskill.Data.DataAccessDapper
                         turmaEntry.Formandos = new List<Formando>();
                         lookup.Add(turmaEntry.Id, turmaEntry);
                     }
-                    if (formando.Id != 0)
-                    {
+                    if (formando != null && formando.Id != 0)
                         turmaEntry.Formandos.Add(formando);
-                    }
                     if (curso != null)
-                    {
                         turmaEntry.Curso = curso;
-                    }
+                    if (anoLetivo != null)
+                        turmaEntry.AnoLetivo = anoLetivo;
                     return turmaEntry;
-                }, splitOn: "PessoaId, Id").Distinct().ToList();
+                }, splitOn: "PessoaId,Id,Id").Distinct().ToList();
             }
         }
 
@@ -66,45 +69,48 @@ namespace PortalUpskill.Data.DataAccessDapper
             {
                 var lookup = new Dictionary<int, Turma>();
 
-                string sql = @"SELECT * FROM Turma AS t
-                                LEFT JOIN TurmaFormando AS tf
-	                                ON tf.TurmaId = t.Id
-                                LEFT JOIN Formando AS f
-	                                ON f.PessoaId = tf.FormandoId
-                                LEFT JOIN Pessoa as p
-	                                ON p.Id = f.PessoaId
-                                LEFT JOIN Curso AS c
-	                                ON t.CursoId = c.Id
-                                WHERE t.Id = @Id";
+                string sql = @"SELECT t.Id, t.Nome, t.DataInicioCurso, t.DataFimCurso, t.CursoId,
+                              t.HorarioSincronoInicio, t.HorarioSincronoFim,
+                              t.HorarioAssincronoInicio, t.HorarioAssincronoFim,
+                              t.TempoLectivo, t.AnoLetivoId,
+                              f.PessoaId, f.IBAN, f.Bolsa, f.EstadoId,
+                              p.Id, p.Nome, p.Email,
+                              c.Id, c.Nome, c.DuracaoHoras,
+                              al.Id, al.Nome
+                       FROM Turma AS t
+                       LEFT JOIN TurmaFormando AS tf ON tf.TurmaId = t.Id
+                       LEFT JOIN Formando AS f ON f.PessoaId = tf.FormandoId
+                       LEFT JOIN Pessoa AS p ON p.Id = f.PessoaId
+                       LEFT JOIN Curso AS c ON t.CursoId = c.Id
+                       LEFT JOIN AnoLetivo AS al ON t.AnoLetivoId = al.Id
+                       WHERE t.Id = @Id";
 
-                return connection.Query<Turma, Formando, Curso, Turma>(
-                sql, (turma, formando, curso) =>
+                return connection.Query<Turma, Formando, Curso, AnoLetivo, Turma>(
+                sql, (turma, formando, curso, anoLetivo) =>
                 {
                     Turma turmaEntry;
 
                     if (!lookup.TryGetValue(turma.Id, out turmaEntry))
                     {
                         turmaEntry = turma;
-                        turmaEntry.Formandos= new List<Formando>();
+                        turmaEntry.Formandos = new List<Formando>();
                         lookup.Add(turmaEntry.Id, turmaEntry);
                     }
-                    if (formando.Id != 0)
-                    {
+                    if (formando != null && formando.Id != 0)
                         turmaEntry.Formandos.Add(formando);
-                    }
                     if (curso != null)
-                    {
                         turmaEntry.Curso = curso;
-                    }
+                    if (anoLetivo != null)
+                        turmaEntry.AnoLetivo = anoLetivo;
                     return turmaEntry;
                 },
-                 new { Id = id },
-                 splitOn: "PessoaId, Id")
-                     .Distinct()
-                     .FirstOrDefault();
+                new { Id = id },
+                splitOn: "PessoaId,Id,Id")
+                    .Distinct()
+                    .FirstOrDefault();
             }
         }
-       
+
         public List<Turma> GetByCurso(int cursoId)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -133,10 +139,10 @@ namespace PortalUpskill.Data.DataAccessDapper
             var idturma = 0;
             string sql = @"INSERT INTO Turma (Nome, DataInicioCurso, DataFimCurso, CursoId,
                                                 HorarioSincronoInicio, HorarioSincronoFim,
-                                                HorarioAssincronoInicio, HorarioAssincronoFim, TempoLectivo)
+                                                HorarioAssincronoInicio, HorarioAssincronoFim, TempoLectivo, AnoLetivoId)
                                     VALUES (@Nome, @DataInicioCurso, @DataFimCurso, @CursoId,
                                                 @HorarioSincronoInicio, @HorarioSincronoFim,
-                                                @HorarioAssincronoInicio, @HorarioAssincronoFim, @TempoLectivo)
+                                                @HorarioAssincronoInicio, @HorarioAssincronoFim, @TempoLectivo, @AnoLetivoId)
                                     SELECT CAST(SCOPE_IDENTITY() as int);";
             if (turma.Formandos.Count() == 0)
             {
@@ -184,10 +190,10 @@ namespace PortalUpskill.Data.DataAccessDapper
 
             string sql = @"INSERT INTO Turma (Nome, DataInicioCurso, DataFimCurso, CursoId,
                                         HorarioSincronoInicio, HorarioSincronoFim,
-                                        HorarioAssincronoInicio, HorarioAssincronoFim, TempoLectivo)
+                                        HorarioAssincronoInicio, HorarioAssincronoFim, TempoLectivo, AnoLetivoId)
                             VALUES (@Nome, @DataInicioCurso, @DataFimCurso, @CursoId,
                                         @HorarioSincronoInicio, @HorarioSincronoFim,
-                                        @HorarioAssincronoInicio, @HorarioAssincronoFim, @TempoLectivo)
+                                        @HorarioAssincronoInicio, @HorarioAssincronoFim, @TempoLectivo, @AnoLetivoId)
                             SELECT CAST(SCOPE_IDENTITY() as int);";
 
             if (turma.Formandos.Count() == 0 && ModFor.Select(i => i.Value.FormadorId).Where(i => i != 0).Count() == 0)
@@ -275,7 +281,7 @@ namespace PortalUpskill.Data.DataAccessDapper
                 string sql = @"UPDATE Turma
                                SET Nome = @Nome, DataInicioCurso = @DataInicioCurso, DataFimCurso = @DataFimCurso, CursoId = @CursoId,
                                 HorarioSincronoInicio = @HorarioSincronoInicio, HorarioSincronoFim = @HorarioSincronoFim,
-                                HorarioAssincronoInicio = @HorarioAssincronoInicio, HorarioAssincronoFim = @HorarioAssincronoFim, TempoLectivo = @TempoLectivo
+                                HorarioAssincronoInicio = @HorarioAssincronoInicio, HorarioAssincronoFim = @HorarioAssincronoFim, TempoLectivo = @TempoLectivo, AnoLetivoId = @AnoLetivoId
                                 WHERE Id = @Id";
                 connection.Execute(sql, turma);
             }
@@ -291,7 +297,7 @@ namespace PortalUpskill.Data.DataAccessDapper
             string sql = @"UPDATE Turma
                                SET Nome = @Nome, DataInicioCurso = @DataInicioCurso, DataFimCurso = @DataFimCurso, CursoId = @CursoId,
                                 HorarioSincronoInicio = @HorarioSincronoInicio, HorarioSincronoFim = @HorarioSincronoFim,
-                                HorarioAssincronoInicio = @HorarioAssincronoInicio, HorarioAssincronoFim = @HorarioAssincronoFim, TempoLectivo = @TempoLectivo
+                                HorarioAssincronoInicio = @HorarioAssincronoInicio, HorarioAssincronoFim = @HorarioAssincronoFim, TempoLectivo = @TempoLectivo, AnoLetivoId = @AnoLetivoId
                                 WHERE Id = @Id";
             if (ModFor.Select(i => i.Value.FormadorId).Where(i => i != 0).Count() == 0)
             {

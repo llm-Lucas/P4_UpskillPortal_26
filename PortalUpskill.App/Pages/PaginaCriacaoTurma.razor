@@ -283,14 +283,15 @@
     /// <summary>
     /// Corre quando o evento SendTurma do componente <CriarTurma /> for disparado
     /// </summary>
-    void ReceiveTurma(Turma turma)
-    {
-        formandos = Turma.Formandos;
-        
-        Turma = turma;
-        Turma.Formandos = formandos;
-        RequestModulosFormador = true;
-    }
+void ReceiveTurma(Turma turma)
+{
+    formandos = Turma.Formandos;
+    Turma = turma;
+    Turma.Formandos = formandos;
+
+    // Chama directamente com dicionário vazio em vez de esperar pelo ModulosFormador
+    InserirTurmaBD(Turma, new Dictionary<int, ModuloFormadorHora>());
+}
 
     /// <summary>
     /// Corre quando o evento SendDictionary do componente <ModulosFormador /> for disparado

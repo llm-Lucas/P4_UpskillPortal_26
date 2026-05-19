@@ -1,5 +1,5 @@
-﻿@page "/Colaborador/"
-@page "/Colaborador/{Id:int}"
+﻿@page "/Admin/Criar"
+@page "/Admin/Criar/{Id:int}"
 
 @inject ICNAEFData cnaefData
 @inject IHabilitacoesData habilitacoesData
@@ -416,7 +416,7 @@
             <!-- INÍCIO #004 -->
             <div class="row justify-content-center">
                 <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px; gap: 16px;">
-                    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Colaboradores"))" />
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo("Admin"))" />
                     <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Gravar" />
                 </div>
             </div>
@@ -453,7 +453,7 @@
     public int Id { get; set; }
 
     [Parameter]
-    public string Title { get; set; } = "Novo Colaborador";
+    public string Title { get; set; } = "Novo Admin";
 
     [Parameter]
     public bool RedirectAfterCreation { get; set; } = true;
@@ -511,8 +511,8 @@
 
             pessoalData.Update(pessoalUpdate);
 
-            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Colaborador actualizado com sucesso", Duration = 4000 });
-            navManager.NavigateTo("Colaboradores");
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Admin actualizado com sucesso", Duration = 4000 });
+            navManager.NavigateTo("Admin");
         }
         else
         {
@@ -540,8 +540,8 @@
                 pessoalData.Update(novoPessoal);
             }
 
-            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Colaborador criado com sucesso", Duration = 4000 });
-            navManager.NavigateTo("Colaboradores");
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Admin criado com sucesso", Duration = 4000 });
+            navManager.NavigateTo("Admin");
         }
     }
 
