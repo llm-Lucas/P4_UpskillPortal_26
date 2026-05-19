@@ -147,8 +147,13 @@
 
 		<ScheduleQuickInfoTemplates TemplateType="TemplateType.Both">
 			<HeaderTemplate>
-				<div class="quick-info-header">
-					<div class="quick-info-header-content" style="@(GetHeaderStyles((context as AppointmentData)))">
+    <div class="quick-info-header" style="position: relative;">
+        <button type="button"
+        class="quick-info-close"
+        @onclick="@(() => Scheduler.CloseQuickInfoPopup())">
+    ×
+</button>
+        <div class="quick-info-header-content" style="@(GetHeaderStyles((context as AppointmentData)))">
 						<div class="quick-info-title">
 							@((context as AppointmentData).OwnerId == 0 ? "Calendarizar dia" : (context as AppointmentData).Subject)
 						</div>

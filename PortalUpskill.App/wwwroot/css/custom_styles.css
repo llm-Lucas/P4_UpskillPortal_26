@@ -204,3 +204,19 @@
 .schedule-cell-dimension.e-schedule .e-month-view .e-work-cells {
     height: 100px;
 }
+.quick-info-close {
+    all: unset;
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 22px;
+    line-height: 1;
+    color: #6c757d;
+    cursor: pointer;
+    z-index: 1000;
+    font-family: Arial, sans-serif;
+}
+
+    .quick-info-close:hover {
+        color: #343a40;
+    }
