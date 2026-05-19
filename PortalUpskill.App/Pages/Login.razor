@@ -1,6 +1,8 @@
 ﻿@attribute [AllowAnonymous]
 @layout LoginLayout
 @page "/"
+@using UpskillPortal.Utils
+@using BCrypt.Net
 
 @inject AuthenticationStateProvider authStateProvider
 @inject ProtectedSessionStorage sessionStorage
@@ -34,6 +36,9 @@
         </div>
             <ValidationMessage For="@(() => loginVM.Password)" />
     </div>
+    <div class="mt-2 text-center">
+        <a href="/RecuperarPassword">Esqueci-me da password</a>
+    </div>
     <RadzenButton class="my-2" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="login" Text="Log in" />
 </EditForm>
 
@@ -64,21 +69,36 @@
     {
         var pessoa = pessoaData.GetByEmail(loginVM.Email);
 
-        if( pessoa != null )
+        if (pessoa != null)
         {
+            bool passwordCorreta = false;
 
-            var a = loginVM.Password;
-            var b = pessoa.Password;
-            if ((loginVM.Password == pessoa.Password) && pessoa.Perfil.Nome != null )
+            if (pessoa.Password.StartsWith("$2a$") || pessoa.Password.StartsWith("$2b$"))
             {
+                // passwords antigas com BCrypt
+                passwordCorreta = BCrypt.Verify(loginVM.Password, pessoa.Password);
+            }
+            else
+            {
+                try
+                {
+                    // passwords com HashingService (PBKDF2)
+                    passwordCorreta = HashingService.CompareHash(pessoa.Password, loginVM.Password);
+                }
+                catch
+                {
+                    // fallback para passwords em texto simples (contas de teste)
+                    passwordCorreta = loginVM.Password == pessoa.Password;
+                }
+            }
 
+            if (passwordCorreta && pessoa.Perfil.Nome != null)
+            {
                 ((UpskillAuthenticationStateProvider)authStateProvider).MarkUserAsAuthenticated(pessoa);
                 navManager.NavigateTo("Index");
 
-                //guardar user em SessionStorage. Isto faz com que se houver um refresh o user continue logged in
                 string userJson = JsonConvert.SerializeObject(pessoa);
                 await sessionStorage.SetAsync("user", userJson);
-                
             }
             else
             {

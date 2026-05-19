@@ -1,6 +1,9 @@
 ﻿@attribute [Authorize]
 @page "/AreaPessoal"
 
+@using UpskillPortal.Utils
+@using BCrypt.Net
+
 @inject IPessoaData pessoaData
 @inject NavigationManager Navigation
 
@@ -47,30 +50,53 @@
 
     async Task NovaPassword()
     {
-        if (npVM.PasswordActual == user.Password)
+        bool passwordCorreta = false;
+
+        if (user.Password.StartsWith("$2a$") || user.Password.StartsWith("$2b$"))
         {
-            pessoaData.UpdatePassword(user, npVM.NovaPassword);
-            notificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Success,
-                    Summary = "Password Alterada com Sucesso",
-                    Duration = 5000,  });// Não desaparece automaticamente
-
-            // Aguardar 1 segundo antes de redirecionar
-            await Task.Delay(50);
-
-            // Após 1 segundo, redireciona para a página desejada
-            Redirecionar();
-
+            passwordCorreta = BCrypt.Verify(npVM.PasswordActual, user.Password);
         }
         else
         {
-            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Por favor confirme a sua Password Actual", Duration = 4000 });
+            try
+            {
+                passwordCorreta = HashingService.CompareHash(user.Password, npVM.PasswordActual);
+            }
+            catch
+            {
+                passwordCorreta = npVM.PasswordActual == user.Password;
+            }
+        }
+
+        if (passwordCorreta)
+        {
+            var novaPasswordHash = HashingService.Hash(npVM.NovaPassword);
+            pessoaData.UpdatePassword(user, novaPasswordHash);
+
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Password alterada com sucesso",
+                Duration = 5000
+            });
+
+            await Task.Delay(50);
+            Redirecionar();
+        }
+        else
+        {
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Password atual incorreta",
+                Duration = 4000
+            });
         }
     }
-    void Redirecionar()
+
+    
+void Redirecionar()
     {
-        // Redireciona para a página inicial ou outra página desejada
         Navigation.NavigateTo("/Index");
     }
 }

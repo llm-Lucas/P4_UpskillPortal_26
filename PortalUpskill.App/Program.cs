@@ -62,6 +62,7 @@ builder.Services.AddScoped<DialogService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<FileManagerService>();
 builder.Services.AddScoped<HashingService>();
+builder.Services.AddScoped<EmailService>();
 
 var app = builder.Build();
 
