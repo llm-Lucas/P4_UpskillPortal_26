@@ -13,9 +13,9 @@
     }
     else
     {
-        <span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@email">Enviar email aos Colaboradores</a>
+        <span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@email">Enviar email aos Admins</a>
         <br />
-        <span style="margin-left:5px; font-size:10px; color:darkgray">(Filtrar os colaboradores por estado)</span>
+        <span style="margin-left:5px; font-size:10px; color:darkgray">(Filtrar os admins por estado)</span>
     }
     <br />
     <!-- INÍCIO #004 -->
@@ -23,7 +23,7 @@
     <AuthorizeView Roles="Administrador">
         <Authorized>
             <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Admin" Icon="add" Click="@(() => dialogService.Open<CriarPessoal>(
-                                                                                                           "Criar Colaborador",
+                                                                                                           "Criar Admin",
                                                                                                            new Dictionary<string, object>()
 																										   {
 																											   { "RedirectAfterCreation", IsViewedAsChild ? false : true}
@@ -85,7 +85,7 @@
                             <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesPessoal>($"Detalhes",
                                                                                            new Dictionary<string, object>() { { "ColaboradorId", Pessoal.Id } },
                                                                                            new DialogOptions(){ Width = "80%", Height = "90%" })) />
-                            <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Admin/{Pessoal.Id}"))" />
+                                <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Admin/Criar/{Pessoal.Id}"))" />
                             <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Pessoal))" />
                         </Template>
                     </RadzenGridColumn>

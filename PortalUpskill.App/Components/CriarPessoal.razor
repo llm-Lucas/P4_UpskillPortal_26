@@ -1,5 +1,5 @@
-﻿@page "/Admin/"
-@page "/Admin/{Id:int}"
+﻿@page "/Admin/Criar"
+@page "/Admin/Criar/{Id:int}"
 
 @inject ICNAEFData cnaefData
 @inject IHabilitacoesData habilitacoesData
@@ -416,7 +416,7 @@
             <!-- INÍCIO #004 -->
             <div class="row justify-content-center">
                 <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px; gap: 16px;">
-                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Admin"))" />
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo("Admin"))" />
                     <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Gravar" />
                 </div>
             </div>
