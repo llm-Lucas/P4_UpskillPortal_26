@@ -26,6 +26,7 @@ namespace PortalUpskill.App.ViewModels
         public List<Aula> Aulas { get; set; } = new List<Aula>();
         public List<Formando> Formandos { get; set; } = new List<Formando>();
         public List<Modulo> Modulos { get; set; } = new List<Modulo>();
+        public int? AnoLetivoId { get; set; }
 
         public Turma CreateModel()
         {
@@ -40,6 +41,7 @@ namespace PortalUpskill.App.ViewModels
                 HorarioAssincronoFim = this.HorarioAssincronoFim,
                 HorarioSincronoInicio = this.HorarioSincronoInicio,
                 HorarioSincronoFim = this.HorarioSincronoFim,
+                AnoLetivoId = this.AnoLetivoId,
                 TempoLectivo = this.TempoLectivo
             };
         }
@@ -55,6 +57,8 @@ namespace PortalUpskill.App.ViewModels
             HorarioSincronoInicio = turma.HorarioSincronoInicio;
             HorarioSincronoFim = turma.HorarioSincronoFim;
             TempoLectivo = turma.TempoLectivo;
+            AnoLetivoId = turma.AnoLetivoId;
+
         }
    
     }
