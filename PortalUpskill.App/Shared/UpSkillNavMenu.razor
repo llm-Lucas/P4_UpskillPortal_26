@@ -23,16 +23,7 @@
     <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/baseline_manage_accounts_white_48dp.png" Text="Coordenadores" Path="/Coordenadores">
     </RadzenPanelMenuItem>
 
-    <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/outline_engineering_white_48dp.png" Text="Admin">
-        <RadzenPanelMenuItem class="rz-custom-panel-menu" Text="Ver Admin" Path="/Colaboradores" Icon="view_list"></RadzenPanelMenuItem>
-        @*INICIO #004*@
-        @*Autorizacao para só o admin poder criar novos colaboradores*@
-                <AuthorizeView Roles="Administrador">
-            <Authorized>
-                <RadzenPanelMenuItem class="rz-custom-panel-menu" Text="Criar Admin" Path="/Colaborador" Icon="add"></RadzenPanelMenuItem>
-            </Authorized>
-        </AuthorizeView>
-        @*FIM #004*@
+    <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/outline_engineering_white_48dp.png" Text="Admin" Path="/Admin">
     </RadzenPanelMenuItem>
 
     <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/baseline_class_white_48dp.png" Text="Cursos" Path="/Cursos">
