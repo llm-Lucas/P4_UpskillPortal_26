@@ -18,9 +18,9 @@
         <h2>@pessoalVM.Nome</h2>
     }
 
-    <EditForm Model="@pessoalVM" OnValidSubmit="CheckPessoal">
-        <DataAnnotationsValidator />
-
+<EditForm Model="@pessoalVM" OnValidSubmit="CheckPessoal">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
             <div class="row">
                 <div class="col-md-6">
                     <RadzenFieldset class="no-title-fieldset">
