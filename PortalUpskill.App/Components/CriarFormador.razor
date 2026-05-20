@@ -20,7 +20,8 @@
 
 
     <EditForm Model="@formadorVM" OnValidSubmit="CheckFormador">
-        <DataAnnotationsValidator />
+    <DataAnnotationsValidator />
+    <ValidationSummary />
             <div class="row">
                 <div class="col-md-6">
                     <RadzenFieldset class="no-title-fieldset">
@@ -85,7 +86,7 @@
                             <RadzenLabel Text="Contato Telefone/Telemóvel" />
                         </div>
                         <div class="col-md-8">
-                            <RadzenTextBox style="width: 100%;" class="form-control" />
+                            <RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@formadorVM.ContactoTelemovel" />
                         </div>
                     </div>
 
@@ -142,7 +143,7 @@
                             <RadzenLabel Text="Número do Documento de Identificação" />
                         </div>
                         <div class="col-md-8">
-                            <RadzenTextBox style="width: 100%;" class="form-control" />
+                            <RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@formadorVM.CC" />
                         </div>
                     </div>
 
@@ -210,7 +211,15 @@
                             @{
                                 var habil = new List<string> { "Doutoramento", "Mestrado", "Licenciatura", "Ensino Secundário", "Outro" };
                             }
-                            <RadzenDropDown class="form-control" Data="@habil" TValue="string" />
+                            <RadzenDropDown class="form-control"
+                @bind-Value="@formadorVM.HabilitacoesLiterarias"
+                Data="@habilitacoes"
+                TValue="int"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                ValueProperty="Codigo"
+                TextProperty="HabilitacoesLiterarias"
+                AllowClear="false" />
                         </div>
                     </div>
 
@@ -499,7 +508,7 @@
         }
     }
 
-    async void CheckFormador(EditContext editContext)
+    async Task CheckFormador(EditContext editContext)
     {
         //pedido de confirmação quando o utilizador está a editar um formador
         if (Id != 0 && editContext.Validate())
@@ -508,11 +517,11 @@
         }
         else//actua quando se insere um novo formador
         {
-            InserirFormador();
+            await InserirFormador();
         }
     }
 
-    async void InserirFormador()
+    async Task InserirFormador()
     {
         if (formadorVM.Id != 0)
         {
@@ -611,10 +620,10 @@
             {
                 formadorData.Update(novoFormador);
             }
-            FormadorOptions();
+            await FormadorOptions(novoFormador.Id);
         }
         formadorVM = new FormadorViewModel();
-        Id = 0;
+        //Id = 0;
     }
 
     void OnInputCV(InputFileChangeEventArgs e)
@@ -628,16 +637,23 @@
         selectedPhoto = e.File;
         this.StateHasChanged();
     }
-
-    async Task FormadorOptions() => await dialogService.OpenAsync("Formador criado com sucesso.", ds =>
+    
+    async Task FormadorOptions(int formadorId) => await dialogService.OpenAsync("Formador criado com sucesso.", ds =>
 
     @<div>
         <p Style="margin-bottom: 1rem">Selecione uma das opções abaixo.</p>
         <div class="row">
             <div class="col-md-12">
-                <RadzenButton Text="Associar Módulos" Click='(() => navManager.NavigateTo($"AssociarModulo/{Id}"))' Style="margin-bottom: 10px" />
-                <RadzenButton Text="Criar Formador" Click='(() => navManager.NavigateTo("Formador"))' ButtonStyle="ButtonStyle.Secondary" Style="margin-bottom: 10px" />
-                <RadzenButton Text="Ver Formadores" Click='(() => navManager.NavigateTo("Formadores"))' ButtonStyle="ButtonStyle.Info" Style="margin-bottom: 10px" />
+                <RadzenButton Text="Associar Módulos"
+              Click="@(() => { ds.Close(); navManager.NavigateTo($"AssociarModulo/{formadorId}"); })" />
+
+<RadzenButton Text="Criar Formador"
+              Click="@(() => { ds.Close(); navManager.NavigateTo("Formador"); })"
+              ButtonStyle="ButtonStyle.Secondary" />
+
+<RadzenButton Text="Ver Formadores"
+              Click="@(() => { ds.Close(); navManager.NavigateTo("Formadores"); })"
+              ButtonStyle="ButtonStyle.Info" />
             </div>
         </div>
     </div>, new DialogOptions() { Width = "auto" }
@@ -647,7 +663,7 @@ async Task ConfirmEdit() => await dialogService.OpenAsync("Confirmação de edi�
 @<div>
     <p Style="margin-bottom: 1rem">Tem a certeza que pretende gravar as alterações que efetuou?</p>
     <div class="row col-md-12 d-flex justify-content-center">
-        <RadzenButton class="w-150 mx-2" Text="Sim" ButtonStyle="ButtonStyle.Primary" Click="InserirFormador" Style="margin-bottom: 10px;" />
+        <RadzenButton class="w-150 mx-2" Text="Sim" ButtonStyle="ButtonStyle.Primary" Click="@(() => InserirFormador())" Style="margin-bottom: 10px;" />
         <RadzenButton class="w-150 mx-2" Text="Não" ButtonStyle="ButtonStyle.Secondary" Click="() => ds.Close(false)" Style="margin-bottom: 10px;" />
     </div>
 </div>

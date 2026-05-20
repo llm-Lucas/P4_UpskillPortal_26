@@ -57,7 +57,6 @@ namespace PortalUpskill.App.ViewModels
 		public string Foto { get; set; }
 		public string CV { get; set; }
 
-		[Required]
 		public string IBAN { get; set; }
 
 		public bool Bolsa { get; set; }

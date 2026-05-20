@@ -29,7 +29,8 @@
 	<br />
 
 	<EditForm Model="@formandoVM" OnValidSubmit="CheckFormando">
-		<DataAnnotationsValidator />
+    <DataAnnotationsValidator />
+    <ValidationSummary />
 		
 			<div class="row">
 
@@ -96,7 +97,7 @@
 							<RadzenLabel Text="Contato Telefone/Telemóvel" />
 						</div>
 						<div class="col-md-8">
-							<RadzenTextBox style="width: 100%;" class="form-control" />
+							<RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@formandoVM.ContactoTelemovel" />
 						</div>
 					</div>
 
@@ -153,7 +154,7 @@
 							<RadzenLabel Text="Número do Documento de Identificação" />
 						</div>
 						<div class="col-md-8">
-							<RadzenTextBox style="width: 100%;" class="form-control" />
+							<RadzenTextBox style="width: 100%;" class="form-control" @bind-Value="@formandoVM.CC" />
 						</div>
 					</div>
 
@@ -220,7 +221,15 @@
 							@{
 								var habil = new List<string> { "Doutoramento", "Mestrado", "Licenciatura", "Ensino Secundário", "Outro" };
 							}
-							<RadzenDropDown class="form-control" Data="@habil" TValue="string" />
+							<RadzenDropDown class="form-control"
+                @bind-Value="@formandoVM.HabilitacoesLiterarias"
+                Data="@habilitacoes"
+                TValue="int"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                ValueProperty="Codigo"
+                TextProperty="HabilitacoesLiterarias"
+                AllowClear="false" />
 						</div>
 					</div>
 
@@ -476,7 +485,7 @@
 		}
 	}
 
-	async void CheckFormando(EditContext editContext)
+	async Task CheckFormando(EditContext editContext)
 	{
 		//pedido de confirmação quando o utilizador está a editar um formando
 		if (Id != 0 && editContext.Validate())
@@ -485,11 +494,11 @@
 		}
 		else//actua quando se insere um novo formando
 		{
-			InserirFormando();
+			await InserirFormando();
 		}
 	}
 
-	async void InserirFormando()
+	async Task InserirFormando()
 	{
 		if (formandoVM.Id != 0)
 		{
@@ -642,7 +651,7 @@
 	@<div>
 		<p Style="margin-bottom: 1rem">Tem a certeza que pretende gravar as alterações que efetuou?</p>
 		<div class="row col-md-12 d-flex justify-content-center">
-			<RadzenButton class="w-150 mx-2" Text="Sim" ButtonStyle="ButtonStyle.Primary" Click="InserirFormando" Style="margin-bottom: 10px;" />
+			<RadzenButton class="w-150 mx-2" Text="Sim" ButtonStyle="ButtonStyle.Primary" Click="@(() => InserirFormando())" Style="margin-bottom: 10px;" />
 			<RadzenButton class="w-150 mx-2" Text="Não" ButtonStyle="ButtonStyle.Secondary" Click="() => ds.Close(false)" Style="margin-bottom: 10px;" />
 		</div>
 	</div>

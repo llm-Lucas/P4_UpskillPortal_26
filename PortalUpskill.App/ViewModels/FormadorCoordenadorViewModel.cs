@@ -72,7 +72,7 @@ namespace PortalUpskill.App.ViewModels
                 CCP = this.CCP,
                 DocenteEnsSuperior = this.DocenteEnsSuperior,
                 EstadoId = this.EstadoId,
-                Estado = this.Estado,
+                Estado = new Estado { Id = this.EstadoId },
                 Funcao = this.Funcao
             };
         }

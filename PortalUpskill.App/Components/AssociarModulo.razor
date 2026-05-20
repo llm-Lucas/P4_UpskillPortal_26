@@ -89,20 +89,36 @@
 			}
 
 			void AtualizarModulos(Formador formador)
-			{
-				var modulosQueEntraram = Formador.Modulos.Except(FormadorEstadoInicial.Modulos).ToList();
-				var modulosQueSairam = FormadorEstadoInicial.Modulos.Except(Formador.Modulos).ToList();
+{
+    formador.Id = FormadorId;
 
-				if (modulosQueSairam.Count > 0)
-				{
-					formadorData.RemoveModulos(formador, modulosQueSairam);
-				}
-				if (modulosQueEntraram.Count > 0)
-				{
-					formadorData.InsertModulos(formador, modulosQueEntraram);
-				}
+    var idsIniciais = FormadorEstadoInicial.Modulos.Select(m => m.Id).ToList();
+    var idsAtuais = Formador.Modulos.Select(m => m.Id).ToList();
 
-				notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = $"Operação efetuada com sucesso.", Duration = 4000 });
-				//navManager.NavigateTo($"/Formadores");
-				navManager.NavigateTo($"Formadores");
-			} }
+    var modulosQueEntraram = Formador.Modulos
+        .Where(m => !idsIniciais.Contains(m.Id))
+        .ToList();
+
+    var modulosQueSairam = FormadorEstadoInicial.Modulos
+        .Where(m => !idsAtuais.Contains(m.Id))
+        .ToList();
+
+    if (modulosQueSairam.Count > 0)
+    {
+        formadorData.RemoveModulos(formador, modulosQueSairam);
+    }
+
+    if (modulosQueEntraram.Count > 0)
+    {
+        formadorData.InsertModulos(formador, modulosQueEntraram);
+    }
+
+    notificationService.Notify(new NotificationMessage 
+    { 
+        Severity = NotificationSeverity.Success, 
+        Summary = "Operação efetuada com sucesso.", 
+        Duration = 4000 
+    });
+
+    navManager.NavigateTo("Formadores");
+} }

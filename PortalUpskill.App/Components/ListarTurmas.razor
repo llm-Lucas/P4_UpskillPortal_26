@@ -25,7 +25,7 @@
             <!-- falta tornar drop down e implementar a lógica com BE -->
             <RadzenGridColumn TItem="Turma" Property="AnoLetivo" Title="Ano Letivo">
                 <Template Context="Turma">
-                    2022
+                    @Turma.AnoLetivo?.Nome
                 </Template>
             </RadzenGridColumn>
 

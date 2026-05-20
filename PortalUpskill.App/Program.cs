@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using UpskillPortal.Utils;
+using PortalUpskill.Data.DataAccessDapper.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,6 +63,8 @@ builder.Services.AddScoped<DialogService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<FileManagerService>();
 builder.Services.AddScoped<HashingService>();
+builder.Services.AddScoped<IAnoLetivoData, AnoLetivoData>();
+builder.Services.AddScoped<EmailService>();
 
 var app = builder.Build();
 
