@@ -1,0 +1,105 @@
+﻿/* Força o cursor para a mão de clique */
+.c-pointer {
+    cursor: pointer !important;
+}
+
+/* Regras originais do teu Index.razor.css */
+.corbotao {
+    background: #e1e1e1ff;
+    background: -webkit-linear-gradient(to left, #b2b7d4, #e1e1e1ff);
+    background: linear-gradient(to left, #a1bacbff, #e1e1e1ff);
+    border-radius: 4px;
+    margin: 1rem auto; /* O 'auto' garante que fica centrado na coluna */
+    padding: 1rem;
+    color: white;
+    width: 75%;
+    height: 8.8rem;
+    max-width: 16rem;
+    display: block; /* Essencial para manter a estrutura do Index */
+    text-decoration: none;
+}
+
+    /* Aplicar as tuas regras de texto APENAS à classe texto-card */
+    .corbotao span.texto-card {
+        display: block;
+        letter-spacing: 2px;
+        line-height: 1rem;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #0D28C2;
+        text-align: center;
+        margin-top: 15px; /* Espaço entre o ícone e o texto */
+    }
+
+    /* Evita que o ícone assuma as margens e letras do texto */
+    .corbotao span.oi {
+        display: inline-block;
+        color:#0D28C2;
+    }
+
+/* Animações originais do teu Index */
+.hvr-underline-from-left, .hvr-underline-from-right {
+    display: inline-block;
+    vertical-align: middle;
+    -webkit-transform: perspective(1px) translateZ(0);
+    transform: perspective(1px) translateZ(0);
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0);
+    position: relative;
+    overflow: hidden;
+}
+
+    .hvr-underline-from-left:before, .hvr-underline-from-right:before {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        bottom: 0;
+        background: #2098D1;
+        height: 4px;
+        -webkit-transition-property: right, left;
+        transition-property: right, left;
+        -webkit-transition-duration: 0.3s;
+        transition-duration: 0.3s;
+        -webkit-transition-timing-function: ease-out;
+        transition-timing-function: ease-out;
+    }
+
+    .hvr-underline-from-left:before {
+        left: 0;
+        right: 100%;
+    }
+
+    .hvr-underline-from-left:hover:before {
+        right: 0;
+    }
+
+.hvr-underline-from-right {
+    display: inline-block;
+    vertical-align: middle;
+    -webkit-transform: perspective(1px) translateZ(0);
+    transform: perspective(1px) translateZ(0);
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0);
+    position: relative;
+    overflow: hidden;
+}
+
+    .hvr-underline-from-right:before {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        left: 100%;
+        right: 0;
+        bottom: 0;
+        background: #2098D1;
+        height: 4px;
+        -webkit-transition-property: left;
+        transition-property: left;
+        -webkit-transition-duration: 0.3s;
+        transition-duration: 0.3s;
+        -webkit-transition-timing-function: ease-out;
+        transition-timing-function: ease-out;
+    }
+
+    .hvr-underline-from-right:hover:before, .hvr-underline-from-right:focus:before, .hvr-underline-from-right:active:before {
+        left: 0;
+    }
+
