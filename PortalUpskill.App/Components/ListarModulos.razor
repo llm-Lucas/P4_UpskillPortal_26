@@ -38,9 +38,16 @@
 
             @if (Mode == "Add")
             {
-                <RadzenGridColumn Title="Adicionar" TItem="Modulo" Sortable="false" Filterable="false">
+                <RadzenGridColumn Title="Adicionar/Estado" TItem="Modulo" Sortable="false" Filterable="false">
                     <Template Context="Modulo">
-                        <RadzenButton Title="Associar Módulo" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="add" Click="@(() => SendModulo(Modulo.Id))" />
+                        @if (ModulosAssociadosIds != null && ModulosAssociadosIds.Contains(Modulo.Id))
+                        {
+                            <RadzenButton Title="Já Adicionado" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="check" Disabled="true" />
+                        }
+                        else
+                        {
+                            <RadzenButton Title="Associar Módulo" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="add" Click="@(() => SendModulo(Modulo.Id))" />
+                        }
                     </Template>
                 </RadzenGridColumn>
             }
@@ -95,6 +102,15 @@
 
     [Parameter]
     public EventCallback<int> OutgoingModulo { get; set; }
+
+    [Parameter]
+    public List<int> ModulosAssociadosIds { get; set; } = new List<int>();
+
+    protected override void OnParametersSet()
+    {
+        LoadModulos();
+        StateHasChanged();
+    }
 
     protected override async Task OnInitializedAsync()
     {
