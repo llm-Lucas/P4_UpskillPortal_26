@@ -641,16 +641,17 @@
 	/// </summary
 	async Task CriarSumario(AppointmentData data)
 	{
+		if (changesMade)
+			GuardarCalendario(SelectedTurma);
+
 		Aula novaAula = new Aula
-				{
-					HoraInicio = data.StartTime,
-					HoraFim = data.EndTime,
-					TurmaId = SelectedTurmaId,
-					ModuloId = data.ModuloId,
-					// INICIO #008
-					FormadorId = data.Formador.Id,
-					// FIM #008
-				};
+		{
+			HoraInicio = data.StartTime,
+			HoraFim = data.EndTime,
+			TurmaId = SelectedTurmaId,
+			ModuloId = data.ModuloId,
+			FormadorId = data.Formador.Id,
+		};
 		await sessionStorage.SetAsync("CriarAula", JsonConvert.SerializeObject(novaAula));
 		navManager.NavigateTo($"DetalhesAula/{novaAula.Id}/{novaAula.FormadorId}/{novaAula.TurmaId}/Calendar");
 	}
