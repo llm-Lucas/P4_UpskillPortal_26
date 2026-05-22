@@ -14,13 +14,13 @@
     PageSize="10">
 
         <Columns>
-            <RadzenGridColumn TItem="Turma" Property="Nome" Title="Nome" />
+            <RadzenGridColumn TItem="Turma" Property="Nome" Title="Turma" />
 
-            <RadzenGridColumn TItem="Turma" Property="Curso.Nome" Title="Curso">
+            <RadzenGridColumn TItem="Turma" Property="Curso.Nome" Title="Curso" Sortable="false">
                 <!-- INICIO #008-->
                 <!-- Dropdown de Curso Nome -->
                 <FilterTemplate>
-					<RadzenDropDown @bind-Value="@filtroCursoNome" TextProperty="Nome" ValueProperty="Id" Style="width:100%" Placeholder="Selecione um Curso"
+					<RadzenDropDown @bind-Value="@filtroCursoNome" TextProperty="Nome" ValueProperty="Id" Style="width:100%" Placeholder="Selecione um Curso" 
                     Change=@FiltrarPorCurso
                     Data="@(@turmas.Select(t => t.Curso.Nome).Distinct())" />
                 </FilterTemplate>
@@ -34,7 +34,7 @@
 
             <!-- INICIO #008 -->
             <!-- Campo do Ano Letivo -->
-            <RadzenGridColumn TItem="Turma" Property="AnoLetivo" Title="Ano Letivo">
+            <RadzenGridColumn TItem="Turma" Property="AnoLetivo" Title="Ano Letivo" Sortable="false">
                 @*INICIO #008*@
                 @*Filtro de ano letivo*@
                 <FilterTemplate>
