@@ -12,6 +12,7 @@
 
 <div class="cardstyle">
     <h2>@Title</h2>
+
     @if (Mode != "Add")
     {
         //@if (filteredFormandos.Count == 0)
@@ -182,8 +183,7 @@
                 </FilterTemplate>
                 <Template Context="Formando">
                     <span>
-                        @*Ano Letivo*@
-                        2022
+                        @(Formando.Turma?.AnoLetivo?.Nome ?? "—")
                     </span>
                 </Template>
             </RadzenGridColumn>
@@ -387,19 +387,20 @@
         ApplyFilters();
         // FIM
 
-        if (Filter != null)
-        {
-            formandos = formandos.Where(Filter).OrderBy(f => f.Nome).ToList();
-        }
+       // Apply initial filters
+if (Filter != null)
+{
+    formandos = formandos.Where(Filter).OrderBy(f => f.Nome).ToList();
+}
 
-        filteredFormandos = formandos.OrderBy(f => f.Nome).ToList();
-        mail = "";
-        foreach (var formando in filteredFormandos)
-        {
-            mail = mail + formando.Email + ";";
-        }
+ApplyFilters();
 
-        email = $"mailto:{mail}";
+mail = "";
+foreach (var formando in filteredFormandos)
+{
+    mail = mail + formando.Email + ";";
+}
+email = $"mailto:{mail}";
     }
 
     private async Task SendFormando(int ToSendId)
@@ -491,12 +492,11 @@
             .Where(f =>
                 (filtroTurma == "Todos" || f.Turma?.Nome == filtroTurma) &&
                 (filtroCurso == "Todos" || f.Turma?.Curso?.Nome == filtroCurso) &&
-                (filtroEstado == "Filtrar por Estado" || f.Estado.Nome == filtroEstado)
+                (filtroEstado == "Filtrar por Estado" || f.Estado?.Nome == filtroEstado)
             )
             .OrderBy(f => f.Nome)
             .ToList();
 
-        // Update email list (if needed)
         mail = string.Join(";", filteredFormandos.Select(f => f.Email));
         email = $"mailto:{mail}";
     }

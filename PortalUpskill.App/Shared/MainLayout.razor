@@ -14,15 +14,12 @@
     <SfSidebar Width="250px" DockSize="59.5px" EnableDock="true" Position="@Position" @ref="Sidebar" HtmlAttributes="@HtmlAttribute" @bind-IsOpen="SidebarToggle">
         <ChildContent>
             <div class="dock">
-                @if (SidebarToggle == false)
-                {
-                    <a href="/Index"><img href="/Index" class="left" src="/img/MetaDigital_sem_fundo_negativo.png" /></a>
-                }           
-                
+
+
                 <AuthorizeView Roles="Administrador, Secretariado">
                     <Authorized>
-                        <div class="sidebar" @onclick="@Toggletrue">
-                            <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggletrue" />
+                        <div class="sidebar">
+                            <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
                         </div>
                     </Authorized>
                 </AuthorizeView>
@@ -42,8 +39,8 @@
 
     <div class="main">
         <div class="top-row d-flex justify-content-between px-2">
-            <div @onclick="@Toggle">
-                <img class="hvr-back-pulse" src="img/dashboard/outline_menu_black_48dp.png" style="margin-left: -2rem; height: 3rem"/>
+            <div class="d-flex flex-row align-items-center">
+                <a href="/Index"><img class="hvr-back-pulse" src="/img/MetaDigital_sem_fundo_negativo.png" style="height: 3rem" /></a>
             </div>
             
             <div class="d-flex flex-row align-items-center">

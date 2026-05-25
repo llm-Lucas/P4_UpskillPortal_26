@@ -65,6 +65,7 @@ builder.Services.AddScoped<FileManagerService>();
 builder.Services.AddScoped<HashingService>();
 builder.Services.AddScoped<IAnoLetivoData, AnoLetivoData>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<ICursoCoordenadorData, CursoCoordenadorData>();
 
 var app = builder.Build();
 
