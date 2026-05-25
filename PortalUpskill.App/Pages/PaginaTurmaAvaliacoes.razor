@@ -81,13 +81,41 @@
 		@*INICIO #008*@
 		@*Nova Tabela em SyncFusion para as Avaliacoes*@
 
-		<SfGrid TValue="Formando" DataSource="@formandos" AllowPaging="true" Height="315" Toolbar="@(new List<string>() { "Edit", "Update", "Cancel" })">
+		<SfGrid TValue="AvaliacaoLinha" DataSource="@avaliacoesLinhas" AllowPaging="true" Height="315" Toolbar="@(new List<string>() { "Edit", "Update", "Cancel" })">
+			<GridEvents TValue="AvaliacaoLinha" OnActionComplete="@GuardarAvaliacaoLinha"></GridEvents>
 
 
-			<GridEditSettings AllowEditing="true" AllowAdding="false" AllowDeleting="false" Mode="EditMode.Dialog"></GridEditSettings>
+			<GridEditSettings AllowEditing="true"
+							  AllowAdding="false"
+							  AllowDeleting="false"
+							  Mode="EditMode.Dialog"
+							  HeaderTemplate="@HeaderTemplate">
+			</GridEditSettings>
 			<GridColumns>
+				<GridColumn Field="@nameof(AvaliacaoLinha.FormandoId)"
+            HeaderText="Id"
+            IsPrimaryKey="true"
+            Visible="false">
+</GridColumn>
+
+				<GridColumn Field="@nameof(Formando.Nome)"
+							HeaderText="Nome"
+							IsPrimaryKey="true"
+							AllowEditing="false"></GridColumn>
+
+<GridColumn Field="@nameof(AvaliacaoLinha.NotaFinal)"
+            HeaderText="Nota Final do Módulo"
+            EditType="EditType.NumericEdit"
+            AllowEditing="true">
+</GridColumn>
+
+<GridColumn Field="@nameof(AvaliacaoLinha.Comentarios)"
+            HeaderText="Comentários"
+            EditType="EditType.DefaultEdit"
+            AllowEditing="true">
+</GridColumn>
 				<!-- Read-only Nome column -->
-				<GridColumn Field="@nameof(Formando.Nome)" 
+				@* <GridColumn Field="@nameof(Formando.Nome)" 
 				HeaderText="Nome" 
 				IsPrimaryKey="true"
 				AllowEditing="false"></GridColumn>
@@ -127,7 +155,7 @@
 							}
 						}
 					</Template>
-				</GridColumn>
+				</GridColumn> *@
 			</GridColumns>
 		</SfGrid>
 
@@ -218,6 +246,7 @@
 
 	List<Modulo> modulos;
 	List<Formando> formandos = new List<Formando>();
+	List<AvaliacaoLinha> avaliacoesLinhas = new List<AvaliacaoLinha>();
 	List<Formando> formandosNotaEstadoInicial;
 	List<Formando> formandosNotasUpdate;
 	List<Formando> formandosNotasCreate;
@@ -260,7 +289,31 @@
 		turma = turmaData.GetById(TurmaId);
 		selectedCursoId = (int)turma.CursoId;
 	}
+	void CarregarAvaliacoesLinhas()
+	{
+		avaliacoesLinhas.Clear();
 
+		foreach (var formando in formandos)
+		{
+			AvaliacaoLinha linha = new AvaliacaoLinha();
+
+			linha.FormandoId = formando.Id;
+			linha.Nome = formando.Nome;
+
+			if (formando.DictAvaliacaoModular.ContainsKey(selectedModuloId))
+			{
+				linha.NotaFinal = formando.DictAvaliacaoModular[selectedModuloId].NotaFinal;
+				linha.Comentarios = formando.DictAvaliacaoModular[selectedModuloId].Comentarios;
+			}
+			else
+			{
+				linha.NotaFinal = 0;
+				linha.Comentarios = "";
+			}
+
+			avaliacoesLinhas.Add(linha);
+		}
+	}
 	async Task OnModuloSelected()
 	{
 		//cria uma cópia dos formandos para gravar as notas iniciais para comparar mais tarde
@@ -277,6 +330,7 @@
 			fileMsg2 = "Já existe uma pauta registada, caso queira atualizar selecione a nova pauta";
 		}
 		CalcularEditarStatus();
+		CarregarAvaliacoesLinhas();
 	}
 
 	IBrowserFile selectedExcel;
@@ -430,6 +484,82 @@
     async Task DownloadTabela()
     {
         //introduzir logica aqui #004
-    }
+	}
+
+	RenderFragment<object> HeaderTemplate = (context) =>
+{
+	var linha = context as AvaliacaoLinha;
+
+	return builder =>
+	{
+		builder.AddContent(0, $"Avaliação de {linha?.Nome}");
+	};
+};
+	public class AvaliacaoLinha
+	{
+		public int FormandoId { get; set; }
+		public string Nome { get; set; }
+		public double NotaFinal { get; set; }
+		public string Comentarios { get; set; }
+	}
+	void GuardarAvaliacaoLinha(Syncfusion.Blazor.Grids.ActionEventArgs<AvaliacaoLinha> args)
+	{
+		if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save)
+		{
+			AvaliacaoLinha linha = (AvaliacaoLinha)args.Data;
+
+			Formando formando = formandos.FirstOrDefault(f => f.Id == linha.FormandoId);
+
+			if (formando != null)
+			{
+				if (!formando.DictAvaliacaoModular.ContainsKey(selectedModuloId))
+				{
+					formando.DictAvaliacaoModular.Add(selectedModuloId, new AvaliacaoModular());
+				}
+
+				formando.DictAvaliacaoModular[selectedModuloId].NotaFinal = linha.NotaFinal;
+				formando.DictAvaliacaoModular[selectedModuloId].Comentarios = linha.Comentarios;
+
+				GravarAvaliacaoNaBD(linha);
+			}
+		}
+	}
+	void GravarAvaliacaoNaBD(AvaliacaoLinha linha)
+	{
+		Formando formando = formandos.FirstOrDefault(f => f.Id == linha.FormandoId);
+
+		if (formando == null)
+		{
+			return;
+		}
+
+		if (!formando.DictAvaliacaoModular.ContainsKey(selectedModuloId))
+		{
+			formando.DictAvaliacaoModular.Add(selectedModuloId, new AvaliacaoModular());
+		}
+
+		formando.DictAvaliacaoModular[selectedModuloId].NotaFinal = linha.NotaFinal;
+		formando.DictAvaliacaoModular[selectedModuloId].Comentarios = linha.Comentarios;
+
+		List<Formando> lista = new List<Formando>();
+		lista.Add(formando);
+
+		if (formandosNotaEstadoInicial.Single(f => f.Id == formando.Id).DictAvaliacaoModular.ContainsKey(selectedModuloId))
+		{
+			formandoData.UpdateAvaliacaoModular(lista, selectedModuloId);
+		}
+		else
+		{
+			formandoData.CreateAvaliacaoModular(lista, selectedModuloId, formadorId);
+		}
+
+		notificationService.Notify(new NotificationMessage
+		{
+			Severity = NotificationSeverity.Success,
+			Summary = "Avaliação gravada com sucesso.",
+			Duration = 3000
+		});
+	}
+	
 	//fim #004
 }
