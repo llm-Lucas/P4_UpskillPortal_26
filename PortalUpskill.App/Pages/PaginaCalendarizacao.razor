@@ -29,36 +29,22 @@
 		</Template>
 	</RadzenDropDown>
 		</div>
-		<!--INÍCIO #004-->
-		<!-- falta alterar a lógica da mudança do ano letivo aqui e na funcao OnAnoLetivoSelected -->
-		<div style="flex:1">
-			<h3>Selecione o ano letivo</h3>
-			<RadzenDropDown class="w-25"
-							Data="@AnosLetivos"
-							@bind-Value="AnoLetivoSelecionado"
-							Change="OnAnoLetivoChange"
-							TValue="string"
-							ValueProperty="Ano"
-							TextProperty="Ano"
-							AllowFiltering="true"
-							FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-							AllowClear="false">
-				<Template Context="ano">
-					<span>@ano.Ano</span>
-				</Template>
-			</RadzenDropDown>
-		</div>
-
-		<!--FIM #004-->
+	
 	</div>
 	@if (SelectedTurma != null)
 	{
 		<div class="row">
 			<span class="col-4"><b>Horário Assíncrono:</b> @SelectedTurma.HorarioAssincronoInicio.Value.ToString("HH:mm") - @SelectedTurma.HorarioAssincronoFim.Value.ToString("HH:mm")</span>
+
 			<span class="col"><b>Horário Síncrono:</b> @SelectedTurma.HorarioSincronoInicio.Value.ToString("HH:mm") - @SelectedTurma.HorarioSincronoFim.Value.ToString("HH:mm")</span>
 		</div>
+		
 		<div class="row">
+			<span class="col-4"><b>Ano Letivo:</b> @(SelectedTurma.AnoLetivo?.Nome ?? "Não definido")</span>
 			<span class="col"><b>Carga Horária:</b> @SelectedTurma.CargaHoraria</span>
+			
+				
+		
 		</div>
 		<div class="row">
 			<span class="col-4"><b>Data Início:</b> @SelectedTurma.DataInicioCurso.Value.ToString("dd/MM/yyyy")</span>
@@ -377,12 +363,6 @@
 			OnTurmaSelected();
 		}
 	}
-	//Início #004
-	void OnAnoLetivoSelected()
-	{
-		
-	}
-	//Fim #004
 
 
 
@@ -1123,31 +1103,5 @@
 		await fileManager.DownloadWorkbook(workbook, extension, timestamp + "_Aulas");
 	}
 
-	private List<AnoLetivo> AnosLetivos { get; set; }
-	private string AnoLetivoSelecionado { get; set; }
 
-	protected override void OnInitialized()
-	{
-		AnosLetivos = new List<AnoLetivo>
-		{
-			new AnoLetivo { Ano = "2020/2021" },
-			new AnoLetivo { Ano = "2021/2022" },
-			new AnoLetivo { Ano = "2022/2023" },
-			new AnoLetivo { Ano = "2023/2024" },
-			new AnoLetivo { Ano = "2024/2025" },
-			new AnoLetivo { Ano = "2025/2026" }
-		};
-	}
-
-	private void OnAnoLetivoChange(object value)
-	{
-		AnoLetivoSelecionado = value?.ToString();
-		// Aqui você pode colocar qualquer lógica quando o ano letivo é selecionado
-	}
-
-	private class AnoLetivo
-	{
-		public string Ano { get; set; }
-	}
-}
 }

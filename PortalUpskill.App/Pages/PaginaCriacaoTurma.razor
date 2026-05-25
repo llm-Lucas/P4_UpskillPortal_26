@@ -9,83 +9,57 @@
 @inject IFormadorData formadorData
 @inject ICursoData cursoData
 @inject IModuloData moduloData
+@inject ICursoCoordenadorData cursoCoordenadorData
 
 <h1>@(Turma.Nome ?? "Nova Turma")</h1>
 
 <div class="row">
     <div class="col-6">
         <CriarTurma SendTurma="ReceiveTurma" Id="Turma.Id" CursoAlterado="@((cursoId) => PassarCursoAModulosFormador(cursoId))" />
-   
-    <!--INÍCIO #004-->
-    <!-- falta trocar a lógica de formando para coordenador e ligar com com BE -->
-    
-        @if (modulos.Count > 0)
-        {
-            <div class="cardstyle">
-                <div>
-
-                    <h4>Formadores Associados</h4>
-                    @if (modulos.Count == 0) //alterar logica para ser formadores.Count == 0 (em formadores da turma)
-                    {
-                        <p>Não existem Formadores associados a esta turma.</p>
-                        <p>Procure um Módulo na lista e clique em "Associar formador".</p>
-                    }
-                    else
-                    {
-                        <table class="table-borderless table-sm">
-                            @foreach (var modulo in modulos) //alterar lógica para ser formadores
-                            {
-                                <tr>
-                                    <td>
-                                        <RadzenButton ButtonStyle="ButtonStyle.Light"
-                                                      Size="ButtonSize.Small"
-                                                      Disabled="true"
-                                                      Icon="info" />
-                                    </td>
-                                    <td>
-                                        <span>@modulo.Nome</span>
-                                    </td>
-                                </tr>
-                            }
-                        </table>
-                    }
-
-                </div>
-            </div>
-        }
     </div>
     <div class="col-6">
         <div class="cardstyle">
             <div>
                 <h4>Coordenadores Associados</h4>
-                @if (Turma.Formandos.Count == 0)
+                @if (coordenadoresDoCurso.Count == 0)
                 {
-                    <p>Não existem Coordenadores associados a esta turma.</p>
-                    <p>Procure um Coordenador abaixo e clique em "Adicionar".</p>
+                    <p>Não existem Coordenadores associados a este curso.</p>
                 }
                 else
                 {
                     <table class="table-borderless table-sm">
-                        @foreach (var formando in Turma.Formandos)
+                        @foreach (var coord in coordenadoresDoCurso)
                         {
                             <tr>
-                                <td>
-                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => RemoveFormando(formando))" Icon="remove" />
-                                </td>
-                                <td>
-                                    <span>@formando.Nome</span>
-                                </td>
+                                <td>@coord.Nome</td>
                             </tr>
                         }
                     </table>
                 }
             </div>
         </div>
+
+        @if (formadoresDoCurso.Count > 0)
+        {
+            <div class="cardstyle">
+                <div>
+                    <h4>Formadores Associados</h4>
+                    <table class="table-borderless table-sm">
+                        @foreach (var formador in formadoresDoCurso)
+                        {
+                            <tr>
+                                <td>@formador.Nome</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+        }
+
         @if (Turma.Id != null && Turma.Id != 0)
         {
-        <div class="cardstyle">
-            <div>
-                
+            <div class="cardstyle">
+                <div>
                     <h4>Associar formadores aos módulos</h4>
                     @if (modulos.Count == 0)
                     {
@@ -112,14 +86,10 @@
                             }
                         </table>
                     }
-                
+                </div>
             </div>
-        </div>
         }
 
-
-        
-        <!--FIM #004-->
         <div class="cardstyle">
             <div>
                 <h4>Formandos Associados</h4>
@@ -143,7 +113,6 @@
                             </tr>
                         }
                     </table>
-
                 }
             </div>
         </div>
@@ -152,23 +121,16 @@
 <div class="my-4">
     <RadzenTabs style="height: 880px">
         <Tabs>
-            <RadzenTabsItem Text="Coordenador de Curso">
-                <ListarCoordenador OutgoingCoordenador="@ReceiveCoordenador" Mode="Add" IsViewedAsChild="true" />
-            </RadzenTabsItem>
+       
             <RadzenTabsItem Text="Formandos">
                 <ListarFormando OutgoingFormando=@ReceiveFormando
                                 Mode="Add" Filter='(f => f.Turma == null)'
                                 Title="Formandos sem turma" IsViewedAsChild="true" />
             </RadzenTabsItem>
-            <!-- #004 <RadzenTabsItem Text="Formadores">
-                <AssociarFormador OutgoingFormador="@ReceiveFormador"
-                                Title="Associar Formadores aos módulos"  />
-            </RadzenTabsItem>-->
         </Tabs>
     </RadzenTabs>
 </div>
 <div class="my-4">
-    
 </div>
 
 
@@ -187,6 +149,9 @@
 
     Turma TurmaEstadoInicial = new Turma();
     List<Formando> FormandosEstadoInicial = new List<Formando>();
+    Dictionary<int, Formador> formadoresPorModulo = new Dictionary<int, Formador>();
+    List<Formador> formadoresDoCurso = new List<Formador>();
+    List<Pessoa> coordenadoresDoCurso = new List<Pessoa>();
 
     /// <summary>
     /// Quando o evento CursoAlterado do componente <CriarTurma /> é disparado envia um Curso Id
@@ -231,6 +196,12 @@
             int TurmaCursoId = Turma.CursoId ?? 0;
             modulos = moduloData.GetModulosByCurso(TurmaCursoId);
 
+            var modulosComFormador = moduloData.GetModulosComFormadorByTurma(TurmaId);
+            foreach (var m in modulosComFormador)
+            {
+                if (m.Formador != null)
+                    formadoresPorModulo[m.Id] = m.Formador;
+            }
         }
     }
 
@@ -334,5 +305,19 @@ void ReceiveTurma(Turma turma)
     void PassarCursoAModulosFormador(int? cursoId)
     {
         ReceivedCurso = cursoId;
+
+        if (cursoId == null || cursoId == 0) return;
+
+        modulos = moduloData.GetModulosByCurso(cursoId.Value);
+
+        formadoresDoCurso = modulos
+            .Where(m => m.Formadores != null && m.Formadores.Count > 0)
+            .SelectMany(m => m.Formadores)
+            .DistinctBy(f => f.Id)
+            .ToList();
+
+        coordenadoresDoCurso = cursoCoordenadorData.GetCoordenadoresByCurso(cursoId.Value);
+
+        StateHasChanged();
     }
 }
