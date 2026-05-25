@@ -1,6 +1,7 @@
 ﻿@page "/Modulos"
 
 @inject IModuloData moduloData
+@inject ICursoData cursoData
 
 <div class="cardstyle">
     <h2>@Title</h2>
@@ -14,61 +15,81 @@
         <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Módulo" Icon="add" Click="@(() => navManager.NavigateTo("Modulo"))" />
     }
 
-    <RadzenGrid Data="@modulos"
-    TItem="Modulo"
-    AllowSorting="true"
-    AllowFiltering="true"
-    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-    AllowPaging="true"
-    PageSize="10">
+    <div class="d-flex align-items-center mb-3" style="gap: 12px;">
+        <span style="font-weight: 500; white-space: nowrap;">Filtrar por curso:</span>
+        <RadzenDropDown @bind-Value="@cursoFiltroSelecionado"
+                        Data="@cursosFiltro"
+                        TextProperty="Label"
+                        ValueProperty="Value"
+                        Change="@OnCursoFiltroChanged"
+                        Style="width: 280px;" />
+    </div>
+
+    <RadzenGrid Data="@modulosFiltrados"
+                TItem="Modulo"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowPaging="true"
+                PageSize="10">
         <Columns>
             <RadzenGridColumn TItem="Modulo" Property="Nome" Title="Nome" />
             <RadzenGridColumn TItem="Modulo" Property="Horas" Title="Duração em Horas" Sortable="false" Filterable="false" />
 
             @if (Mode == "Add")
             {
-                <RadzenGridColumn Title="Adicionar" TItem="Modulo" Sortable="false" Filterable="false">
+                <RadzenGridColumn Title="Adicionar/Estado" TItem="Modulo" Sortable="false" Filterable="false">
                     <Template Context="Modulo">
-                        <RadzenButton Title="Associar Módulo" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="add" Click="@(() => SendModulo(Modulo.Id))" />
+                        @if (ModulosAssociadosIds != null && ModulosAssociadosIds.Contains(Modulo.Id))
+                        {
+                            <RadzenButton Title="Já Adicionado" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="check" Disabled="true" />
+                        }
+                        else
+                        {
+                            <RadzenButton Title="Associar Módulo" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="add" Click="@(() => SendModulo(Modulo.Id))" />
+                        }
                     </Template>
                 </RadzenGridColumn>
             }
             else
-            { <RadzenGridColumn Title="Opções" TItem="Modulo" Sortable="false" Filterable="false">
+            {
+                <RadzenGridColumn Title="Opções" TItem="Modulo" Sortable="false" Filterable="false">
                     <Template Context="Modulo">
                         <RadzenButton Title="Ver detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesModulo>($"Detalhes",
-                                                                                           new Dictionary<string, object>() { { "ModuloId", Modulo.Id } },
-                                                                                           new DialogOptions(){ Width = "80%", Height = "90%" })) />
-
+                                                                                                                                 new Dictionary<string, object>() { { "ModuloId", Modulo.Id } },
+                                                                                                                                 new DialogOptions() { Width = "80%", Height = "90%" })) />
                         <RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Modulo/{Modulo.Id}"))" />
                         <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Modulo))" />
-                        <!-- INÍCIO #004 -->
-                        <!-- Remover o botao Associar formador ao módulo -->
-                        <!--<RadzenButton Title="Associar Formador" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="person_add" Click="@(() => navManager.NavigateTo($"AssociarFormador/{Modulo.Id}"))" />--->
-                        <!-- FIM -->
-                        </Template>
+                    </Template>
                 </RadzenGridColumn>
             }
         </Columns>
     </RadzenGrid>
 </div>
 
-<!-- INÍCIO #004 -->
-<!-- Botão de Voltar -->
 @if (!IsViewedAsChild)
 {
     <div class="row justify-content-center">
         <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-            <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
             <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
         </div>
     </div>
     <br />
 }
-<!-- FIM -->
+
 @code {
 
-    List<Modulo> modulos;
+    List<Modulo> todosModulos;
+    List<Modulo> modulosFiltrados;
+    int? cursoFiltroSelecionado = null; // null = "Todos"
+
+    class CursoFiltroOption
+    {
+        public string Label { get; set; }
+        public int? Value { get; set; }
+    }
+
+    List<CursoFiltroOption> cursosFiltro = new();
 
     [Parameter]
     public bool IsViewedAsChild { get; set; }
@@ -82,14 +103,48 @@
     [Parameter]
     public EventCallback<int> OutgoingModulo { get; set; }
 
+    [Parameter]
+    public List<int> ModulosAssociadosIds { get; set; } = new List<int>();
+
+    protected override void OnParametersSet()
+    {
+        LoadModulos();
+        StateHasChanged();
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        // Carregar cursos para o dropdown dinamicamente
+        var cursos = cursoData.GetAll().OrderBy(c => c.Nome).ToList();
+        cursosFiltro.Add(new CursoFiltroOption { Label = "Todos", Value = null });
+        foreach (var curso in cursos)
+        {
+            cursosFiltro.Add(new CursoFiltroOption { Label = curso.Nome, Value = curso.Id });
+        }
+
         LoadModulos();
     }
 
     void LoadModulos()
     {
-        modulos = moduloData.GetAll().OrderBy(m => m.Nome).ToList();
+        todosModulos = moduloData.GetAll().OrderBy(m => m.Nome).ToList();
+        modulosFiltrados = todosModulos;
+    }
+
+    void OnCursoFiltroChanged(object value)
+    {
+        if (value == null)
+        {
+            // "Todos" selecionado
+            modulosFiltrados = todosModulos;
+        }
+        else
+        {
+            int cursoId = (int)value;
+            modulosFiltrados = moduloData.GetModulosByCurso(cursoId)
+                                         .OrderBy(m => m.Nome)
+                                         .ToList();
+        }
     }
 
     private async Task SendModulo(int ToSendId)

@@ -14,15 +14,15 @@
     PageSize="10">
 
         <Columns>
-            <RadzenGridColumn TItem="Turma" Property="Nome" Title="Nome" />
+            <RadzenGridColumn TItem="Turma" Property="Nome" Title="Turma" />
 
-            <RadzenGridColumn TItem="Turma" Property="Curso.Nome" Title="Curso">
-                <!-- INICIO #008-->
-                <!-- Dropdown de Curso Nome -->
+            <RadzenGridColumn TItem="Turma" Property="Curso.Nome" Title="Curso" Sortable="false">
                 <FilterTemplate>
-					<RadzenDropDown @bind-Value="@filtroCursoNome" TextProperty="Nome" ValueProperty="Id" Style="width:100%" Placeholder="Selecione um Curso"
-                    Change=@FiltrarPorCurso
-                    Data="@(@turmas.Select(t => t.Curso.Nome).Distinct())" />
+                    <RadzenDropDown @bind-Value="@filtroCursoNome"
+                                    Style="width:100%"
+                                    Placeholder="Selecione um Curso"
+                                    Change="@(_ => ApplyFilters())"
+                                    Data="@(new[] { "Todos" }.Concat(turmasOriginais?.Where(t => t.Curso?.Nome != null).Select(t => t.Curso.Nome).Distinct()))" />
                 </FilterTemplate>
                 <Template Context="Turma">
                     @if (Turma.Curso != null)
@@ -32,31 +32,18 @@
                 </Template>
             </RadzenGridColumn>
 
-            <!-- INICIO #008 -->
-            <!-- Campo do Ano Letivo -->
-            <RadzenGridColumn TItem="Turma" Property="AnoLetivo" Title="Ano Letivo">
-                @*INICIO #008*@
-                @*Filtro de ano letivo*@
+            <RadzenGridColumn TItem="Turma" Property="AnoLetivo" Title="Ano Letivo" Sortable="false">
                 <FilterTemplate>
-                    <RadzenDropDown @bind-Value="@filtroAnoLetivo" TextProperty="Nome" ValueProperty="Id" Style="width:100%" Placeholder="Filtrar por Ano Letivo" />
-                    @*Inserir Logica de Filtragem Ano Letivo
-                        - string filtroAnoLetivo ja existe
-                        - pode ser necessario colocar em mais sitios
-                        - metodo de filtrar - ApplyFilters()
-                        - ver os outros filtros, tem de ser semelhante
-                        - falta ano letivo na minha base de dados (Roman)
-                        - ver ListarFormando.razor
-
-                        Change="@(_ => ApplyFilters())"
-                        Data="@(estados.Select(t => t.Nome))" />
-                    *@
+                    <RadzenDropDown @bind-Value="@filtroAnoLetivo"
+                                    Style="width:100%"
+                                    Placeholder="Filtrar por Ano Letivo"
+                                    Change="@(_ => ApplyFilters())"
+                                    Data="@(new[] { "Todos" }.Concat(turmasOriginais?.Where(t => t.AnoLetivo != null).Select(t => t.AnoLetivo.Nome).Distinct()))" />
                 </FilterTemplate>
-                @*END #008*@
                 <Template Context="Turma">
-                    2022
+                    @Turma.AnoLetivo?.Nome
                 </Template>
             </RadzenGridColumn>
-            <!-- FIM #008 -->
 
             <RadzenGridColumn TItem="Turma" Sortable="false" Filterable="false" Title="Avaliações">
                 <Template Context="Turma">
@@ -84,16 +71,11 @@
 
 @code {
 
-    // INICIO #008
-    string filtroCursoNome = "Todos";
-
-    void FiltrarPorCurso()
-    {
-        // Inserir lógica para filtrar pelo curso selecionado
-    }
-    // FIM #008
-
     List<Turma> turmas;
+    List<Turma> turmasOriginais;
+
+    string filtroCursoNome = null;
+    string filtroAnoLetivo = null;
 
     [Parameter]
     public string Mode { get; set; }
@@ -106,14 +88,16 @@
     [Parameter]
     public EventCallback<int> OutgoingTurma { get; set; }
 
-    // INICIO #008
-    // Para o filtro do ano letivo
-    string filtroAnoLetivo = "Selecionar Ano Letivo";
-
     // Metodo para os filtros funcionarem Juntos
     void ApplyFilters()
     {
-        // Adicionar Logica
+        turmas = turmasOriginais;
+
+        if (!string.IsNullOrEmpty(filtroCursoNome) && filtroCursoNome != "Todos")
+            turmas = turmas.Where(t => t.Curso?.Nome == filtroCursoNome).ToList();
+
+        if (!string.IsNullOrEmpty(filtroAnoLetivo) && filtroAnoLetivo != "Todos")
+            turmas = turmas.Where(t => t.AnoLetivo?.Nome == filtroAnoLetivo).ToList();
     }
     // FIM #008
 
@@ -129,11 +113,14 @@
     /// </summary>
     void LoadTurmas()
     {
-        turmas = turmaData.GetAll();
+        turmasOriginais = turmaData.GetAll(); 
         if (Filter != null)
-        {
-            turmas = turmas.Where(Filter).ToList();
-        }
+            turmasOriginais = turmasOriginais.Where(Filter).ToList();
+
+        turmas = turmasOriginais;
+
+        var semAnoLetivo = turmasOriginais.Where(t => t.AnoLetivo == null).Count();
+        Console.WriteLine($"Turmas sem AnoLetivo: {semAnoLetivo}");
     }
 
     private async Task SendTurma(int ToSendId)

@@ -1,6 +1,5 @@
 ﻿@page "/Relatorios"
 
-<!-- INÍCIO #004 -->
 @inject ITurmaData turmaData
 @inject ICursoData cursoData
 @inject IAulaData aulaData
@@ -10,312 +9,180 @@
 @inject IPessoaData pessoaData
 @inject IModuloData moduloData
 @inject IPessoalData pessoalData
-
-
+@inject NavigationManager navManager
 
 @using Radzen
 
 <div class="cardstyle">
-    <h3>Selecione um ano letivo</h3>
-    <RadzenDropDown class="w-25" Data="@listasFixas" @bind-Value="SelectedAnoLetivo" Change="OnAnoLetivoSelected" TValue="string" ValueProperty="Nome" TextProperty="Nome"
-    AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-    AllowClear="false">
-    </RadzenDropDown>
 
-    @if (SelectedAnoLetivo != null)
+    @* PASSO 1: Seleção da Turma *@
+    @if (SelectedTurmaId == 0)
     {
-        <h3>Selecione uma turma</h3>
-        <RadzenDropDown class="w-25" Data="@turmas" @bind-Value="SelectedTurmaId" Change="OnTurmaSelected" TValue="int" ValueProperty="Id" TextProperty="Nome"
-        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-        AllowClear="false">
-            <Template Context="Turma">
-                <span>@Turma.Nome - @Turma.Curso.Nome</span>
-            </Template>
-        </RadzenDropDown>
-    }
+        <h2>Relatórios</h2>
+        <p class="text-muted">Por favor, selecione a turma que pretende consultar para aceder aos relatórios.</p>
 
-    @if (SelectedTurma != null)
-    {
-        <h3>Selecione o tipo de relatório</h3>
-        <RadzenDropDown class="w-25" Data="@relatoriosFixos" @bind-Value="SelectedRelatorio" Change="OnRelatorioSelected" TValue="int" ValueProperty="Id" TextProperty="Nome"
-        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-        AllowClear="false">
-        </RadzenDropDown>
-    }
+        <div class="mt-4 mb-4">
+            <label class="fw-bold mb-2 d-block">Turma</label>
+            <RadzenDropDown class="w-50 d-block"
+                            Data="@turmas"
+                            @bind-Value="SelectedTurmaId"
+                            Change="OnTurmaSelected"
+                            TValue="int"
+                            ValueProperty="Id"
+                            TextProperty="Nome"
+                            AllowFiltering="true"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            AllowClear="false">
+                <Template Context="Turma">
+                    <span>@Turma.Nome - @(Turma.Curso?.Nome ?? "Sem Curso")</span>
+                </Template>
+            </RadzenDropDown>
+        </div>
 
-    @if (SelectedRelatorio == 1)
-    {   SelectedModuloId=0;
-        <h3>Selecione o mês</h3>
-        <RadzenDropDown class="w-25" Data="@mesesFixos" @bind-Value="SelectedMes" Change="OnMesSelected" TValue="int" ValueProperty="Id" TextProperty="Nome"
-        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-        AllowClear="false">
-        </RadzenDropDown>
-
-        @if (SelectedMes != 0)
-        {   <!-- INICIO #004 -->
-            <!-- falta a logica do botao -->
-            <div class="row justify-content-center">
-                <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-                    <RadzenButton Text="Excel" Icon="grid_on" Style="margin-bottom:20px" />
-                </div>
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" Text="Voltar" Click="@(() => navManager.NavigateTo("Index"))" />
             </div>
-            <!-- FIM #004 -->
-            <div class="cardstyle">
-                <div class="row" style="margin-top:1em;">
-                    <div class="col-md-12">
-                        <h3>Formandos</h3>
-                        <RadzenGrid Data="@formandos"
-                        TItem="Formando"
-                        AllowSorting="true"
-                        AllowFiltering="true"
-                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                        AllowPaging="true"
-                        PageSize="10">
-                            <Columns>
-                                <RadzenGridColumn TItem="Formando" Property="Nome" Title="Nome" />
-                                <RadzenGridColumn TItem="Formando" Title="FJ*" Sortable="false">
-                                    <Template Context="Formando">
-                                        @if (Formando.FaltaJustificadas != null)
-                                        {
-                                            <span>@((Formando.FaltaJustificadas.Duracao / 60.0 / Formando.Turma.Curso.DuracaoHoras * 100).ToString("0.##"))%</span>
-                                        }
-                                        else
-                                        {
-                                            <span>0%</span>
-                                        }
-                                    </Template>
-                                    <FooterTemplate>
-                                        <i>*Faltas Justificadas</i>
-                                    </FooterTemplate>
-                                </RadzenGridColumn>
-                                <RadzenGridColumn TItem="Formando" Title="FI*" Sortable="false">
-                                    <Template Context="Formando">
-                                        @if (Formando.FaltaInjustificadas != null)
-                                        {
-                                            <span>@((Formando.FaltaInjustificadas.Duracao / 60.0 / Formando.Turma.Curso.DuracaoHoras * 100).ToString("0.##"))%</span>
-                                        }
-                                        else
-                                        {
-                                            <span>0% (Teste)</span>
-                                        }
-                                    </Template>
-                                    <FooterTemplate>
-                                        <i>*Faltas Injustificadas</i>
-                                    </FooterTemplate>
-                                </RadzenGridColumn>
-
-                                @for (int i = 0; i < modulos.Count(); i++)
-                                {
-                                    int index = i;
-                                    string title = $"Média M{modulos[index].Id}";
-
-                                    <RadzenGridColumn TItem="Formando" Property="" Title="@title" Sortable="false">
-                                        <Template Context="Formando">
-                                            @if (Formando.DictAvaliacaoModular.Count() != 0)
-                                            {
-                                                @if (Formando.DictAvaliacaoModular.ContainsKey(modulos[index].Id) && Formando.DictAvaliacaoModular[modulos[index].Id].NotaFinal >= 10)
-                                                {
-                                                    <span style='color:green'>@(Formando.DictAvaliacaoModular[modulos[index].Id].NotaFinal.ToString("0.##"))</span>
-                                                }
-                                                else if (Formando.DictAvaliacaoModular.ContainsKey(modulos[index].Id) && Formando.DictAvaliacaoModular[modulos[index].Id].NotaFinal < 10)
-                                                {
-                                                    <span style='color:red'>@(Formando.DictAvaliacaoModular[modulos[index].Id].NotaFinal.ToString("0.##")) </span>
-                                                }
-                                                else
-                                                {
-                                                    <span>Sem nota</span>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <span>Sem nota</span>
-                                            }
-                                        </Template>
-                                    </RadzenGridColumn>
-                                }
-
-
-                                <RadzenGridColumn TItem="Formando" Title="Detalhes" Sortable="false" Filterable="false">
-                                    <Template Context="Formando">
-                                        <RadzenButton Title="Ver detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesFormando>($"Detalhes",
-                                              new Dictionary<string, object>() { { "FormandoId", Formando.Id } },
-                                              new DialogOptions(){ Width = "80%", Height = "90%" })) />
-                                    </Template>
-                                </RadzenGridColumn>
-                            </Columns>
-                        </RadzenGrid>
-                    </div>
-                </div>
-            </div>
-        }
+        </div>
     }
-    else if (SelectedRelatorio == 2)
+    @* PASSO 2: Seleção do Tipo de Relatório *@
+    else if (SelectedRelatorio == 0)
     {
-        SelectedMes = 0;
-        <h3>Selecione um módulo</h3>
-        <RadzenDropDown class="w-25"
-        Data="@SelectedTurma.Curso.Modulos.Keys.ToList()"
-        @bind-Value="SelectedModuloId"
-        Change="OnModuloSelected"
-        TValue="int"
-        TextProperty="Nome"
-        ValueProperty="Id"
-        AllowFiltering="true"
-        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-        AllowClear="false">
-        </RadzenDropDown>
-        if(SelectedModuloId != 0){
-        <!-- INICIO #004 -->
-        <!-- falta a logica do botao -->
-        <div class="row justify-content-center">
-            <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-                <RadzenButton Text="Excel" Icon="grid_on" Style="margin-bottom:20px" />
+        <h2>Relatórios - @SelectedTurma?.Nome</h2>
+        <p class="text-muted">Selecione o tipo de relatório que pretende consultar para esta turma.</p>
+
+        <div class="row mt-4 justify-content-center">
+            <div class="col-md-4 text-center d-flex justify-content-center">
+                <a class="corbotao hvr-underline-from-left c-pointer" @onclick="() => EscolherRelatorio(1)" role="button">
+                    <span class="oi oi-people" style="font-size: 48px; margin-top: 5px;"></span>
+                    <span class="texto-card">FALTAS</span>
+                </a>
+            </div>
+
+            <div class="col-md-4 text-center d-flex justify-content-center">
+                <a class="corbotao hvr-underline-from-right c-pointer" @onclick="() => EscolherRelatorio(2)" role="button">
+                    <span class="oi oi-document" style="font-size: 48px; margin-top: 5px;"></span>
+                    <span class="texto-card">SUMÁRIOS</span>
+                </a>
             </div>
         </div>
 
-         <!-- alterar a logica e TItem -->
-        <RadzenGrid Data="@tabelaSumrios"
-                TItem="Pessoal"
-                AllowSorting="true"
-                AllowFiltering="true"
-                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                AllowPaging="true"
-                PageSize="10">
-            <Columns>
-                <RadzenGridColumn TItem="Pessoal" Property="Nome" Title="Início Data e Hora" />
-                <RadzenGridColumn TItem="Pessoal" Property="Email" Title="Fim Data e Hora" />
-                <RadzenGridColumn TItem="Pessoal" Property="ContactoTelemovel" Title="Sumário" />
-                <RadzenGridColumn TItem="Pessoal" Property="ContactoTelefone" Title="Formador" />
-                    <RadzenGridColumn TItem="Pessoal" Property="Nacionalidade" Title="Sala" />
-            </Columns>
-        </RadzenGrid>
-        }
-        <!-- FIM #004 -->
-    }
-
-
-
-    <!-- Botão de Voltar -->
-    <div class="row justify-content-center">
-        <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-12 text-center">
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="arrow_back" Text="Escolher Outra Turma" Click="VoltarAoInicio" />
+            </div>
         </div>
-    </div>
-    <br />
+    }
+    @* PASSO 3: Visualização do Relatório *@
+    else
+    {
+        <div class="mb-4 d-flex justify-content-between align-items-center bg-light p-3 rounded">
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="arrow_back" Text="Voltar" Click="VoltarParaSelecao" />
+            <span class="fs-5 fw-bold text-dark">Turma Atual: <span class="text-primary">@SelectedTurma?.Nome</span></span>
+        </div>
+
+        @* SUBPÁGINA: FALTAS *@
+        @if (SelectedRelatorio == 1)
+        {
+            <div class="mt-4">
+                <h4 class="mb-3"><span class="oi oi-people me-2 text-primary"></span> Relatório de Faltas da Turma</h4>
+
+                <RadzenGrid Data="@formandosDaTurma"
+                            TItem="PortalUpskill.Data.Models.Formando"
+                             AllowSorting="true"
+                            AllowFiltering="false"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            AllowPaging="true"
+                            PageSize="10">
+                    <Columns>
+                        <RadzenGridColumn TItem="PortalUpskill.Data.Models.Formando" Property="Nome" Title="Nome do Formando" />
+
+                        <RadzenGridColumn TItem="PortalUpskill.Data.Models.Formando" Title="Faltas Justificadas" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="200px">
+                            <Template Context="formando">
+                                <span class="text-success fw-bold">@ObterContagemFaltas(formando.Id, true)</span>
+                            </Template>
+                        </RadzenGridColumn>
+
+                        <RadzenGridColumn TItem="PortalUpskill.Data.Models.Formando" Title="Faltas Injustificadas" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="200px">
+                            <Template Context="formando">
+                                <span class="text-danger fw-bold">@ObterContagemFaltas(formando.Id, false)</span>
+                            </Template>
+                        </RadzenGridColumn>
+                    </Columns>
+                </RadzenGrid>
+            </div>
+        }
+
+        @* SUBPÁGINA: SUMÁRIOS *@
+        @if (SelectedRelatorio == 2)
+        {
+            <div class="mt-4">
+                <h4 class="mb-3"><span class="oi oi-document me-2 text-primary"></span> Relatório de Sumários da Turma</h4>
+
+                <RadzenGrid Data="@aulasDaTurma"
+                            TItem="PortalUpskill.Data.Models.Aula"
+                            AllowSorting="true"
+                            AllowFiltering="false"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            AllowPaging="true"
+                            PageSize="10">
+                    <Columns>
+                        <RadzenGridColumn TItem="PortalUpskill.Data.Models.Aula" Property="HoraInicio" Title="Data / Hora" Width="220px">
+                            <Template Context="aula">
+                                @aula.HoraInicio.ToString("dd/MM/yyyy HH:mm")
+                            </Template>
+                        </RadzenGridColumn>
+
+                        <RadzenGridColumn TItem="PortalUpskill.Data.Models.Aula" Property="DuracaoHoras" Title="Duração" TextAlign="TextAlign.Center" Width="120px" Sortable="false">
+                            <Template Context="aula">
+                                @aula.DuracaoHoras h
+                            </Template>
+                        </RadzenGridColumn>
+
+                        <RadzenGridColumn TItem="PortalUpskill.Data.Models.Aula" Property="Sumario" Title="Sumário" Sortable="false">
+                            <Template Context="aula">
+                                <span style="white-space: pre-line;">@aula.Sumario</span>
+                            </Template>
+                        </RadzenGridColumn>
+                    </Columns>
+                </RadzenGrid>
+            </div>
+        }
+    }
 </div>
 
 @code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public int Idf { get; set; }
+    [Parameter] public int Idt { get; set; }
+    [Parameter] public string? source { get; set; }
+    [Parameter] public Func<Pessoal, bool> Filter { get; set; }
 
-    [Parameter]
-    public int Id { get; set; }
+    List<Formando> formandos = new();
+    List<Aula> tabelaSumrios = new();
+    List<Modulo> modulos = new();
+    List<Turma> turmas = new();
 
-    [Parameter]
-    public int Idf { get; set; } // Formador ID
+    private List<PortalUpskill.Data.Models.Formando> formandosDaTurma = new();
+    private List<PortalUpskill.Data.Models.Aula> aulasDaTurma = new();
 
-    [Parameter]
-    public int Idt { get; set; } // Turma ID
+    private Dictionary<int, (int Justificadas, int Injustificadas)> resumoFaltas = new();
 
-    [Parameter]
-    public string? source { get; set; }
-
-    [Parameter]
-    public Func<Pessoal, bool> Filter { get; set; }
-
-    List<Formando> formandos;
-    List<Pessoal> tabelaSumrios;
-    List<Pessoal> staff;
-
-    // Lista de modulos com Formador
-    List<Modulo> modulos;
-
-    // Lista de todas as turmas existentes na bd
-    List<Turma> turmas = new List<Turma>();
-
-    // Lista de anos letivos fixos
-    List<ListaInfo> listasFixas = new()
-    {
-        new ListaInfo { Nome = "2020/2021" },
-        new ListaInfo { Nome = "2021/2022" },
-        new ListaInfo { Nome = "2022/2023" },
-        new ListaInfo { Nome = "2023/2024" },
-        new ListaInfo { Nome = "2024/2025" }
-    };
-
-    // Lista de tipos de relatórios fixos
-    List<ListaInfoRel> relatoriosFixos = new()
-    {
-    new ListaInfoRel { Id = 1, Nome = "Faltas" },
-    new ListaInfoRel { Id = 2, Nome = "Sumários" }
-    };
-
-    // Lista de tipos de relatórios fixos
-    List<ListaMeses> mesesFixos = new()
-    {
-    new ListaMeses { Id = 1, Nome = "Janeiro" },
-    new ListaMeses { Id = 2, Nome = "Fevereiro" },
-    new ListaMeses { Id = 3, Nome = "Março" },
-    new ListaMeses { Id = 4, Nome = "Abril" },
-    new ListaMeses { Id = 5, Nome = "Maio" },
-    new ListaMeses { Id = 6, Nome = "Junho" },
-    new ListaMeses { Id = 7, Nome = "Julho" },
-    new ListaMeses { Id = 8, Nome = "Agosto" },
-    new ListaMeses { Id = 9, Nome = "Setembro" },
-    new ListaMeses { Id = 10, Nome = "Outubro" },
-    new ListaMeses { Id = 11, Nome = "Novembro" },
-    new ListaMeses { Id = 12, Nome = "Dezembro" },
-    new ListaMeses { Id = 13, Nome = "Todos" }
-    };
-
-
-
-    // Turma Selecionada
     int SelectedModuloId;
     int SelectedTurmaId;
-    int SelectedRelatorio;
+    int SelectedRelatorio; // 0 = ecrã inicial, 1 = Faltas, 2 = Sumários
     int SelectedMes;
     Turma SelectedTurma;
 
-    // Ano Letivo Selecionado
-    string SelectedAnoLetivo;
-
-    // Aulas associadas à turma selecionada
-    List<Aula> aulas = new List<Aula>();
-
-    // Dicionário com as horas que estão contabilizadas no calendário
-    Dictionary<int, double> HorasPorModulo = new Dictionary<int, double>();
-
-    Dictionary<int, Formador> FormadoresTurma = new Dictionary<int, Formador>();
-
+    List<Aula> aulas = new();
+    Dictionary<int, double> HorasPorModulo = new();
+    Dictionary<int, Formador> FormadoresTurma = new();
     bool changesMade = false;
-
-    #region VariaveisSfScheduler
-
-    SfSchedule<AppointmentData> Scheduler;
-    SfTextBox SubjectRef;
-    SfTextBox DescriptionRef;
-    SfDropDownList<int, ResourceData> EventTypeRef;
-
-    // determina a vista atual do Scheduler. Ao início é TimelineYear
-    View CurrentView = View.TimelineYear;
-
-    // Data para qual o Scheduler está apontado
-    DateTime CurrentDate = DateTime.Now;
-
-    // Lista de todos os eventos no Scheduler
-    List<AppointmentData> DataSource = new List<AppointmentData>();
-
-    // ResourceData são grupos de eventos
-    List<ResourceData> OwnerData = new List<ResourceData>();
-    List<SelectResourceItem> SelectResourceList = new List<SelectResourceItem>();
-
-    #endregion
 
     protected override async Task OnInitializedAsync()
     {
-        // Carregar os formadores da turma selecionada
-        modulos = moduloData.GetModulosComFormadorByTurma(Id);
-
         turmas = turmaData.GetAll();
+
         if (Id != 0)
         {
             SelectedTurmaId = Id;
@@ -323,122 +190,82 @@
         }
     }
 
-    /// <summary>
-    /// Prepara a página para quando uma turma é selecionada
-    /// </summary>
-    void OnTurmaSelected()
+    private void OnTurmaSelected()
     {
-        DataSource.Clear();
+        if (SelectedTurmaId == 0) return;
 
-        SelectedTurma = turmas.Single(t => t.Id == SelectedTurmaId);
-        SelectedTurma.Curso = cursoData.GetById(SelectedTurma.CursoId.Value);
-        SelectedTurma.Modulos = moduloData.GetModulosComFormadorByTurma(SelectedTurmaId);
+        formandos = new();
+        tabelaSumrios = new();
+        SelectedMes = 0;
+        SelectedModuloId = 0;
 
-        var result = moduloData.GetModuloFormadorByTurma(SelectedTurma);
-        foreach (var moduloHora in SelectedTurma.Curso.Modulos)
+        SelectedTurma = turmas.SingleOrDefault(t => t.Id == SelectedTurmaId);
+        if (SelectedTurma != null)
         {
-            SelectedTurma.Curso.Modulos[moduloHora.Key] = result[moduloHora.Key.Id].Horas;
-        }
+            SelectedTurma.Curso = cursoData.GetById(SelectedTurma.CursoId.Value);
+            SelectedTurma.Modulos = moduloData.GetModulosComFormadorByTurma(SelectedTurmaId);
+            modulos = moduloData.GetModulosComFormadorByTurma(SelectedTurmaId);
 
-        SelectedTurma.Aulas = aulaData.GetByTurma(SelectedTurma);
+            var result = moduloData.GetModuloFormadorByTurma(SelectedTurma);
+            foreach (var moduloHora in SelectedTurma.Curso.Modulos)
+            {
+                SelectedTurma.Curso.Modulos[moduloHora.Key] = result[moduloHora.Key.Id].Horas;
+            }
 
-        // Aponta a vista do calendário para o início do curso da turma
-        CurrentDate = SelectedTurma.DataInicioCurso.Value;
-    }
-
-    void OnRelatorioSelected()
-    {
-
-        // Adicionar aqui lógica
-
-    }
-
-    void OnMesSelected()
-    {
-
-        // Adicionar aqui lógica
-
-    }
-
-    /// <summary>
-    /// Prepara a página para quando o ano letivo é selecionado
-    /// </summary>
-    void OnAnoLetivoSelected()
-    {
-        // Adicionar aqui lógica para atualizar as turmas baseadas no ano letivo selecionado
-
-    }
-    string email;
-    string mail;
-    /// <summary>
-    /// Carrega a lista de formadores da BD
-    /// </summary>
-    void LoadPessoal()
-    {
-        staff = pessoalData.GetAll().Where(p => p.PerfilId == 1).OrderBy(p => p.Nome).ToList();
-
-        if (Filter != null)
-        {
-            tabelaSumrios = staff.Where(Filter).OrderBy(p => p.Nome).ToList();
-        }
-
-        tabelaSumrios = staff;
-
-        mail = "";
-
-        foreach (var pessoal in tabelaSumrios)
-        {
-            mail = mail + pessoal.Email + ";";
-        }
-
-        email = $"mailto:{mail}";
-    }
-
-    void OnModuloSelected()
-    {
-        
-        var moduloSelecionado = SelectedTurma.Curso.Modulos.Keys
-            .FirstOrDefault(m => m.Id == SelectedModuloId);
-
-        if (moduloSelecionado != null)
-        {
-            Console.WriteLine($"Módulo selecionado: {moduloSelecionado.Nome}");
-            // Aqui pode entrar qualquer lógica adicional
+            SelectedTurma.Aulas = aulaData.GetByTurma(SelectedTurma);
         }
     }
 
-
-    public class ResourceData
+    private void EscolherRelatorio(int tipo)
     {
-        public int Id { get; set; }
-        public string Text { get; set; }
-        public string Color { get; set; }
-        public int ModuloId { get; set; }
+        SelectedRelatorio = tipo;
+
+        if (SelectedRelatorio == 1)
+        {
+            formandosDaTurma = formandoData.GetAllByTurma(SelectedTurmaId);
+            resumoFaltas.Clear();
+
+            foreach (var f in formandosDaTurma)
+            {
+                var historicoFaltas = faltaData.GetByFormandoId(f.Id);
+                int just = historicoFaltas.Count(x => x.Justificada == true);
+                int injust = historicoFaltas.Count(x => x.Justificada == false);
+
+                resumoFaltas[f.Id] = (just, injust);
+            }
+        }
+        else if (SelectedRelatorio == 2)
+        {
+            aulasDaTurma = aulaData.GetByTurma(SelectedTurmaId);
+        }
+
+        StateHasChanged();
     }
 
-    public class SelectResourceItem
+    private int ObterContagemFaltas(int formandoId, bool buscarJustificadas)
     {
-        public int ModuloId { get; set; }
-        public string Text { get; set; }
+        if (resumoFaltas.TryGetValue(formandoId, out var contagem))
+        {
+            return buscarJustificadas ? contagem.Justificadas : contagem.Injustificadas;
+        }
+        return 0;
     }
 
-    public class ListaInfo
+    private void VoltarParaSelecao()
     {
-
-        public string Nome { get; set; }
+        SelectedRelatorio = 0;
+        StateHasChanged();
     }
 
-    public class ListaInfoRel
+    private void VoltarAoInicio()
     {
-        public int Id { get; set; }  
-        public string Nome { get; set; }
+        SelectedRelatorio = 0;
+        SelectedTurmaId = 0;
+        SelectedTurma = null;
+        formandosDaTurma = new();
+        aulasDaTurma = new();
+        resumoFaltas.Clear();
+        SelectedMes = 0;
+        SelectedModuloId = 0;
     }
-
-    public class ListaMeses
-    {
-        public int Id { get; set; }
-        public string Nome { get; set; }
-    }
-    
 }
-<!-- FIM #004 -->

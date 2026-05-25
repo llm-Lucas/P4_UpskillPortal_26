@@ -48,7 +48,9 @@
     <RadzenTabs style="height: 880px">
         <Tabs>
             <RadzenTabsItem Text="Módulos">
-                <ListarModulos OutgoingModulo=@ReceiveModulo Mode="Add" IsViewedAsChild="true" />
+                <ListarModulos Mode="Add"
+                               OutgoingModulo="ReceiveModulo"
+                               ModulosAssociadosIds="@Curso.Modulos.Keys.Select(m => m.Id).ToList()" />
             </RadzenTabsItem>
             <RadzenTabsItem Text="Novo Módulo">
                 <CriarModulo IsViewedAsChild="true" />
@@ -118,6 +120,7 @@
             Curso.Modulos.Add(modulo, modulo.Horas);
             Curso.DuracaoHoras += Curso.Modulos[modulo];
         }
+        this.StateHasChanged();
     }
 
     /// <summary>
@@ -128,6 +131,7 @@
     {
         Curso.DuracaoHoras -= Curso.Modulos[modulo];
         Curso.Modulos.Remove(modulo);
+        this.StateHasChanged();
     }
 
     private void ReceiveTurma(int TurmaId)
