@@ -58,8 +58,7 @@
 		@*FIM*@
 
 		<RadzenButton class="mt-4" data-toggle="collapse" data-target="#tabela" Text="Mostrar módulos" ButtonStyle="ButtonStyle.Primary" Icon="expand" />
-		<RadzenButton class="mt-4" Text="Ver Sumários" ButtonStyle="ButtonStyle.Primary" Icon="assignment" Click="@(() => navManager.NavigateTo("Relatorios"))" />
-		<RadzenButton class="mt-4" Text="Download" ButtonStyle="ButtonStyle.Primary" Icon="file_download" Click="Exportar" />
+		<RadzenButton class="mt-4" Text="Ver Sumários" ButtonStyle="ButtonStyle.Primary" Icon="assignment" Click="@(() => navManager.NavigateTo($"Relatorios/{SelectedTurmaId}"))" />		
 		<RadzenButton class="mt-4" ButtonStyle="ButtonStyle.Success" Text="Guardar" Icon="calendar_today" Click="@(() => GuardarCalendario(SelectedTurma))" />
 		@if (changesMade)
 		{
