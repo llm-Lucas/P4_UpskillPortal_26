@@ -230,8 +230,6 @@
                 </div>
             </div>-->
             <!--FIM #004-->
-
-
             @if (Id != 0)
             {
                 <div class="row form-group">
@@ -239,7 +237,20 @@
                         <RadzenLabel Text="Curso" />
                     </div>
                     <div class="col-md-6">
-                        <RadzenTextBox class="form-control w-100" @bind-Value="@turma.Curso.Nome" />
+                        <RadzenDropDown class="form-control"
+                                        @bind-Value="@turmaVM.CursoId"
+                                        Data="@cursos"
+                                        TValue="int?"
+                                        AllowFiltering="true"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                        ValueProperty="Id"
+                                        TextProperty="Nome"
+                                        AllowClear="false"
+                                        Change="@(() => CursoAlterado.InvokeAsync(turmaVM.CursoId))">
+                            <Template Context="curso">
+                                <span>@curso.Nome</span>
+                            </Template>
+                        </RadzenDropDown>
                     </div>
                 </div>
             }
