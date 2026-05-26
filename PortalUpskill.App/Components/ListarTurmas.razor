@@ -23,7 +23,14 @@
             
             <!--INÍCIO #004-->
             <!-- falta tornar drop down e implementar a lógica com BE -->
-            <RadzenGridColumn TItem="Turma" Property="AnoLetivo" Title="Ano Letivo">
+            <RadzenGridColumn TItem="Turma" Property="AnoLetivo" Title="Ano Letivo" Sortable="false">
+                <FilterTemplate>
+                    <RadzenDropDown @bind-Value="@filtroAnoLetivo"
+                                    Style="width:100%"
+                                    Placeholder="Filtrar por Ano Letivo"
+                                    Change="@(_ => ApplyFilters())"
+                                    Data="@(new[] { "Todos" }.Concat(turmasOriginais?.Where(t => t.AnoLetivo != null).Select(t => t.AnoLetivo.Nome).Distinct()))" />
+                </FilterTemplate>
                 <Template Context="Turma">
                     @Turma.AnoLetivo?.Nome
                 </Template>
@@ -31,7 +38,14 @@
 
             <!--FIM #004-->
 
-            <RadzenGridColumn TItem="Turma" Property="Curso.Nome" Title="Curso">
+            <RadzenGridColumn TItem="Turma" Property="Curso.Nome" Title="Curso" Sortable="false">
+                <FilterTemplate>
+                    <RadzenDropDown @bind-Value="@filtroCursoNome"
+                                    Style="width:100%"
+                                    Placeholder="Selecione um Curso"
+                                    Change="@(_ => ApplyFilters())"
+                                    Data="@(new[] { "Todos" }.Concat(turmasOriginais?.Where(t => t.Curso?.Nome != null).Select(t => t.Curso.Nome).Distinct()))" />
+                </FilterTemplate>
                 <Template Context="Turma">
                     @if (Turma.Curso != null)
                     {
@@ -40,7 +54,7 @@
                 </Template>
             </RadzenGridColumn>
 
-            <RadzenGridColumn TItem="Turma" Property="DataInicioCurso" Title="Data de Início do Curso">
+            <RadzenGridColumn TItem="Turma" Property="DataInicioCurso" Title="Data de Início do Curso" Filterable="false">
                 <Template Context="Turma">
                     @if(Turma.DataInicioCurso != null)
                     {
@@ -49,7 +63,7 @@
                 </Template>
             </RadzenGridColumn>
 
-            <RadzenGridColumn TItem="Turma" Property="DataFimCurso" Title="Data de Fim do Curso">
+            <RadzenGridColumn TItem="Turma" Property="DataFimCurso" Title="Data de Fim do Curso" Filterable="false">
                 <Template Context="Turma">
                     @if (Turma.DataFimCurso != null)
                     {
@@ -98,6 +112,10 @@
 @code {
 
     List<Turma> turmas;
+    List<Turma> turmasOriginais;
+
+    string filtroCursoNome = null;
+    string filtroAnoLetivo = null;
 
     [Parameter]
     public string Mode { get; set; }
@@ -122,11 +140,25 @@
     /// </summary>
     void LoadTurmas()
     {
-        turmas = turmaData.GetAll();
+        turmasOriginais = turmaData.GetAll();
         if (Filter != null)
-        {
-            turmas = turmas.Where(Filter).OrderBy(t => t.Nome).ToList();
-        }
+            turmasOriginais = turmasOriginais.Where(Filter).ToList();
+
+        turmas = turmasOriginais;
+
+        var semAnoLetivo = turmasOriginais.Where(t => t.AnoLetivo == null).Count();
+        Console.WriteLine($"Turmas sem AnoLetivo: {semAnoLetivo}");
+    }
+
+    void ApplyFilters()
+    {
+        turmas = turmasOriginais;
+
+        if (!string.IsNullOrEmpty(filtroCursoNome) && filtroCursoNome != "Todos")
+            turmas = turmas.Where(t => t.Curso?.Nome == filtroCursoNome).ToList();
+
+        if (!string.IsNullOrEmpty(filtroAnoLetivo) && filtroAnoLetivo != "Todos")
+            turmas = turmas.Where(t => t.AnoLetivo?.Nome == filtroAnoLetivo).ToList();
     }
 
     private async Task SendTurma(int ToSendId)
