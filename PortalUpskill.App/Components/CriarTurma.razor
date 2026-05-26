@@ -85,151 +85,62 @@
                 </div>
             </div>
 
-            <!--INÍCIO #004-->
-            <!-- falta implementar a lógica com BE 
             <div class="row form-group">
                 <div class="col-md-4 align-items-center d-flex">
-                    <RadzenLabel Text="Segunda-feira" />
+                    <RadzenLabel Text="Horário Assíncrono" />
                 </div>
-
                 <div class="col-md-4">
                     <RadzenLabel Text="Início" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100"
+                                      TValue="DateTime?"
+                                      ShowTime="true"
+                                      TimeOnly="true"
+                                      DateFormat="HH:mm"
+                                      MinutesStep="15"
+                                      Placeholder="hh:mm"
+                                      @bind-Value="turmaVM.HorarioAssincronoInicio" />
                 </div>
-
                 <div class="col-md-4">
                     <RadzenLabel Text="Fim" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenDatePicker class="w-100"
+                                      TValue="DateTime?"
+                                      ShowTime="true"
+                                      TimeOnly="true"
+                                      DateFormat="HH:mm"
+                                      MinutesStep="15"
+                                      Placeholder="hh:mm"
+                                      @bind-Value="turmaVM.HorarioAssincronoFim" />
                 </div>
             </div>
 
             <div class="row form-group">
                 <div class="col-md-4 align-items-center d-flex">
-                    <RadzenLabel Text="Terça-feira" />
+                    <RadzenLabel Text="Horário Síncrono" />
                 </div>
-
                 <div class="col-md-4">
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenLabel Text="Início" />
+                    <RadzenDatePicker class="w-100"
+                                      TValue="DateTime?"
+                                      ShowTime="true"
+                                      TimeOnly="true"
+                                      DateFormat="HH:mm"
+                                      MinutesStep="15"
+                                      Placeholder="hh:mm"
+                                      @bind-Value="turmaVM.HorarioSincronoInicio" />
                 </div>
-
                 <div class="col-md-4">
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
+                    <RadzenLabel Text="Fim" />
+                    <RadzenDatePicker class="w-100"
+                                      TValue="DateTime?"
+                                      ShowTime="true"
+                                      TimeOnly="true"
+                                      DateFormat="HH:mm"
+                                      MinutesStep="15"
+                                      Placeholder="hh:mm"
+                                      @bind-Value="turmaVM.HorarioSincronoFim" />
                 </div>
             </div>
 
-
-            <div class="row form-group">
-                <div class="col-md-4 align-items-center d-flex">
-                    <RadzenLabel Text="Quarta-feira" />
-                </div>
-
-                <div class="col-md-4">
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                </div>
-
-                <div class="col-md-4">
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                </div>
-            </div>
-
-            <div class="row form-group">
-                <div class="col-md-4 align-items-center d-flex">
-                    <RadzenLabel Text="Quinta-feira" />
-                </div>
-
-                <div class="col-md-4">
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                </div>
-
-                <div class="col-md-4">
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                </div>
-            </div>
-
-            <div class="row form-group">
-                <div class="col-md-4 align-items-center d-flex">
-                    <RadzenLabel Text="Sexta-feira" />
-                </div>
-
-                <div class="col-md-4">
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                </div>
-
-                <div class="col-md-4">
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                </div>
-            </div>
-
-            <div class="row form-group">
-                <div class="col-md-4 align-items-center d-flex">
-                    <RadzenLabel Text="Sábado" />
-                </div>
-
-                <div class="col-md-4">
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                </div>
-
-                <div class="col-md-4">
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                </div>
-            </div>
-
-            <div class="row form-group">
-                <div class="col-md-4 align-items-center d-flex">
-                    <RadzenLabel Text="Domingo" />
-                </div>
-
-                <div class="col-md-4">
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                </div>
-
-                <div class="col-md-4">
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                    <RadzenDatePicker class="w-100" TValue="DateTime?" ShowTime="true" TimeOnly="true"
-                                      DateFormat="HH:mm" MinutesStep="15" Placeholder="hh:mm" />
-                </div>
-            </div>-->
-            <!--FIM #004-->
             @if (Id != 0)
             {
                 <div class="row form-group">
