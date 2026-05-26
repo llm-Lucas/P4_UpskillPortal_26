@@ -3,49 +3,274 @@
 
 @using UpskillPortal.Utils
 @using BCrypt.Net
+@using PortalUpskill.Data.Models
+@using PortalUpskill.App.ViewModels
 
 @inject IPessoaData pessoaData
 @inject NavigationManager Navigation
+@inject NotificationService notificationService
+@inject AuthenticationStateProvider authStateProvider
 
-<a href="javascript:history.go(-1)"><img src="/img/outline_arrow_back_black_48dp.png" /></a>
-<br />
-<RadzenNotification />
-<br />
-<h3>Área Pessoal</h3>
-<EditForm class="col-4" Model="npVM" OnValidSubmit="NovaPassword">
-    <DataAnnotationsValidator />
-    <div class="form-group">
-        <RadzenLabel Text="Password Atual" />
-        <RadzenPassword class="form-control" @bind-Value="@npVM.PasswordActual" />
-        <ValidationMessage For="@(() => npVM.PasswordActual)" />
+<div class="container-fluid m-0 p-0" style="max-width: 800px; margin: 0 auto !important;">
+
+    <div class="d-flex align-items-center my-4 pb-2 border-bottom">
+        <RadzenButton Click="@(() => Navigation.NavigateTo("javascript:history.go(-1)"))"
+                      Icon="arrow_back"
+                      ButtonStyle="ButtonStyle.Light"
+                      Size="ButtonSize.Medium"
+                      class="rz-border-radius-10 rz-shadow-1 me-3" />
+        <h3 class="m-0 font-weight-bold text-dark">Definições da Conta</h3>
     </div>
-    <div class="form-group">
-        <RadzenLabel Text="Nova Password" />
-        <RadzenPassword class="form-control" @bind-Value="@npVM.NovaPassword" />
-        <ValidationMessage For="@(() => npVM.NovaPassword)" />
+
+    <RadzenNotification />
+
+    <div class="row">
+        <div class="col-md-12">
+            <RadzenCard class="rz-shadow-2 rz-border-radius-12 p-0 mb-4" Style="overflow: hidden; border: 1px solid #e0e0e0;">
+
+                <div class="setting-item d-flex align-items-center justify-content-between p-3 border-bottom @(activeTab == "dados" ? "setting-active" : "")"
+                     @onclick='() => MudarAbas("dados")'>
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-primary-light me-3">
+                            <RadzenIcon Icon="account_circle" Style="color: var(--rz-primary); font-size: 24px;" />
+                        </div>
+                        <div>
+                            <h6 class="m-0 font-weight-bold text-dark">Dados Pessoais</h6>
+                            <small class="text-muted">Atualize o seu nome, contactos e morada</small>
+                        </div>
+                    </div>
+                    <RadzenIcon Icon="chevron_right" Style="color: #9e9e9e;" />
+                </div>
+
+                <div class="setting-item d-flex align-items-center justify-content-between p-3 @(activeTab == "seguranca" ? "setting-active" : "")"
+                     @onclick='() => MudarAbas("seguranca")'>
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-warning-light me-3">
+                            <RadzenIcon Icon="lock" Style="color: var(--rz-warning); font-size: 24px;" />
+                        </div>
+                        <div>
+                            <h6 class="m-0 font-weight-bold text-dark">Segurança</h6>
+                            <small class="text-muted">Altere a sua palavra-passe de acesso</small>
+                        </div>
+                    </div>
+                    <RadzenIcon Icon="chevron_right" Style="color: #9e9e9e;" />
+                </div>
+
+            </RadzenCard>
+        </div>
+
+        <div class="col-md-12 mt-2">
+            @if (activeTab == "dados")
+            {
+                <RadzenCard class="rz-shadow-3 rz-border-radius-12 p-4 animate-fade-in" style="border-top: 4px solid var(--rz-primary);">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="m-0 text-primary font-weight-bold">Editar Dados Pessoais</h4>
+                        <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="FecharAba" Tooltip="Fechar" />
+                    </div>
+
+                    @if (user == null)
+                    {
+                        <div class="d-flex justify-content-center p-5">
+                            <RadzenProgressBar Circular="true" Value="100" Mode="ProgressBarMode.Indeterminate" />
+                        </div>
+                    }
+                    else
+                    {
+                        <EditForm Model="user" OnValidSubmit="GuardarDadosPessoais">
+                            <DataAnnotationsValidator />
+
+                            <div class="row g-3">
+                                <div class="col-md-12 mb-3">
+                                    <RadzenLabel Text="Nome Completo" class="form-label font-weight-bold" />
+                                    <RadzenTextBox class="w-100" @bind-Value="user.Nome" />
+                                    <ValidationMessage For="() => user.Nome" class="text-danger small" />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <RadzenLabel Text="Contacto Telemóvel" class="form-label font-weight-bold" />
+                                    <RadzenTextBox class="w-100" @bind-Value="user.ContactoTelemovel" />
+                                    <ValidationMessage For="() => user.ContactoTelemovel" class="text-danger small" />
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <RadzenLabel Text="Contacto Telefone" class="form-label font-weight-bold" />
+                                    <RadzenTextBox class="w-100" @bind-Value="user.ContactoTelefone" />
+                                </div>
+
+                                <div class="col-md-8 mb-3">
+                                    <RadzenLabel Text="Morada" class="form-label font-weight-bold" />
+                                    <RadzenTextBox class="w-100" @bind-Value="user.Morada" />
+                                    <ValidationMessage For="() => user.Morada" class="text-danger small" />
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+                                    <RadzenLabel Text="Código Postal" class="form-label font-weight-bold" />
+                                    <RadzenTextBox class="w-100" @bind-Value="user.CP" />
+                                    <ValidationMessage For="() => user.CP" class="text-danger small" />
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end mt-4">
+                                <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary"
+                                              Icon="save" Text="Gravar Alterações" class="rz-border-radius-8 px-4" />
+                            </div>
+                        </EditForm>
+                    }
+                </RadzenCard>
+            }
+            else if (activeTab == "seguranca")
+            {
+                <RadzenCard class="rz-shadow-3 rz-border-radius-12 p-4 animate-fade-in" style="border-top: 4px solid var(--rz-warning);">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="m-0 text-warning font-weight-bold">Alterar Palavra-Passe</h4>
+                        <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="FecharAba" Tooltip="Fechar" />
+                    </div>
+
+                    <EditForm Model="npVM" OnValidSubmit="NovaPassword">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <RadzenLabel Text="Password Atual" class="form-label font-weight-bold" />
+                            <RadzenPassword class="w-100" @bind-Value="@npVM.PasswordActual" />
+                            <ValidationMessage For="() => npVM.PasswordActual" class="text-danger small" />
+                        </div>
+
+                        <div class="mb-3">
+                            <RadzenLabel Text="Nova Password" class="form-label font-weight-bold" />
+                            <RadzenPassword class="w-100" @bind-Value="@npVM.NovaPassword" />
+                            <ValidationMessage For="() => npVM.NovaPassword" class="text-danger small" />
+                        </div>
+
+                        <div class="mb-4">
+                            <RadzenLabel Text="Confirmar Nova Password" class="form-label font-weight-bold" />
+                            <RadzenPassword class="w-100" @bind-Value="@npVM.Confirmacao" />
+                            <ValidationMessage For="() => npVM.Confirmacao" class="text-danger small" />
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Warning"
+                                          Icon="lock_open" Text="Atualizar Password" class="rz-border-radius-8 px-4" />
+                        </div>
+                    </EditForm>
+                </RadzenCard>
+            }
+        </div>
     </div>
-    <div class="form-group">
-        <RadzenLabel Text="Confirmar Nova Password" />
-        <RadzenPassword class="form-control" @bind-Value="@npVM.Confirmacao" />
-        <ValidationMessage For="@(() => npVM.Confirmacao)" />
-    </div>
-    <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="autorenew" Text="Mudar Password" />
-</EditForm>
+</div>
+
+<style>
+    .setting-item {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border: 2px solid transparent; 
+    }
+    
+    .setting-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* Nova classe de destaque muito mais visível */
+    .setting-active {
+        background-color: #e3f2fd !important; /* Azul muito claro de fundo */
+        border: 2px solid var(--rz-primary) !important; /* Borda azul forte a contornar a opção */
+        border-radius: 8px; /* Arredondamento para ficar mais suave */
+        margin: 4px; /* Pequena margem para a borda não colar aos limites do card pai */
+    }
+
+    .icon-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+    }
+
+    .bg-primary-light {
+        background-color: #eef2ff;
+    }
+
+    .bg-warning-light {
+        background-color: #fffbeb;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
 
 @code {
-
-    NovaPassViewModel npVM = new NovaPassViewModel();
-    Pessoa user;
-
     [CascadingParameter]
-    private Task<AuthenticationState> authStateTask { get; set; }
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private Pessoa user = new Pessoa();
+    private NovaPassViewModel npVM = new NovaPassViewModel();
+    private string activeTab = "";
+
+    // SOLUÇÃO B: Variáveis de salvaguarda isoladas na memória do componente
+    private int? perfilIdOriginal;
+    private string funcaoOriginal;
 
     protected override async Task OnInitializedAsync()
     {
-        string userEmail = (await authStateTask).User.Identity.Name;
-        user = pessoaData.GetByEmail(userEmail);
+        var authState = await authenticationStateTask;
+        var userName = authState.User.Identity.Name;
+
+        // Carrega o utilizador completo original vindo da base de dados
+        var userCarregado = pessoaData.GetByEmail(userName);
+
+        if (userCarregado != null)
+        {
+            user = userCarregado;
+
+            // SOLUÇÃO B: Tirar o "snapshot" dos IDs críticos imediatamente
+            perfilIdOriginal = user.PerfilId;
+            funcaoOriginal = user.Funcao;
+        }
 
         base.OnInitialized();
+    }
+
+    async Task GuardarDadosPessoais()
+    {
+        try
+        {
+            if (user == null) return;
+
+            // -------------------------------------------------------------
+            // GARANTIA DA SOLUÇÃO B: Injetar os IDs originais antes do Update
+            // -------------------------------------------------------------
+            user.PerfilId = perfilIdOriginal;
+            user.Funcao = funcaoOriginal;
+
+            // Executa a alteração na BD com a certeza de que o PerfilId não vai a NULL
+            pessoaData.Update(user);
+
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Sucesso",
+                Detail = "Dados atualizados com sucesso.",
+                Duration = 5000
+            });
+
+            FecharAba();
+        }
+        catch (Exception ex)
+        {
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Erro",
+                Detail = "Não foi possível guardar os dados pessoais.",
+                Duration = 4000
+            });
+        }
     }
 
     async Task NovaPassword()
@@ -71,32 +296,44 @@
         if (passwordCorreta)
         {
             var novaPasswordHash = HashingService.Hash(npVM.NovaPassword);
+
+            // Por precaução, caso usem o mesmo objeto, reinjeta-se também aqui
+            user.PerfilId = perfilIdOriginal;
+            user.Funcao = funcaoOriginal;
+
             pessoaData.UpdatePassword(user, novaPasswordHash);
 
             notificationService.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
-                Summary = "Password alterada com sucesso",
+                Summary = "Sucesso",
+                Detail = "Password alterada com sucesso.",
                 Duration = 5000
             });
 
-            await Task.Delay(50);
-            Redirecionar();
+            user.Password = novaPasswordHash;
+            npVM = new NovaPassViewModel();
+            FecharAba();
         }
         else
         {
             notificationService.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Error,
-                Summary = "Password atual incorreta",
+                Summary = "Erro",
+                Detail = "Password atual incorreta.",
                 Duration = 4000
             });
         }
     }
 
-    
-void Redirecionar()
+    void MudarAbas(string aba)
     {
-        Navigation.NavigateTo("/Index");
+        activeTab = activeTab == aba ? "" : aba;
+    }
+
+    void FecharAba()
+    {
+        activeTab = "";
     }
 }

@@ -36,14 +36,16 @@ namespace PortalUpskill.Data.DataAccessDapper
             using (var connection = new SqlConnection(_connectionString))
             {
                 string sql = @"SELECT * FROM Pessoa AS p
-                                INNER JOIN Perfil AS pf
-	                                ON p.PerfilId = pf.Id
-                                WHERE p.Email = @Email";
+                        INNER JOIN Perfil AS pf
+                            ON p.PerfilId = pf.Id
+                        WHERE p.Email = @Email";
+
                 return connection.Query<Pessoa, Perfil, Pessoa>(
                     sql,
                     (pessoa, perfil) =>
                     {
                         pessoa.Perfil = perfil;
+                        pessoa.PerfilId = perfil?.Id; // ← CORREÇÃO: atribui manualmente o PerfilId
                         return pessoa;
                     },
                     new { Email = email },
