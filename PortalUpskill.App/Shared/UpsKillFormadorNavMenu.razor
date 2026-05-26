@@ -1,4 +1,6 @@
-﻿<a href="/Index" class="@LogoTransparency"><img style="width:75%" class="center" src="/img/MetaDigital_sem_fundo_negativo.png" /></a>
+﻿<div @onclick="@(() => Toggle.InvokeAsync(true))" style="cursor:pointer; padding: 1rem; display:flex; justify-content: flex-start;">
+    <img src="img/dashboard/outline_menu_black_48dp.png" style="height: 2.5rem; filter: invert(1);" />
+</div>
 
 <RadzenPanelMenu Style="width:250px; background-color:transparent" Click="@(()=> Toggle.InvokeAsync(true))">
     <RadzenPanelMenuItem class="rz-custom-panel-menu" Text="Calendario" Path="/Sumarios" Image="img/dashboard/baseline_event_white_48dp.png"></RadzenPanelMenuItem>
