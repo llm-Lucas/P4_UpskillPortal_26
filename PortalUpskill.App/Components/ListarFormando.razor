@@ -197,10 +197,11 @@
                 <RadzenGridColumn Title="Opções" TItem="Formando" Sortable="false" Filterable="false">
                     <Template Context="Formando">
                         <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesFormando>("Detalhes do Formando",
-                                                                                       new Dictionary<string, object>() { { "FormandoId", Formando.Id } },
-                                                                                       new DialogOptions(){ Width = "80%", Height = "90%" })) />
+                                                                                                                             new Dictionary<string, object>() { { "FormandoId", Formando.Id } },
+                                                                                                                             new DialogOptions() { Width = "80%", Height = "90%" })) />
                         <RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Formando/{Formando.Id}"))" />
                         <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Formando))" />
+                        <RadzenButton Title="Enviar Email" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="email" Click="@(() => navManager.NavigateTo($"mailto:{Formando.Email}", true))" />
                     </Template>
                 </RadzenGridColumn>
             }

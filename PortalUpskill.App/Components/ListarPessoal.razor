@@ -5,34 +5,21 @@
 
 <div class="cardstyle">
     <h2>@Title</h2>
-    @if (filteredPessoal.Count == 0)
-    {
-        <span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="/Colaboradores">Enviar email aos Admins</a>
-        <br />
-        <span style="margin-left:5px; font-size:10px; color:darkgray">(Filtrar os Admins por estado)</span>
-    }
-    else
-    {
-        <span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@email">Enviar email aos Admins</a>
-        <br />
-        <span style="margin-left:5px; font-size:10px; color:darkgray">(Filtrar os admins por estado)</span>
-    }
     <br />
     <!-- INÍCIO #004 -->
-    <!-- Limitar para que SÓ OS ADMINS, SEM SECRETARIADO possam ver o botao de criar -->
     <AuthorizeView Roles="Administrador">
         <Authorized>
             <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Admin" Icon="add" Click="@(() => dialogService.Open<CriarPessoal>(
-                                                                                                           "Criar Admin",
-                                                                                                           new Dictionary<string, object>()
-																										   {
-																											   { "RedirectAfterCreation", IsViewedAsChild ? false : true}
-																										   },
-                                                                                                           new DialogOptions()
-                                                                                                           {
-																											   Width = "90%",
-																											   Height = "90%"
-                                                                                                           }))" />
+                                                                                                                                     "Criar Admin",
+                                                                                                                                     new Dictionary<string, object>()
+                                                                                                                                     {
+                                                                                                                             { "RedirectAfterCreation", IsViewedAsChild ? false : true}
+                                                                                                                                     },
+                                                                                                                                     new DialogOptions()
+                                                                                                                                     {
+                                                                                                                                         Width = "90%",
+                                                                                                                                         Height = "90%"
+                                                                                                                                     }))" />
         </Authorized>
     </AuthorizeView>
     <RadzenGrid Data="@filteredPessoal"
@@ -49,10 +36,10 @@
             <RadzenGridColumn TItem="Pessoal" Property="ContactoTelefone" Title="Telefone" />
             <RadzenGridColumn TItem="Pessoal" Title="Funcoes" Sortable="false">
                 <FilterTemplate>
-                    <RadzenDropDown @bind-Value="@filtroFuncao" 
-                        TextProperty="Text" ValueProperty="Value" 
-                        Style="width:100%" Change=@FiltrarPorFuncao 
-                        Data="@(new List<string> { "Filtrar por Estado" }.Concat(funcoes.Select(t => t.Nome)))" />
+                    <RadzenDropDown @bind-Value="@filtroFuncao"
+                                    TextProperty="Text" ValueProperty="Value"
+                                    Style="width:100%" Change=@FiltrarPorFuncao
+                                    Data="@(new List<string> { "Filtrar por Estado" }.Concat(funcoes.Select(t => t.Nome)))" />
                 </FilterTemplate>
                 <Template Context="Pessoal">
                     <span>@Pessoal.Funcao</span>
@@ -61,74 +48,57 @@
 
             @if (Mode == "Add")
             {
-                <!-- INÍCIO #004 -->
-                <!-- Limitar para que SÓ OS ADMINS, SEM SECRETARIADO possam ver esta parte -->
                 <AuthorizeView Roles="Administrador">
                     <Authorized>
-                    <RadzenGridColumn Title="Adicionar" TItem="Pessoal" Sortable="false" Filterable="false">
-                        <Template Context="Pessoal">
+                        <RadzenGridColumn Title="Adicionar" TItem="Pessoal" Sortable="false" Filterable="false">
+                            <Template Context="Pessoal">
                                 <RadzenButton Title="Adicionar Admin" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="add" Click="@(() => SendPessoal(Pessoal.Id))" />
-                        </Template>
-                    </RadzenGridColumn>
+                            </Template>
+                        </RadzenGridColumn>
                     </Authorized>
                 </AuthorizeView>
-                <!-- FIM #004 -->
             }
             else
             {
-                <!-- INÍCIO #004 -->
-                <!-- Limitar para que SÓ OS ADMINS, SEM SECRETARIADO possam ver esta parte -->
                 <AuthorizeView Roles="Administrador">
                     <Authorized>
-                    <RadzenGridColumn Title="Opções" TItem="Pessoal" Sortable="false" Filterable="false">
-                        <Template Context="Pessoal">
-                            <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesPessoal>($"Detalhes",
-                                                                                           new Dictionary<string, object>() { { "ColaboradorId", Pessoal.Id } },
-                                                                                           new DialogOptions(){ Width = "80%", Height = "90%" })) />
-                                <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Admin/Criar/{Pessoal.Id}"))" />
-                            <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Pessoal))" />
-                        </Template>
-                    </RadzenGridColumn>
+                        <RadzenGridColumn Title="Opções" TItem="Pessoal" Sortable="false" Filterable="false">
+                            <Template Context="Pessoal">
+                                <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesPessoal>($"Detalhes",
+                                                                                                                                         new Dictionary<string, object>() { { "ColaboradorId", Pessoal.Id } },
+                                                                                                                                         new DialogOptions() { Width = "80%", Height = "90%" })) />
+                                <RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Admin/Criar/{Pessoal.Id}"))" />
+                                <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Pessoal))" />
+                                <RadzenButton Title="Enviar Email" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="email" Click="@(() => navManager.NavigateTo($"mailto:{Pessoal.Email}", true))" />
+                            </Template>
+                        </RadzenGridColumn>
                     </Authorized>
                 </AuthorizeView>
-                <!-- FIM #004 -->
             }
         </Columns>
     </RadzenGrid>
 </div>
 
 <!-- INÍCIO #004 -->
-<!-- Botão de Voltar -->
 <div class="row justify-content-center">
     <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
         <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
     </div>
 </div>
 <br />
 <!-- FIM #004 -->
-
-
 @code {
 
     List<Pessoal> staff;
     List<Pessoal> filteredPessoal;
     List<Funcoes> funcoes = new List<Funcoes>();
 
-    //Mode serve para esconder/mostrar os botões da última coluna
-    // - "Add" serve para quando este componente é usado dentro de uma página de criação
-    // - qualquer outra coisa mostra os botões de editar e apagar
     [Parameter]
     public string Mode { get; set; }
 
-    //Evento que comunica com os componentes exteriores
     [Parameter]
     public EventCallback<int> OutgoingPessoal { get; set; }
 
-    /// <summary>
-    /// Caso este componente seja visto através de uma tab e precise de comunicar com <CriarPessoal />
-    /// para que este não redirecione após criação
-    /// </summary>
     [Parameter]
     public bool IsViewedAsChild { get; set; } = false;
 
@@ -141,16 +111,12 @@
     string email;
     string mail;
 
-    //Na inicialização do componente...
     protected override async Task OnInitializedAsync()
     {
         LoadPessoal();
         funcoes = funcoesData.GetAll().Where(f => f.Nome != "Formador e Coordenador" && f.Nome != "Formador" && f.Nome != "Coordenador").ToList();
     }
 
-    /// <summary>
-    /// Carrega a lista de formadores da BD
-    /// </summary>
     void LoadPessoal()
     {
         staff = pessoalData.GetAll().Where(p => p.PerfilId == 1).OrderBy(p => p.Nome).ToList();
@@ -161,24 +127,10 @@
         }
 
         filteredPessoal = staff;
-
-        mail = "";
-
-        foreach (var pessoal in filteredPessoal)
-        {
-            mail = mail + pessoal.Email + ";";
-        }
-
-        email = $"mailto:{mail}";
     }
 
-    /// <summary>
-    /// Incova o evento acionado pelo botão Acionar.
-    /// O componente que subescrever o evento irá receber ToSendId
-    /// </summary>
     private async Task SendPessoal(int ToSendId)
     {
-        //evento que vai ser apanhado pelo componente que estiver a ouvir por ele
         await OutgoingPessoal.InvokeAsync(ToSendId);
     }
 
@@ -197,34 +149,10 @@
         </div>);
     }
 
-    ///// <summary>
-    ///// Opções disponíveis para o filtro da coluna de Estado
-    ///// </summary>
-    //List<string> Funcoes = new List<string>
-    //{
-    //    "Todos",
-    //    "Administrador",
-    //    "Secretariado",
-    //};
-
-    /// <summary>
-    /// Filtro da coluna Estado que está activo
-    /// </summary>
     string filtroFuncao = "Filtrar por Estado";
 
-    /// <summary>
-    /// Corre quando o filtro da coluna Estado é alterado
-    /// </summary>
     void FiltrarPorFuncao()
     {
         filteredPessoal = staff.Where(f => filtroFuncao != "Filtrar por Estado" ? f.Funcao == filtroFuncao : true).OrderBy(p => p.Nome).ToList();
-
-        mail = "";
-        foreach (var pessoal in filteredPessoal)
-        {
-            mail = mail + pessoal.Email + ";";
-        }
-
-        email = $"mailto:{mail}";
     }
 }
