@@ -174,30 +174,6 @@
                 </RadzenGridColumn>
             }
 
-            @*INICIO #008*@
-            @*Coluna do Ano Letivo*@
-            <RadzenGridColumn TItem="Formando" Title="Ano Letivo" Sortable="false">
-                <FilterTemplate>
-                    <RadzenDropDown @bind-Value="@filtroAnoLetivo" TextProperty="Nome" ValueProperty="Id" Style="width:100%" Placeholder="Filtrar por Ano Letivo"/>
-                    @*Inserir Logica de Filtragem Ano Letivo
-                        - string filtroAnoLetivo ja existe
-                        - pode ser necessario colocar em mais sitios
-                        - metodo de filtrar e o ApplyFilters()
-                        - ver os outros filtros, tem de ser semelhante
-                        - falta ano letivo na minha base de dados (Roman)
-
-                        Change="@(_ => ApplyFilters())"
-                        Data="@(estados.Select(t => t.Nome))" />
-                    *@
-                </FilterTemplate>
-                <Template Context="Formando">
-                    <span>
-                        @(Formando.Turma?.AnoLetivo?.Nome ?? "—")
-                    </span>
-                </Template>
-            </RadzenGridColumn>
-            @*FIM #008*@
-
             <RadzenGridColumn TItem="Formando" Title="Estado" Sortable="false">
                 <FilterTemplate>
                     <RadzenDropDown @bind-Value="@filtroEstado" TextProperty="Nome" ValueProperty="Id" Style="width:100%"
