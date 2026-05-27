@@ -59,13 +59,22 @@
         <!--FIM-->
     }
 
-    <RadzenGrid @ref="grid" Data="@filteredFormandos"
+    <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>Itens por página:</span>
+        <RadzenDropDown @bind-Value="@pageSize"
+                        Data="@(new int[] { 10, 15, 20, 50 })"
+                        Change="@(() => grid.Reload())"
+                        Style="width: 80px" />
+    </div>
+
+    <RadzenGrid @ref="grid" 
+        Data="@filteredFormandos"
     TItem="Formando"
     AllowSorting="true"
     AllowFiltering="true"
     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
     AllowPaging="true"
-    PageSize="10">
+    PageSize="@pageSize">
         <Columns>
             <!--INICIO #008-->
             <!--Adicionei checkbox para selecionar o mail da row especifica-->
@@ -255,6 +264,7 @@
     // END #008
 
     RadzenGrid<Formando> grid;
+    int pageSize = 10;
 
     [Parameter]
     public Func<Formando, bool> Filter { get; set; }

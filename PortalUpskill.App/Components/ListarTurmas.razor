@@ -8,14 +8,23 @@
 
     <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Turma" Icon="add" Click="@(() => navManager.NavigateTo("Turma"))" />
     <RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
+    
+    <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>Itens por página:</span>
+        <RadzenDropDown @bind-Value="@pageSize"
+                        Data="@(new int[] { 10, 15, 20, 50 })"
+                        Change="@(() => grid.Reload())"
+                        Style="width: 80px" />
+    </div>
 
-    <RadzenGrid Data="@turmas"
+    <RadzenGrid @ref="grid"
+                Data="@turmas"
                 TItem="Turma"
                 AllowSorting="true"
                 AllowFiltering="true"
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                 AllowPaging="true"
-                PageSize="10">
+                PageSize="@pageSize">
 
         <Columns>
             <RadzenGridColumn TItem="Turma" Property="Nome" Title="Nome" />
@@ -113,6 +122,9 @@
 
     List<Turma> turmas;
     List<Turma> turmasOriginais;
+
+    RadzenGrid<Turma> grid;
+    int pageSize = 10;
 
     string filtroCursoNome = null;
     string filtroAnoLetivo = null;

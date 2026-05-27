@@ -32,13 +32,22 @@
 
 	<!--FIM-->
 
-	<RadzenGrid Data="@filteredFormandos"
+	<div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+		<span>Itens por página:</span>
+		<RadzenDropDown @bind-Value="@pageSize"
+						Data="@(new int[] { 10, 15, 20, 50 })"
+						Change="@(() => Grid.Reload())"
+						Style="width: 80px" />
+	</div>
+
+	<RadzenGrid @ref="Grid" 
+	Data="@filteredFormandos"
 	TItem="Formando"
 	AllowSorting="true"
 	AllowFiltering="true"
 	FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
 	AllowPaging="true"
-	PageSize="10">
+	PageSize="@pageSize">
 		<Columns>
 			<!--INICIO #008-->
 			<!--Adicionei checkbox para selecionar o mail da row especifica-->
@@ -112,6 +121,9 @@
 
 	bool IsSelected(int id) => selectedFormandos.Contains(id);
 
+	RadzenGrid<Turma> grid;
+	int pageSize = 10;
+
 	void ToggleSelection(int id, bool isSelected)
 	{
 		if (isSelected) {
@@ -171,7 +183,7 @@
 	string turmaAtual = "";
 	// FIM
 
-	RadzenGrid<Formando> grid;
+	RadzenGrid<Formando> Grid;
 
 	[Parameter]
 	public int Id { get; set; } //id Turma

@@ -25,13 +25,22 @@
                         Style="width: 280px;" />
     </div>
 
-    <RadzenGrid Data="@modulosFiltrados"
+    <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>Itens por página:</span>
+        <RadzenDropDown @bind-Value="@pageSize"
+                        Data="@(new int[] { 10, 15, 20, 50 })"
+                        Change="@(() => grid.Reload())"
+                        Style="width: 80px" />
+    </div>
+
+    <RadzenGrid @ref="grid"
+                Data="@modulosFiltrados"
                 TItem="Modulo"
                 AllowSorting="true"
                 AllowFiltering="true"
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                 AllowPaging="true"
-                PageSize="10">
+                PageSize="@pageSize">
         <Columns>
             <RadzenGridColumn TItem="Modulo" Property="Nome" Title="Nome" />
             <RadzenGridColumn TItem="Modulo" Property="Horas" Title="Duração em Horas" Sortable="false" Filterable="false" />
@@ -82,6 +91,9 @@
     List<Modulo> todosModulos;
     List<Modulo> modulosFiltrados;
     int? cursoFiltroSelecionado = null; // null = "Todos"
+
+    RadzenGrid<Modulo> grid;
+    int pageSize = 10;
 
     class CursoFiltroOption
     {

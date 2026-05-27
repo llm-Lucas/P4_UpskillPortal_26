@@ -88,13 +88,22 @@
             <div class="mt-4">
                 <h4 class="mb-3"><span class="oi oi-people me-2 text-primary"></span> Relatório de Faltas da Turma</h4>
 
-                <RadzenGrid Data="@formandosDaTurma"
+                <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>Itens por página:</span>
+                    <RadzenDropDown @bind-Value="@pageSize"
+                                    Data="@(new int[] { 10, 15, 20, 50 })"
+                                    Change="@(() => grid.Reload())"
+                                    Style="width: 80px" />
+                </div>
+
+                <RadzenGrid @ref="grid"
+                            Data="@formandosDaTurma"
                             TItem="PortalUpskill.Data.Models.Formando"
                              AllowSorting="true"
                             AllowFiltering="false"
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                             AllowPaging="true"
-                            PageSize="10">
+                            PageSize="@pageSize">
                     <Columns>
                         <RadzenGridColumn TItem="PortalUpskill.Data.Models.Formando" Property="Nome" Title="Nome do Formando" />
 
@@ -120,13 +129,22 @@
             <div class="mt-4">
                 <h4 class="mb-3"><span class="oi oi-document me-2 text-primary"></span> Relatório de Sumários da Turma</h4>
 
-                <RadzenGrid Data="@aulasDaTurma"
+                <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>Itens por página:</span>
+                    <RadzenDropDown @bind-Value="@pageSize"
+                                    Data="@(new int[] { 10, 15, 20, 50 })"
+                                    Change="@(() => grid.Reload())"
+                                    Style="width: 80px" />
+                </div>
+
+                <RadzenGrid @ref="Grid" 
+                            Data="@aulasDaTurma"
                             TItem="PortalUpskill.Data.Models.Aula"
                             AllowSorting="true"
                             AllowFiltering="false"
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                             AllowPaging="true"
-                            PageSize="10">
+                            PageSize="@pageSize">
                     <Columns>
                         <RadzenGridColumn TItem="PortalUpskill.Data.Models.Aula" Property="HoraInicio" Title="Data / Hora" Width="220px">
                             <Template Context="aula">
@@ -159,6 +177,10 @@
     [Parameter] public string? source { get; set; }
     [Parameter] public Func<Pessoal, bool> Filter { get; set; }
     [Parameter] public int Tipo { get; set; }
+
+    RadzenGrid<Formando> grid;
+    RadzenGrid<Aula> Grid;
+    int pageSize = 10;
 
     List<Formando> formandos = new();
     List<Aula> tabelaSumrios = new();

@@ -15,13 +15,22 @@
 
 	<RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
 
-	<RadzenGrid Data="@turmas"
+	<div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+		<span>Itens por página:</span>
+		<RadzenDropDown @bind-Value="@pageSize"
+						Data="@(new int[] { 10, 15, 20, 50 })"
+						Change="@(() => grid.Reload())"
+						Style="width: 80px" />
+	</div>
+
+	<RadzenGrid @ref="grid"
+				Data="@turmas"
 				TItem="Turma"
 				AllowSorting="true"
 				AllowFiltering="true"
 				FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
 				AllowPaging="true"
-				PageSize="10">
+				PageSize="@pageSize">
 
 		<Columns>
 			<RadzenGridColumn TItem="Turma" Property="Curso.Nome" Title="Curso">
@@ -82,6 +91,9 @@
 @code {
 
 	List<Turma> turmas;
+
+	RadzenGrid<Turma> grid;
+	int pageSize = 10;
 
 	[Parameter]
 	public int IdCoor { get; set; } // id do coordenador
