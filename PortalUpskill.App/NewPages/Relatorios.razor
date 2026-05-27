@@ -85,42 +85,78 @@
         @* SUBPÁGINA: FALTAS *@
         @if (SelectedRelatorio == 1)
         {
-            <div class="mt-4">
-                <h4 class="mb-3"><span class="oi oi-people me-2 text-primary"></span> Relatório de Faltas da Turma</h4>
+            <RadzenGrid @ref="grid"
+                        Data="@formandosDaTurma"
+                        TItem="PortalUpskill.Data.Models.Formando"
+                        AllowSorting="true"
+                        AllowFiltering="false"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        AllowPaging="true"
+                        PageSize="@pageSize"
+                        ExpandMode="@DataGridExpandMode.Single">
 
-                <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <span>Itens por página:</span>
-                    <RadzenDropDown @bind-Value="@pageSize"
-                                    Data="@(new int[] { 10, 15, 20, 50 })"
-                                    Change="@(() => grid.Reload())"
-                                    Style="width: 80px" />
-                </div>
+                @* subgrid de detalhe das faltas *@
+                <Template Context="formando">
+                    @{
+                        var faltas = faltasPorFormando.ContainsKey(formando.Id)
+                                     ? faltasPorFormando[formando.Id]
+                                     : new List<FaltaDisplay>();
+                    }
+                    @if (!faltas.Any())
+                    {
+                        <p class="text-muted ms-3 mt-2">Sem faltas registadas.</p>
+                    }
+                    else
+                    {
+                        <div class="ms-3 mt-2 mb-2">
+                            <RadzenGrid Data="@faltas"
+                                        TItem="FaltaDisplay"
+                                        AllowPaging="true"
+                                        PageSize="5"
+                                        AllowSorting="true"
+                                        Style="width:100%">
+                                <Columns>
+                                    <RadzenGridColumn TItem="FaltaDisplay" Property="Data" Title="Data" Width="140px">
+                                        <Template Context="f">
+                                            @f.Data.ToString("dd/MM/yyyy")
+                                        </Template>
+                                    </RadzenGridColumn>
 
-                <RadzenGrid @ref="grid"
-                            Data="@formandosDaTurma"
-                            TItem="PortalUpskill.Data.Models.Formando"
-                             AllowSorting="true"
-                            AllowFiltering="false"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            AllowPaging="true"
-                            PageSize="@pageSize">
-                    <Columns>
-                        <RadzenGridColumn TItem="PortalUpskill.Data.Models.Formando" Property="Nome" Title="Nome do Formando" />
+                                    <RadzenGridColumn TItem="FaltaDisplay" Property="Tipo" Title="Tipo" Width="160px">
+                                        <Template Context="f">
+                                            <span style="color: @(f.Tipo == "Justificada" ? "green" : "red"); font-weight:600">
+                                                @f.Tipo
+                                            </span>
+                                        </Template>
+                                    </RadzenGridColumn>
 
-                        <RadzenGridColumn TItem="PortalUpskill.Data.Models.Formando" Title="Faltas Justificadas" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="200px">
-                            <Template Context="formando">
-                                <span class="text-success fw-bold">@ObterContagemFaltas(formando.Id, true)</span>
-                            </Template>
-                        </RadzenGridColumn>
+                                    <RadzenGridColumn TItem="FaltaDisplay" Property="Duracao" Title="Duração (min)" Width="140px" />
+                                </Columns>
+                            </RadzenGrid>
+                        </div>
+                    }
+                </Template>
 
-                        <RadzenGridColumn TItem="PortalUpskill.Data.Models.Formando" Title="Faltas Injustificadas" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="200px">
-                            <Template Context="formando">
-                                <span class="text-danger fw-bold">@ObterContagemFaltas(formando.Id, false)</span>
-                            </Template>
-                        </RadzenGridColumn>
-                    </Columns>
-                </RadzenGrid>
-            </div>
+                <Columns>
+                    <RadzenGridColumn TItem="PortalUpskill.Data.Models.Formando" Property="Nome" Title="Nome do Formando" />
+
+                    <RadzenGridColumn TItem="PortalUpskill.Data.Models.Formando" Title="Faltas Justificadas"
+                                      Bubble="false" Filterable="false" Sortable="false"
+                                      TextAlign="TextAlign.Center" Width="200px">
+                        <Template Context="formando">
+                            <span class="text-success fw-bold">@ObterContagemFaltas(formando.Id, true)</span>
+                        </Template>
+                    </RadzenGridColumn>
+
+                    <RadzenGridColumn TItem="PortalUpskill.Data.Models.Formando" Title="Faltas Injustificadas"
+                                      Bubble="false" Filterable="false" Sortable="false"
+                                      TextAlign="TextAlign.Center" Width="200px">
+                        <Template Context="formando">
+                            <span class="text-danger fw-bold">@ObterContagemFaltas(formando.Id, false)</span>
+                        </Template>
+                    </RadzenGridColumn>
+                </Columns>
+            </RadzenGrid>
         }
 
         @* SUBPÁGINA: SUMÁRIOS *@
@@ -133,11 +169,11 @@
                     <span>Itens por página:</span>
                     <RadzenDropDown @bind-Value="@pageSize"
                                     Data="@(new int[] { 10, 15, 20, 50 })"
-                                    Change="@(() => grid.Reload())"
+                                    Change="@(() => Grid.Reload())"
                                     Style="width: 80px" />
                 </div>
 
-                <RadzenGrid @ref="Grid" 
+                <RadzenGrid @ref="Grid"
                             Data="@aulasDaTurma"
                             TItem="PortalUpskill.Data.Models.Aula"
                             AllowSorting="true"
@@ -191,6 +227,14 @@
     private List<PortalUpskill.Data.Models.Aula> aulasDaTurma = new();
 
     private Dictionary<int, (int Justificadas, int Injustificadas)> resumoFaltas = new();
+    private Dictionary<int, List<FaltaDisplay>> faltasPorFormando = new();
+
+    public class FaltaDisplay
+    {
+        public DateTime Data { get; set; }
+        public string Tipo { get; set; }
+        public int Duracao { get; set; }
+    }
 
     int SelectedModuloId;
     int SelectedTurmaId;
@@ -209,7 +253,6 @@
         if (Id != 0)
         {
             SelectedTurmaId = Id;
-
             OnTurmaSelected();
         }
     }
@@ -246,16 +289,28 @@
 
         if (SelectedRelatorio == 1)
         {
+            // Toda a recolha de dados pesada foi movida para aqui!
             formandosDaTurma = formandoData.GetAllByTurma(SelectedTurmaId);
             resumoFaltas.Clear();
+            faltasPorFormando.Clear();
 
             foreach (var f in formandosDaTurma)
             {
                 var historicoFaltas = faltaData.GetByFormandoId(f.Id);
-                int just = historicoFaltas.Count(x => x.Justificada == true);
-                int injust = historicoFaltas.Count(x => x.Justificada == false);
 
-                resumoFaltas[f.Id] = (just, injust);
+                resumoFaltas[f.Id] = (
+                    historicoFaltas.Count(x => x.Justificada == true),
+                    historicoFaltas.Count(x => x.Justificada == false)
+                );
+
+                faltasPorFormando[f.Id] = historicoFaltas
+                    .OrderByDescending(x => x.HoraInicio)
+                    .Select(x => new FaltaDisplay
+                    {
+                        Data = x.HoraInicio.Date,
+                        Tipo = x.Justificada ? "Justificada" : "Injustificada",
+                        Duracao = x.Duracao
+                    }).ToList();
             }
         }
         else if (SelectedRelatorio == 2)
@@ -289,6 +344,7 @@
         formandosDaTurma = new();
         aulasDaTurma = new();
         resumoFaltas.Clear();
+        faltasPorFormando.Clear();
         SelectedMes = 0;
         SelectedModuloId = 0;
     }
