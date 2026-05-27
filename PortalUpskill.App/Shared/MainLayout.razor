@@ -25,17 +25,17 @@
                 </AuthorizeView>
                 <AuthorizeView Roles="Coordenador">
                     <div class="sidebar">
-                        <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
+                        <UpSkillCoordenadorNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
                     </div>
                 </AuthorizeView>
                 <AuthorizeView Roles="Formador">
                     <div class="sidebar">
-                        <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
+                        <UpsKillFormadorNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
                     </div>
                 </AuthorizeView>
                 <AuthorizeView Roles="Formando">
                     <div class="sidebar">
-                        <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
+                        <UpSkillFormandoNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
                     </div>
                 </AuthorizeView>
             </div>
