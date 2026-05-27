@@ -52,11 +52,6 @@
                                                                                                                }))" />
 
         <RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
-        <!-- INICIO #008 -->
-        <!-- O RadzenButton nao sei como meter a funcionar -->
-        <!-- <RadzenButton Text="Enviar Email" Icon="email" Disabled="@(!selectedFormandos.Any())" Click="@EnviarEmailParaSelecionados" /> -->
-        <span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@BuildMailToLink()" disabled="@(selectedFormandos.Count == 0)">Enviar Email</a>
-        <!--FIM-->
     }
 
     <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
@@ -76,26 +71,7 @@
     AllowPaging="true"
     PageSize="@pageSize">
         <Columns>
-            <!--INICIO #008-->
-            <!--Adicionei checkbox para selecionar o mail da row especifica-->
-            @if (!IsViewedAsChild)
-            {
-                <RadzenGridColumn TItem="Formando" Title="Selecionar" Sortable="true" Filterable="true" Width="50px">
-                    <HeaderTemplate>
-                        <RadzenCheckBox TValue="bool"
-                        Value="@selectAll"
-                        ValueChanged="@((bool value) => ToggleSelectAll(value))"
-                        Change="@((args) => {})" /> <!-- required to trigger change -->
-                    </HeaderTemplate>
-                    <Template Context="formando">
-                        <RadzenCheckBox TValue="bool"
-                        Value="@IsSelected(formando.Id)"
-                        ValueChanged="@((bool checkedValue) => ToggleSelection(formando.Id, checkedValue))"
-                        Change="@((args) => {})" />
-                    </Template>
-                </RadzenGridColumn>
-            }
-            <!--FIM-->
+            
             <RadzenGridColumn TItem="Formando" Property="Nome" Title="Nome" />
             <RadzenGridColumn TItem="Formando" Property="Email" Title="Email" />
             <RadzenGridColumn TItem="Formando" Property="ContactoTelemovel" Title="Telemovel" />

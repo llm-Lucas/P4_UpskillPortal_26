@@ -8,14 +8,6 @@
 
 <div class="cardstyle">
     <h2>@turma.Nome</h2>
-    @*
-        INICIO #008
-        Comentei o antigo link para enviar mails para manter coerente em todas as paginas igual
-
-        <span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue">email</span><a href="@email">Enviar email à turma</a>
-
-        FIM
-    *@
     <br />
     <div class="row">
         <div class="col-md-12">
@@ -27,50 +19,45 @@
                 @foreach (Modulo modulo in modulos)
                 {
                     string sigla = $"M{@modulo.Id}";
-
                     <li><b>@sigla</b> - @modulo.Nome - @modulo.Formador.Nome</li>
                 }
             </ul>
             <AuthorizeView Roles="Administrador, Secretariado">
                 <Authorized>
-                    <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="edit_calendar" Title="Calendarizar Aulas" Click="@(() => navManager.NavigateTo($"Calendar/{turma.Id}") )" />
-                    <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="grading" Title="Download das Pautas de Avaliação" Click="@(() => navManager.NavigateTo($"TurmaAvaliacoes/{turma.Id}") )" />
+                    <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="edit_calendar" Title="Calendarizar Aulas" Click="@(() => navManager.NavigateTo($"Calendar/{turma.Id}"))" />
+                    <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="grading" Title="Download das Pautas de Avaliação" Click="@(() => navManager.NavigateTo($"TurmaAvaliacoes/{turma.Id}"))" />
                     <RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
-                    <!-- INICIO #008 -->
-                    <!-- O RadzenButton nao sei como meter a funcionar -->
-                    <span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@BuildMailToLink()" disabled="@(selectedFormandos.Count == 0)">Enviar Email</a>
-                    <!--FIM-->
+                    <RadzenButton Text="Enviar Email" Icon="email" ButtonStyle="ButtonStyle.Success"
+                                  Disabled="@(!selectedFormandos.Any())"
+                                  Click="@(() => navManager.NavigateTo(BuildMailToLink(), true))" />
                 </Authorized>
             </AuthorizeView>
             <AuthorizeView Roles="Formador, Coordenador">
                 <Authorized>
-                    <!-- <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="today" Title="Ver Aulas" Click="@(() => navManager.NavigateTo($"Sumarios/{turma.Id}") )" /> -->
-                    <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="today" Title="Ver Aulas" Click="@(() => navManager.NavigateTo($"/Sumarios/{turma.Id}?from=detalhes&turmaId={turma.Id}") )" />
+                    <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="today" Title="Ver Aulas" Click="@(() => navManager.NavigateTo($"/Sumarios/{turma.Id}?from=detalhes&turmaId={turma.Id}"))" />
                 </Authorized>
             </AuthorizeView>
         </div>
     </div>
 </div>
 <div class="cardstyle">
-	<div class="row" style="margin-top:1em;">
-		<div class="col-md-12">
-			<h3>Formandos</h3>
-			<RadzenGrid Data="@formandos"
-						TItem="Formando"
-						AllowSorting="true"
-						AllowFiltering="true"
-						FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-						AllowPaging="true"
-						PageSize="10">
-				<Columns>
-                    <!--INICIO #008-->
-                    <!--Adicionei checkbox para selecionar o mail da row especifica-->
+    <div class="row" style="margin-top:1em;">
+        <div class="col-md-12">
+            <h3>Formandos</h3>
+            <RadzenGrid Data="@formandos"
+                        TItem="Formando"
+                        AllowSorting="true"
+                        AllowFiltering="true"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        AllowPaging="true"
+                        PageSize="10">
+                <Columns>
                     <RadzenGridColumn TItem="Formando" Title="Selecionar" Sortable="false" Filterable="false" Width="50px">
                         <HeaderTemplate>
                             <RadzenCheckBox TValue="bool"
                                             Value="@selectAll"
                                             ValueChanged="@((bool value) => ToggleSelectAll(value))"
-                                            Change="@((args) => {})" /> <!-- required to trigger change -->
+                                            Change="@((args) => {})" />
                         </HeaderTemplate>
                         <Template Context="formando">
                             <RadzenCheckBox TValue="bool"
@@ -79,105 +66,100 @@
                                             Change="@((args) => {})" />
                         </Template>
                     </RadzenGridColumn>
-                    <!--FIM-->
-					<RadzenGridColumn TItem="Formando" Property="Nome" Title="Nome" />
-					<RadzenGridColumn TItem="Formando" Title="FJ*" Sortable="false">
-						<Template Context="Formando">
-							@if (Formando.FaltaJustificadas != null)
-							{                                
-								<span>@((Formando.FaltaJustificadas.Duracao / 60.0 / Formando.Turma.Curso.DuracaoHoras * 100).ToString("0.##"))%</span>
-							}
-							else
-							{
-								<span>0%</span>
-							}
-						</Template>
-						<FooterTemplate>
-							<i>*Faltas Justificadas</i>
-						</FooterTemplate>
-					</RadzenGridColumn>
-					<RadzenGridColumn TItem="Formando" Title="FI*" Sortable="false">
-						<Template Context="Formando">
-							@if (Formando.FaltaInjustificadas != null)
-							{
-                                @*INICIO #008*@
-                                @*Adicionar Lógica das cores para as Faltas Injustificadas*@
-								<span>@((Formando.FaltaInjustificadas.Duracao / 60.0 / Formando.Turma.Curso.DuracaoHoras * 100).ToString("0.##"))%</span>
-                                @*FIM*@
-							}
-							else
-							{
-								<span>0%</span>
-							}
-						</Template>
-						<FooterTemplate>
-							<i>*Faltas Injustificadas</i>
-						</FooterTemplate>
-					</RadzenGridColumn>
+                    <RadzenGridColumn TItem="Formando" Property="Nome" Title="Nome" />
+                    <RadzenGridColumn TItem="Formando" Title="FJ*" Sortable="false">
+                        <Template Context="Formando">
+                            @if (Formando.FaltaJustificadas != null)
+                            {
+                                <span>@((Formando.FaltaJustificadas.Duracao / 60.0 / Formando.Turma.Curso.DuracaoHoras * 100).ToString("0.##"))%</span>
+                            }
+                            else
+                            {
+                                <span>0%</span>
+                            }
+                        </Template>
+                        <FooterTemplate>
+                            <i>*Faltas Justificadas</i>
+                        </FooterTemplate>
+                    </RadzenGridColumn>
+                    <RadzenGridColumn TItem="Formando" Title="FI*" Sortable="false">
+                        <Template Context="Formando">
+                            @if (Formando.FaltaInjustificadas != null)
+                            {
+                                <span>@((Formando.FaltaInjustificadas.Duracao / 60.0 / Formando.Turma.Curso.DuracaoHoras * 100).ToString("0.##"))%</span>
+                            }
+                            else
+                            {
+                                <span>0%</span>
+                            }
+                        </Template>
+                        <FooterTemplate>
+                            <i>*Faltas Injustificadas</i>
+                        </FooterTemplate>
+                    </RadzenGridColumn>
 
-					@for (int i = 0; i < modulos.Count(); i++)
-					{
-						int index = i;
-						string title = $"Média M{modulos[index].Id}";
+                    @for (int i = 0; i < modulos.Count(); i++)
+                    {
+                        int index = i;
+                        string title = $"Média M{modulos[index].Id}";
 
-						<RadzenGridColumn TItem="Formando" Property="" Title="@title" Sortable="false">
-							<Template Context="Formando">
-								@if (Formando.DictAvaliacaoModular.Count() != 0)
-								{
-									@if (Formando.DictAvaliacaoModular.ContainsKey(modulos[index].Id) && Formando.DictAvaliacaoModular[modulos[index].Id].NotaFinal >= 10)
-									{
-										<span style='color:green'>@(Formando.DictAvaliacaoModular[modulos[index].Id].NotaFinal.ToString("0.##"))</span>
-									}
-									else if (Formando.DictAvaliacaoModular.ContainsKey(modulos[index].Id) && Formando.DictAvaliacaoModular[modulos[index].Id].NotaFinal < 10)
-									{
-										<span style='color:red'>@(Formando.DictAvaliacaoModular[modulos[index].Id].NotaFinal.ToString("0.##")) </span>
-									}
-									else
-									{
-										<span>Sem nota</span>
-									}
-								}
-								else
-								{
-									<span>Sem nota</span>
-								}
-							</Template>
-						</RadzenGridColumn>
-					}
+                        <RadzenGridColumn TItem="Formando" Property="" Title="@title" Sortable="false">
+                            <Template Context="Formando">
+                                @if (Formando.DictAvaliacaoModular.Count() != 0)
+                                {
+                                    @if (Formando.DictAvaliacaoModular.ContainsKey(modulos[index].Id) && Formando.DictAvaliacaoModular[modulos[index].Id].NotaFinal >= 10)
+                                    {
+                                        <span style='color:green'>@(Formando.DictAvaliacaoModular[modulos[index].Id].NotaFinal.ToString("0.##"))</span>
+                                    }
+                                    else if (Formando.DictAvaliacaoModular.ContainsKey(modulos[index].Id) && Formando.DictAvaliacaoModular[modulos[index].Id].NotaFinal < 10)
+                                    {
+                                        <span style='color:red'>@(Formando.DictAvaliacaoModular[modulos[index].Id].NotaFinal.ToString("0.##")) </span>
+                                    }
+                                    else
+                                    {
+                                        <span>Sem nota</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span>Sem nota</span>
+                                }
+                            </Template>
+                        </RadzenGridColumn>
+                    }
 
-					<RadzenGridColumn TItem="Formando" Property="" Title="Nota Final" Sortable="false">
-						<Template Context="Formando">
-							@if (Formando.AvaliacaoFinal != null && Formando.AvaliacaoFinal.NotaFinal >= 10)
-							{
-								<span style='color:darkgreen'>@(Formando.AvaliacaoFinal.NotaFinal.ToString("0.##"))</span>
-							}
-							else if (Formando.AvaliacaoFinal != null && Formando.AvaliacaoFinal.NotaFinal < 10)
-							{
-								<span style='color:red'>@(Formando.AvaliacaoFinal.NotaFinal.ToString("0.##"))</span>
-							}
-							else
-							{
-								<span>Sem nota</span>
-							}
-						</Template>
-					</RadzenGridColumn>
-					<RadzenGridColumn TItem="Formando" Title="Detalhes" Sortable="false" Filterable="false">
-						<Template Context="Formando">
+                    <RadzenGridColumn TItem="Formando" Property="" Title="Nota Final" Sortable="false">
+                        <Template Context="Formando">
+                            @if (Formando.AvaliacaoFinal != null && Formando.AvaliacaoFinal.NotaFinal >= 10)
+                            {
+                                <span style='color:darkgreen'>@(Formando.AvaliacaoFinal.NotaFinal.ToString("0.##"))</span>
+                            }
+                            else if (Formando.AvaliacaoFinal != null && Formando.AvaliacaoFinal.NotaFinal < 10)
+                            {
+                                <span style='color:red'>@(Formando.AvaliacaoFinal.NotaFinal.ToString("0.##"))</span>
+                            }
+                            else
+                            {
+                                <span>Sem nota</span>
+                            }
+                        </Template>
+                    </RadzenGridColumn>
+                    <RadzenGridColumn TItem="Formando" Title="Detalhes" Sortable="false" Filterable="false">
+                        <Template Context="Formando">
                             <RadzenButton Title="Ver detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesFormando>($"Detalhes",
-                                                                                       new Dictionary<string, object>() { { "FormandoId", Formando.Id } },
-                                                                                       new DialogOptions(){ Width = "80%", Height = "90%" })) />
-						</Template>
-					</RadzenGridColumn>
-				</Columns>
-			</RadzenGrid>
-		</div>
-	</div>
+                                                                                                                             new Dictionary<string, object>() { { "FormandoId", Formando.Id } },
+                                                                                                                             new DialogOptions() { Width = "80%", Height = "90%" })) />
+                        </Template>
+                    </RadzenGridColumn>
+                </Columns>
+            </RadzenGrid>
+        </div>
+    </div>
 </div>
 
 <!-- INÍCIO #008 -->
 <div class="row justify-content-center">
     <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
         <AuthorizeView Roles="Administrador, Secretariado, Coordenador">
             <Authorized>
                 <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Turmas"))" />
@@ -205,9 +187,6 @@
     string email;
     string mail;
 
-    // INÍCIO #008
-    // Instancia a ViewModel para a Aula
-    // É necessário para o botão de Voltar
     AulaViewModel aulaVM = new AulaViewModel();
 
     HashSet<int> selectedFormandos = new();
@@ -224,7 +203,7 @@
         else
         {
             selectedFormandos.Remove(id);
-            selectAll = false; // Uncheck Select All if one is deselected
+            selectAll = false;
         }
     }
 
@@ -257,84 +236,49 @@
     }
 
     bool value;
-    // FIM
 
     protected override async Task OnInitializedAsync()
     {
-        formandos = FormandoData.GetAllByTurmaWithAvaliacao(TurmaId);//lista formandos com um dicionário de avaliações modulares e uma avaliação final
-        formandosComFaltas = FormandoData.GetAllByTurmaComFaltas(TurmaId);//lista de formandos com faltas justificadas e injustificadas
+        formandos = FormandoData.GetAllByTurmaWithAvaliacao(TurmaId);
+        formandosComFaltas = FormandoData.GetAllByTurmaComFaltas(TurmaId);
         turma = TurmaData.GetById(TurmaId);
         modulos = ModuloData.GetModulosComFormadorByTurma(TurmaId);
         modulos.OrderBy(m => m.Id);
 
-        //atribui as faltas (da lista formandosComFaltas) à lista de formandos
-        // INICIO #008
-        /*
-        foreach (var formando in formandosComFaltas)
-        {
-            if (formando.FaltaJustificadas != null)
-            {
-                formandos.Single(f => f.Id == formando.Id).FaltaJustificadas = formando.FaltaJustificadas;
-                formandos.Single(f => f.Id == formando.Id).Turma.Curso = formando.Turma.Curso;
-                }
-            else // <-- THIS IS WRONG!
-            {
-                formandos.Single(f => f.Id == formando.Id).FaltaInjustificadas = formando.FaltaInjustificadas;
-                formandos.Single(f => f.Id == formando.Id).Turma.Curso = formando.Turma.Curso;
-                }
-            }
-        */
-
-        // Epah nao faco a minima ideia
-        // Mas as FaltasJustificadas e Injustificadas estavam a aparecer com valores diferentes na pagina principal, comparado com o ver detalhes.
-        // O Deepseek disse-me para fazer isto aqui em troca do antigo que esta comentado acima.
-        // Para alem disso no PortalUpskill.Data\DataAccessDapper\FormandoData foi alterado o query tambem que traz os Formandos com faltas (GetAllByTurmaComFaltas)
-        // Estas mudancas, ate agora, so sei que afetaram esta pagina e a "pagina" "/Detalhes/Formando/{FormandoId:int}" (ficheiro DetalhesFormando)
         foreach (var formando in formandosComFaltas)
         {
             var targetFormando = formandos.Single(f => f.Id == formando.Id);
-
-            // Always assign both fields (if they exist)
             targetFormando.FaltaJustificadas = formando.FaltaJustificadas;
             targetFormando.FaltaInjustificadas = formando.FaltaInjustificadas;
             targetFormando.Turma.Curso = formando.Turma.Curso;
         }
-        // FIM
 
-        //Calculo da nota final de curso
         foreach (var formando in formandos)
         {
-            //verifica se o formando tem nota final para todos os modulos
             if (formando.DictAvaliacaoModular.Count() == modulos.Count())
             {
-                //verifica se o formando tem avaliacao final de curso (se tiver e caso a nota seja diferente do que está na bd, faz um UPDATE)
                 if (formando.AvaliacaoFinal != null && formando.AvaliacaoFinal.NotaFinal != 0)
                 {
                     double notaFinal = 0;
-                    //soma das notas finais de todos os modulos
                     foreach (var modulo in modulos)
                     {
                         notaFinal += formando.DictAvaliacaoModular[modulo.Id].NotaFinal;
                     }
-                    //caso a nota seja diferente da nota na bd, é necessário fazer UPDATE
                     if (formando.AvaliacaoFinal.NotaFinal != notaFinal / modulos.Count())
                     {
                         formando.AvaliacaoFinal.NotaFinal = notaFinal / modulos.Count();
                         formandosComNotaFinalUpdate.Add(formando);
                     }
                 }
-                else//se o formando não tiver avaliacao final de curso -> CREATE
+                else
                 {
                     double notaFinal = 0;
-                    //soma das notas finais de todos os modulos
                     foreach (var modulo in modulos)
                     {
                         notaFinal += formando.DictAvaliacaoModular[modulo.Id].NotaFinal;
                     }
                     formando.AvaliacaoFinal = new AvaliacaoFinal();
-                    //media da nota final de curso (através da soma das notas finais de todos os modulos a dividir pelo nr de modulos)
                     formando.AvaliacaoFinal.NotaFinal = notaFinal / modulos.Count();
-                    //adiciona o formando a lista de formandos para criar a nota final de curso na bd
                     formandosComNotaFinalCreate.Add(formando);
                 }
             }
@@ -351,23 +295,15 @@
         email = $"mailto:{mail}";
     }
 
-    /// <summary>
-    /// Usando ClosedXML https://github.com/closedxml/closedxml/wiki
-    /// 1: Criar um novo workbook, com uma worksheet
-    /// 2: Preencher e formatar as células com o conteúdo
-    /// 3: Exportar usando fileManager
-    /// </summary>
     async void Exportar(string extension)
     {
         IXLWorkbook workbook = new XLWorkbook();
         IXLWorksheet worksheet = workbook.Worksheets.Add("turmas");
 
-
         #region Template Topo
         var currentRow = 1;
         var currentColumn = 1;
 
-        //Imagens Topo
         worksheet.AddPicture("wwwroot/img/pauta/iefp.png")
                  .MoveTo(worksheet.Cell(currentRow, currentColumn));
         currentColumn += 3;
@@ -382,9 +318,6 @@
         currentColumn -= 6;
         #endregion
 
-
-
-        //Bloco da turma
         #region Cabeçalho
         var rngCabeçalhoFirstColumn = currentColumn;
 
@@ -433,10 +366,7 @@
         worksheet.Columns().AdjustToContents();
         #endregion
 
-
-
-        //Bloco dos formandos
-        #region Cabeçalho
+        #region Cabeçalho formandos
         rngCabeçalhoFirstColumn = currentColumn;
         currentRow += 2;
 
@@ -452,7 +382,7 @@
         }
         worksheet.Cell(currentRow, currentColumn).Value = "Nota Final";
 
-        rngCorpo = worksheet.Range(rngCorpoFirstRow, rngCorpoFirstColumn, currentRow, currentColumn);
+        rngCorpo = worksheet.Range(rngCorpoFirstRow, rngCabeçalhoFirstColumn, currentRow, currentColumn);
 
         rngCabeçalho = worksheet.Range(currentRow, rngCabeçalhoFirstColumn, currentRow, currentColumn);
         rngCabeçalho.Columns().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
@@ -464,7 +394,7 @@
         currentColumn = rngCabeçalhoFirstColumn;
         #endregion
 
-        #region Corpo
+        #region Corpo formandos
         rngCorpo = worksheet.Range(1, 1, 1, 1);
         rngCorpoFirstRow = currentRow;
         rngCorpoFirstColumn = currentColumn;
@@ -504,7 +434,6 @@
             worksheet.Cell(currentRow, currentColumn).Value = formando.AvaliacaoFinal.NotaFinal;
         }
 
-
         rngCorpo.Columns().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
         rngCorpo.Cells().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
         worksheet.Columns().AdjustToContents();
@@ -520,6 +449,5 @@
         var timestamp = Convert.ToString(DateTime.Now);
 
         await FileMngSrv.DownloadWorkbook(workbook, extension, timestamp + "_" + turma.Nome);
-
     }
 }

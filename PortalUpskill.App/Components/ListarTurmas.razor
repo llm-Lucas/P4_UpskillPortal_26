@@ -8,7 +8,7 @@
 
     <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Turma" Icon="add" Click="@(() => navManager.NavigateTo("Turma"))" />
     <RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
-    
+
     <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
         <span>Itens por página:</span>
         <RadzenDropDown @bind-Value="@pageSize"
@@ -28,10 +28,7 @@
 
         <Columns>
             <RadzenGridColumn TItem="Turma" Property="Nome" Title="Nome" />
-            
-            
-            <!--INÍCIO #004-->
-            <!-- falta tornar drop down e implementar a lógica com BE -->
+
             <RadzenGridColumn TItem="Turma" Property="AnoLetivo" Title="Ano Letivo" Sortable="false">
                 <FilterTemplate>
                     <RadzenDropDown @bind-Value="@filtroAnoLetivo"
@@ -44,8 +41,6 @@
                     @Turma.AnoLetivo?.Nome
                 </Template>
             </RadzenGridColumn>
-
-            <!--FIM #004-->
 
             <RadzenGridColumn TItem="Turma" Property="Curso.Nome" Title="Curso" Sortable="false">
                 <FilterTemplate>
@@ -65,7 +60,7 @@
 
             <RadzenGridColumn TItem="Turma" Property="DataInicioCurso" Title="Data de Início do Curso" Filterable="false">
                 <Template Context="Turma">
-                    @if(Turma.DataInicioCurso != null)
+                    @if (Turma.DataInicioCurso != null)
                     {
                         <span>@Turma.DataInicioCurso.Value.ToString("dd/MM/yyyy")</span>
                     }
@@ -92,10 +87,8 @@
                         <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click="@(() => navManager.NavigateTo($"Detalhes/Turma/{Turma.Id}"))" />
                         <RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Turma/{Turma.Id}"))" />
                         <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Turma))" />
-                        @*INICIO #008*@
-                        @*Botao para ver Formadores*@
                         <RadzenButton Title="Ver Formadores" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="people" Click="@(() => navManager.NavigateTo($"Formadores/Turmas/{Turma.Id}"))" />
-                        @*FIM*@
+                        <RadzenButton Title="Enviar Email à Turma" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="email" Click="@(() => EnviarEmailTurma(Turma))" />
                     }
                 </Template>
             </RadzenGridColumn>
@@ -107,17 +100,11 @@
 <!-- INÍCIO #008 -->
 <div class="row justify-content-center">
     <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
-        <!-- <AuthorizeView Roles="Administrador, Secretariado">-->
-        <!--<Authorized>-->
-                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
-        <!-- </Authorized>-->
-                <!--</AuthorizeView>-->
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
     </div>
 </div>
 <br />
 <!-- FIM -->
-
 @code {
 
     List<Turma> turmas;
@@ -145,11 +132,6 @@
         LoadTurmas();
     }
 
-    /// <summary>
-    /// Carrega as turmas da BD para o componente.
-    /// Se existir um filtro do tipo Func<Turma, bool> passado ao componente como parametro
-    /// as turmas são filtradas
-    /// </summary>
     void LoadTurmas()
     {
         turmasOriginais = turmaData.GetAll();
@@ -173,6 +155,42 @@
             turmas = turmas.Where(t => t.AnoLetivo?.Nome == filtroAnoLetivo).ToList();
     }
 
+    /// <summary>
+    /// Constrói um mailto: com os emails de todos os formandos da turma
+    /// e abre o cliente de email.
+    /// </summary>
+    void EnviarEmailTurma(Turma turma)
+    {
+        // Tenta usar os formandos já carregados na turma.
+        // Se a propriedade vier null ou vazia (lazy loading), vai buscá-los à BD.
+        var formandos = turma.Formandos;
+        if (formandos == null || !formandos.Any())
+        {
+            var turmaCompleta = turmaData.GetById(turma.Id);
+            formandos = turmaCompleta?.Formandos;
+        }
+
+        var emails = formandos?
+            .Where(f => !string.IsNullOrWhiteSpace(f.Email))
+            .Select(f => f.Email)
+            .Distinct()
+            .ToList();
+
+        if (emails == null || !emails.Any())
+        {
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = $"A turma \"{turma.Nome}\" não tem formandos com email registado.",
+                Duration = 4000
+            });
+            return;
+        }
+
+        var mailto = $"mailto:{string.Join(";", emails)}";
+        navManager.NavigateTo(mailto, true);
+    }
+
     private async Task SendTurma(int ToSendId)
     {
         await OutgoingTurma.InvokeAsync(ToSendId);
@@ -193,23 +211,15 @@
         </div>);
     }
 
-    /// <summary>
-    /// Usando ClosedXML https://github.com/closedxml/closedxml/wiki
-    /// 1: Criar um novo workbook, com uma worksheet
-    /// 2: Preencher e formatar as células com o conteúdo
-    /// 3: Exportar usando fileManager
-    /// </summary>
     async void Exportar(string extension)
     {
         IXLWorkbook workbook = new XLWorkbook();
         IXLWorksheet worksheet = workbook.Worksheets.Add("turmas");
 
-
         #region Template Topo
         var currentRow = 1;
         var currentColumn = 1;
 
-        //Imagens Topo
         worksheet.AddPicture("wwwroot/img/pauta/iefp.png")
                  .MoveTo(worksheet.Cell(currentRow, currentColumn));
         currentColumn += 3;
@@ -223,7 +233,6 @@
         currentRow += 5;
         currentColumn -= 6;
         #endregion
-
 
         #region Cabeçalho
         var rngCabeçalhoFirstColumn = currentColumn;
@@ -243,7 +252,6 @@
 
         currentColumn = rngCabeçalhoFirstColumn;
         #endregion
-
 
         #region Corpo
         List<Turma> exportTurmas = turmas;
@@ -278,7 +286,6 @@
         rngCorpo.Cells().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
         worksheet.Columns().AdjustToContents();
         #endregion
-
 
         #region Template rodapé
         currentRow += 3;
