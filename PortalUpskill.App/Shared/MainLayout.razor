@@ -46,16 +46,12 @@
             <div class="d-flex flex-row align-items-center">
                 <AuthorizeView>
                     <Authorized>
-                        <span>Olá, @context.User.Identity.Name </span> 
-                        <a href="/AreaPessoal"><img class="cog" src="/img/baseline_settings_black_48dp.png" /></a>
-                        <a href="" @onclick="@(()=> { ((UpskillAuthenticationStateProvider)authStateProvider).MarkUserAsLoggedOut(); })"><img class="logout" src="img/dashboard/outline_logout_black_48dp.png"></a>
-                </Authorized>
-                <Authorizing>
-                </Authorizing>
-                <NotAuthorized>
-                    <a href="/">Login</a>
-                </NotAuthorized>
-            </AuthorizeView>
+                        <ProfileDropdown />
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/">Login</a>
+                    </NotAuthorized>
+                </AuthorizeView>
             </div>
             
         </div>
