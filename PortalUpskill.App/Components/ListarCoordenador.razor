@@ -68,7 +68,7 @@
 								<RadzenButton Title="Associar Turma" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Info" Icon="library_books" />
 						<RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Coordenador/{Formador.Id}"))" />
 						<RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Formador))" />
-					<RadzenButton Title="Enviar Email" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="email" Click="@(() => navManager.NavigateTo($"mailto:{Formador.Email}", true))"
+					<RadzenButton Title="Enviar Email" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="email" Click="@(() => navManager.NavigateTo($"mailto:{Formador.Email}", true))"/>
 					</Template>
 				</RadzenGridColumn>
 					</Authorized>

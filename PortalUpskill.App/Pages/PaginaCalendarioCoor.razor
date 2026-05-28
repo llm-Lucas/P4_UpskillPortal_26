@@ -15,6 +15,7 @@
 @using System.Globalization
 
 <div class="cardstyle">
+
     <div style="display: flex; gap: 1rem; align-items: flex-start;">
         @if (!isFormando)
         {
@@ -37,22 +38,47 @@
                 </RadzenDropDown>
             </div>
         }
+    </div>
 
     @if (SelectedTurma != null)
-{
-    <div class="row">
-        @if (SelectedTurma.HorarioAssincronoInicio.HasValue && SelectedTurma.HorarioAssincronoFim.HasValue)
+    {
+        @if (isFormando)
         {
-            <span class="col-4"><b>Horário Assíncrono:</b> @SelectedTurma.HorarioAssincronoInicio.Value.ToString("HH:mm") - @SelectedTurma.HorarioAssincronoFim.Value.ToString("HH:mm")</span>
+            <div class="mb-3">
+                <h3>Turma: @SelectedTurma.Nome</h3>
+                <h5>Curso: @SelectedTurma.Curso?.Nome</h5>
+            </div>
         }
-        @if (SelectedTurma.HorarioSincronoInicio.HasValue && SelectedTurma.HorarioSincronoFim.HasValue)
-        {
-            <span class="col"><b>Horário Síncrono:</b> @SelectedTurma.HorarioSincronoInicio.Value.ToString("HH:mm") - @SelectedTurma.HorarioSincronoFim.Value.ToString("HH:mm")</span>
-        }
-    </div>
-    <div class="row">
-        <span class="col-4"><b>Ano Letivo:</b> @(SelectedTurma.AnoLetivo?.Nome ?? "Não definido")</span>
-            @if (SelectedTurma.HorarioAssincronoInicio.HasValue && SelectedTurma.HorarioAssincronoFim.HasValue && SelectedTurma.HorarioSincronoInicio.HasValue && SelectedTurma.HorarioSincronoFim.HasValue)
+
+        <div class="row">
+            @if (SelectedTurma.HorarioAssincronoInicio.HasValue && SelectedTurma.HorarioAssincronoFim.HasValue)
+            {
+                <span class="col-4">
+                    <b>Horário Assíncrono:</b>
+                    @SelectedTurma.HorarioAssincronoInicio.Value.ToString("HH:mm") -
+                    @SelectedTurma.HorarioAssincronoFim.Value.ToString("HH:mm")
+                </span>
+            }
+
+            @if (SelectedTurma.HorarioSincronoInicio.HasValue && SelectedTurma.HorarioSincronoFim.HasValue)
+            {
+                <span class="col">
+                    <b>Horário Síncrono:</b>
+                    @SelectedTurma.HorarioSincronoInicio.Value.ToString("HH:mm") -
+                    @SelectedTurma.HorarioSincronoFim.Value.ToString("HH:mm")
+                </span>
+            }
+        </div>
+
+        <div class="row">
+            <span class="col-4">
+                <b>Ano Letivo:</b> @(SelectedTurma.AnoLetivo?.Nome ?? "Não definido")
+            </span>
+
+            @if (SelectedTurma.HorarioAssincronoInicio.HasValue &&
+                    SelectedTurma.HorarioAssincronoFim.HasValue &&
+                    SelectedTurma.HorarioSincronoInicio.HasValue &&
+                    SelectedTurma.HorarioSincronoFim.HasValue)
             {
                 <span class="col"><b>Carga Horária:</b> @SelectedTurma.CargaHoraria</span>
             }
@@ -60,70 +86,102 @@
             {
                 <span class="col"><b>Carga Horária:</b> Não definida</span>
             }
-    </div>
-    @if (SelectedTurma.DataInicioCurso.HasValue)
-    {
-        <div class="row">
-            <span class="col-4"><b>Data Início:</b> @SelectedTurma.DataInicioCurso.Value.ToString("dd/MM/yyyy")</span>
-            <span class="col"><b>Duração do curso:</b> @($"{SelectedTurma.Curso.DuracaoHoras}h")</span>
         </div>
-    }
-    @if (SelectedTurma.DataFimCurso.HasValue)
-    {
-        <div class="row">
-            <span class="col"><b>Data Fim:</b> @SelectedTurma.DataFimCurso.Value.ToString("dd/MM/yyyy")</span>
-        </div>
-    }
-            @if (isFormando && SelectedTurma != null)
-            {
-                <div class="mb-3">
-                    <h3>
-                        Turma: @SelectedTurma.Nome
-                    </h3>
 
-    <RadzenButton class="mt-4" data-toggle="collapse" data-target="#tabela" Text="Mostrar módulos" ButtonStyle="ButtonStyle.Primary" Icon="expand" />
-    <RadzenButton class="mt-4" Text="Download" ButtonStyle="ButtonStyle.Primary" Icon="file_download" Click="Exportar" />
+        @if (SelectedTurma.DataInicioCurso.HasValue)
+        {
+            <div class="row">
+                <span class="col-4">
+                    <b>Data Início:</b> @SelectedTurma.DataInicioCurso.Value.ToString("dd/MM/yyyy")
+                </span>
 
-    <div class="collapse" id="tabela">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Módulo</th>
-                    <th>Formadores</th>
-                    <th>Horas</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var moduloHora in SelectedTurma.Curso.Modulos)
-                {
+                <span class="col">
+                    <b>Duração do curso:</b> @($"{SelectedTurma.Curso.DuracaoHoras}h")
+                </span>
+            </div>
+        }
+
+        @if (SelectedTurma.DataFimCurso.HasValue)
+        {
+            <div class="row">
+                <span class="col">
+                    <b>Data Fim:</b> @SelectedTurma.DataFimCurso.Value.ToString("dd/MM/yyyy")
+                </span>
+            </div>
+        }
+
+        <RadzenButton class="mt-4"
+                      data-toggle="collapse"
+                      data-target="#tabela"
+                      Text="Mostrar módulos"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Icon="expand" />
+
+        <RadzenButton class="mt-4"
+                      Text="Download"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Icon="file_download"
+                      Click="Exportar" />
+
+        <div class="collapse" id="tabela">
+            <table class="table table-striped">
+                <thead>
                     <tr>
-                        <td>M@(moduloHora.Key.Id)</td>
-                        <td>@moduloHora.Key.Nome</td>
-                        <td>
-                            @foreach (var formador in SelectedTurma.Modulos.Where(m => m.Id == moduloHora.Key.Id).Select(m => m.Formador))
-                            {
-                                <span>@formador.Nome</span><br />
-                            }
-                        </td>
-                        <td>@(HorasPorModulo.ContainsKey(moduloHora.Key.Id) ? HorasPorModulo[moduloHora.Key.Id] : "0")/@(moduloHora.Value)h</td>
+                        <th>Código</th>
+                        <th>Módulo</th>
+                        <th>Formadores</th>
+                        <th>Horas</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var moduloHora in SelectedTurma.Curso.Modulos)
+                    {
+                        <tr>
+                            <td>M@(moduloHora.Key.Id)</td>
+                            <td>@moduloHora.Key.Nome</td>
+                            <td>
+                                @foreach (var formador in SelectedTurma.Modulos.Where(m => m.Id == moduloHora.Key.Id).Select(m => m.Formador))
+                                {
+                                    <span>@formador.Nome</span>
+
+                                    <br />
+                                }
+                            </td>
+                            <td>
+                                @(HorasPorModulo.ContainsKey(moduloHora.Key.Id) ? HorasPorModulo[moduloHora.Key.Id] : "0")/@(moduloHora.Value)h
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
         <h3 style="margin-top: 25px;"></h3>
 
-    @if (DataSource.Count > 0)
-    {
-            <SfSchedule TValue="AppointmentData" @ref="Scheduler" @bind-SelectedDate="@CurrentDate" @bind-CurrentView="@CurrentView">
+        @if (DataSource.Count > 0)
+        {
+            <SfSchedule TValue="AppointmentData"
+                        @ref="Scheduler"
+                        @bind-SelectedDate="@CurrentDate"
+                        @bind-CurrentView="@CurrentView">
+
                 <ScheduleResources>
                     <ScheduleEvents TValue="AppointmentData" OnPopupOpen="@OnPopupOpen"></ScheduleEvents>
-                    <ScheduleResource TItem="ResourceData" TValue="int" DataSource="@OwnerData" Field="OwnerId" Title="Owner"
-                                      Name="Owner" TextField="Text" IdField="Id" ColorField="Color"></ScheduleResource>
+
+                    <ScheduleResource TItem="ResourceData"
+                                      TValue="int"
+                                      DataSource="@OwnerData"
+                                      Field="OwnerId"
+                                      Title="Owner"
+                                      Name="Owner"
+                                      TextField="Text"
+                                      IdField="Id"
+                                      ColorField="Color">
+                    </ScheduleResource>
                 </ScheduleResources>
+
                 <ScheduleEventSettings DataSource="@DataSource"></ScheduleEventSettings>
+
                 <ScheduleQuickInfoTemplates TemplateType="TemplateType.Both">
                     <HeaderTemplate>
                         <div class="quick-info-header">
@@ -131,21 +189,27 @@
                                 <div class="quick-info-title">
                                     @((context as AppointmentData).OwnerId == 0 ? "Calendarizar dia" : (context as AppointmentData).Subject)
                                 </div>
+
                                 <div class="duration-text">
-                                    @((context as AppointmentData).StartTime.ToString("dd/MM/yyyy") + " (" + (context as AppointmentData).StartTime.ToString("HH:mm") + "-" + (context as AppointmentData).EndTime.ToString("HH:mm") + ")")
+                                    @((context as AppointmentData).StartTime.ToString("dd/MM/yyyy")
+                                                                    + " (" + (context as AppointmentData).StartTime.ToString("HH:mm")
+                                                                    + "-" + (context as AppointmentData).EndTime.ToString("HH:mm") + ")")
                                 </div>
                             </div>
                         </div>
                     </HeaderTemplate>
+
                     <ContentTemplate>
                         @if ((context as AppointmentData).ElementType != "cell")
                         {
                             AppointmentData Data = context as AppointmentData;
+
                             <div class="event-content">
                                 <div class="meeting-type-wrap">
                                     <label>Disciplina</label>:
-                                    <span>@(Data.Subject)</span>
+                                    <span>@Data.Subject</span>
                                 </div>
+
                                 <div class="meeting-subject-wrap">
                                     <label>Tipo</label>:
                                     <span>@((Data.OwnerId != 0) ? OwnerData.Where(item => item.Id.Equals(Data.OwnerId)).FirstOrDefault().Text : "")</span>
@@ -153,78 +217,27 @@
                             </div>
                         }
                     </ContentTemplate>
+
                     <FooterTemplate>
                         @if ((context as AppointmentData).ElementType != "cell")
                         {
                             <div class="cell-footer">
                                 @if ((context as AppointmentData).OwnerId == 3)
                                 {
-                    <h5>
-                        Curso: @SelectedTurma.Curso?.Nome
-                    </h5>
-                </div>
-            }
-        <SfSchedule TValue="AppointmentData" @ref="Scheduler" @bind-SelectedDate="@CurrentDate" @bind-CurrentView="@CurrentView">
-            <ScheduleResources>
-                <ScheduleEvents TValue="AppointmentData" OnPopupOpen="@OnPopupOpen"></ScheduleEvents>
-                <ScheduleResource TItem="ResourceData" TValue="int" DataSource="@OwnerData" Field="OwnerId" Title="Owner"
-                                  Name="Owner" TextField="Text" IdField="Id" ColorField="Color"></ScheduleResource>
-            </ScheduleResources>
-
-            <ScheduleEventSettings DataSource="@DataSource"></ScheduleEventSettings>
-
-            <ScheduleQuickInfoTemplates TemplateType="TemplateType.Both">
-                <HeaderTemplate>
-                    <div class="quick-info-header">
-                        <div class="quick-info-header-content" style="@(GetHeaderStyles((context as AppointmentData)))">
-                            <div class="quick-info-title">
-                                @((context as AppointmentData).OwnerId == 0 ? "Calendarizar dia" : (context as AppointmentData).Subject)
-                            </div>
-                            <div class="duration-text">
-                                @((context as AppointmentData).StartTime.ToString("dd/MM/yyyy")
-+ " (" + (context as AppointmentData).StartTime.ToString("HH:mm") + "-" + (context as AppointmentData).EndTime.ToString("HH:mm") + ")")
-                            </div>
-                        </div>
-                    </div>
-                </HeaderTemplate>
-                <ContentTemplate>
-
-                    @if ((context as AppointmentData).ElementType != "cell")
-                    {
-                        AppointmentData Data = context as AppointmentData;
-                        <div class="event-content">
-                            <div class="meeting-type-wrap">
-                                <label>Disciplina</label>:
-                                <span>@(Data.Subject)</span>
-                            </div>
-                            <div class="meeting-subject-wrap">
-                                <label>Tipo</label>:
-                                <span>@((Data.OwnerId != 0) ? OwnerData.Where(item => item.Id.Equals(Data.OwnerId)).FirstOrDefault().Text : "")</span>
-                            </div>
-
-                        </div>
-                    }
-                </ContentTemplate>
-                <FooterTemplate>
-                    @if ((context as AppointmentData).ElementType == "cell")
-                    {
-
-                    }
-                    else
-                    {
-                        <div class="cell-footer">
-                            @if ((context as AppointmentData).OwnerId == 3)
-                            {
-                                    <RadzenButton ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Text="Ver Detalhes" Click="@(() => navManager.NavigateTo($"DetalhesAula/{(context as AppointmentData).Id}/{Idf}/{Idt}/CalendarCoor"))" />
+                                    <RadzenButton ButtonStyle="ButtonStyle.Primary"
+                                                  Size="ButtonSize.Small"
+                                                  Text="Ver Detalhes"
+                                                  Click="@(() => navManager.NavigateTo($"DetalhesAula/{(context as AppointmentData).Id}/{Idf}/{Idt}/CalendarCoor"))" />
                                 }
-
                             </div>
                         }
                     </FooterTemplate>
                 </ScheduleQuickInfoTemplates>
+
                 <ScheduleViews>
                     <ScheduleView Option="View.Week" StartHour="08:00" EndHour="20:00" DisplayName="Semanal"></ScheduleView>
                     <ScheduleView Option="View.Month" MaxEventsPerRow="10" ShowWeekend="false" DisplayName="Mensal"></ScheduleView>
+
                     <ScheduleView Option="View.TimelineYear" MaxEventsPerRow="3" DisplayName="Anual" IsSelected="true">
                         <EventTemplate>
                             <div class="e-appointment-details">
@@ -234,22 +247,21 @@
                     </ScheduleView>
                 </ScheduleViews>
             </SfSchedule>
+        }
+        else
+        {
+            <p>Não existem aulas calendarizadas para a turma selecionada.</p>
+        }
     }
-    else
-    {
-        <p>Não existem aulas calendarizadas para a turma selecionada.</p>
-    }
-} 
-   
-
-       
-    
-    
 </div>
 
 <div class="row justify-content-center">
     <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                      Icon="cancel"
+                      style="display: inline-block; margin-left: 10px;"
+                      Text="Voltar"
+                      Click="@(() => navManager.NavigateTo($"Index"))" />
     </div>
 </div>
 
