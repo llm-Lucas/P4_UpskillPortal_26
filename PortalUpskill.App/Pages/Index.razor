@@ -1,4 +1,8 @@
 @page "/Index"
+@inject IFormandoData formandoData
+@inject ProtectedSessionStorage sessionStorage
+
+@using Newtonsoft.Json
 
 <AuthorizeView Roles="Administrador, Secretariado">
     <Authorized>
@@ -179,7 +183,67 @@
         </div>-->
     </Authorized>
 </AuthorizeView>
+<AuthorizeView Roles="Formando, Aluno">
+    <Authorized>
+        <div class="cardstyle text-center">
+
+            <div class="row">
+                <div class="col-md-6" text-center>
+                    <a href="/CalendarCoor" class="corbotao hvr-underline-from-left" role="button">
+                        <img src="img/dashboard/baseline_event_white_48dp.png">
+                        <span class="text-center">CALENDÁRIO</span>
+                    </a>
+                </div>
+
+                <div class="col-md-6" text-center>
+                    <a href="/AvaliacoesFormando" class="corbotao hvr-underline-from-center" role="button">
+                        <img src="img/dashboard/outline_inventory_white_48dp.png">
+                        <span class="text-center">AVALIAÇÕES</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6" text-center>
+                    <a href="@($"/TurmasFormando/{turmaFormandoId}")" class="corbotao hvr-underline-from-left" role="button">
+                        <img src="img/dashboard/baseline_groups_white_48dp.png">
+                        <span class="text-center">TURMA</span>
+                    </a>
+                </div>
+
+                <div class="col-md-6" text-center>
+                    <a href="/FaltasFormando" class="corbotao hvr-underline-from-right" role="button">
+                        <img src="img/dashboard/icons8-report-50.png">
+                        <span class="text-center">FALTAS</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </Authorized>
+</AuthorizeView>
 
 @code {
+
     public DateTime? DropVal { get; set; } = DateTime.Now;
+
+    Pessoa user;
+    int turmaFormandoId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var readUserFromSession = await sessionStorage.GetAsync<string>("user");
+
+        if (readUserFromSession.Success)
+        {
+            user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
+
+            Formando formando = formandoData.GetById(user.Id);
+
+            if (formando?.Turma != null)
+            {
+                turmaFormandoId = formando.Turma.Id;
+            }
+        }
+    }
 }

@@ -28,7 +28,7 @@
 <br />
 <span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@email">Enviar email</a>
 
-<AuthorizeView Roles="Administrador, Secretariado">
+<AuthorizeView Roles="Administrador, Secretariado, Coordenador, Formador, Formando">
     <Authorized>
         <RadzenCard Style="margin-bottom: 20px;">
             <div class="row">
@@ -249,7 +249,7 @@
     </Authorized>
 </AuthorizeView>
 
-<AuthorizeView Roles="Formador, Coordenador">
+<AuthorizeView Roles="Formador, Coordenador, Formando">
     <Authorized>
         <RadzenCard Style="margin-bottom: 60px;">
             <div class="row">

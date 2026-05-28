@@ -33,35 +33,42 @@
 						<RadzenLabel Text="Sumário" Style="font-weight:bold" />
 					</div>
 
-					<div class="row col-md-12">
-						<RadzenTextArea class="w-100" @bind-Value="@aulaVM.Sumario" />
-					</div>
+					
 				</div>
 			</EditForm>
 		</Authorized>
 	</AuthorizeView>
 
-	<AuthorizeView Roles="Administrador, Secretariado, Coordenador">
-		<Authorized>
-			<div class="form-group col-md-8">
-				<div class="row col-md-2 d-flex">
-					<b>Sumário</b>
-				</div>
+	<AuthorizeView Roles="Administrador, Secretariado, Formador">
+    <Authorized>
+        <div class="form-group col-md-8">
+            <div class="row col-md-2 d-flex">
+                <b>Sumário</b>
+            </div>
 
-				<div class="row col-md-12">
-					@*<p>@aulaVM.Sumario</p>*@
-					@*INICIO #008*@
-					@*Se a aula ja tiver Sumario, metemos uma caixa de texto com o Sumario e um botao para poder editar o Sumario*@
-					@*Quando se carrega no botao Guardar, o novo Sumario e guardado na base de dados*@
-					@*Depois de se carregar no botao Guardar, a caixa de texto volta para Disabled e o que mostra e o novo Sumario*@
+            <div class="row col-md-12">
+                <RadzenTextArea class="w-100"
+                                @bind-Value="@aulaVM.Sumario" />
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
 
-					<RadzenTextArea class="w-100" @bind-Value="@aulaVM.Sumario" />
+<AuthorizeView Roles="Coordenador, Formando">
+    <Authorized>
+        <div class="form-group col-md-8">
+            <div class="row col-md-2 d-flex">
+                <b>Sumário</b>
+            </div>
 
-					@*FIM #008*@
-				</div>
-			</div>
-		</Authorized>
-	</AuthorizeView>
+            <div class="row col-md-12">
+                <textarea class="form-control w-100"
+                          readonly
+                          style="background-color:#e9ecef; color:#6c757d; cursor:not-allowed; min-height:120px;">@aulaVM.Sumario</textarea>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
 
 	<div class="row" style="margin-top:1em">
 		<div class="col-md-12">
@@ -160,7 +167,14 @@
 			<!-- Comentei o Botao Guardar -->
             <div class="row justify-content-center">
                 <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-					<RadzenButton ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" />
+					<AuthorizeView Roles="Administrador, Secretariado, Formador">
+    <Authorized>
+        <RadzenButton ButtonStyle="ButtonStyle.Success"
+                      Icon="save"
+                      Text="Guardar"
+                      Click="@(() => MarcarFaltas())" />
+    </Authorized>
+</AuthorizeView>
 					<AuthorizeView Roles="Administrador, Secretariado">
                         <Authorized>
                             <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Calendar"))" />
@@ -172,10 +186,23 @@
                         </Authorized>
                     </AuthorizeView>
 					<AuthorizeView Roles="Coordenador">
-						<Authorized>
-							<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@Voltar" />
-						</Authorized>
-					</AuthorizeView>
+    <Authorized>
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                      Icon="cancel"
+                      style="display: inline-block; margin-left: 10px;"
+                      Text="Voltar"
+                      Click="@Voltar" />
+    </Authorized>
+</AuthorizeView>
+					<AuthorizeView Roles="Formando">
+    <Authorized>
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                      Icon="cancel"
+                      style="display: inline-block; margin-left: 10px;"
+                      Text="Voltar"
+                      Click="@Voltar" />
+    </Authorized>
+</AuthorizeView>
                 </div>
             </div>
 			<!-- FIM -->
@@ -208,10 +235,12 @@
 		{
 	navManager.NavigateTo($"ListaAula/{Idf}/{Idt}");
 		}
-		else if (source == "CalendarCoor" && authStateTask.Result.User.IsInRole("Coordenador"))
-		{
-	navManager.NavigateTo($"CalendarCoor/{aulaVM.TurmaId}");
-		}
+		else if (source == "CalendarCoor" &&
+        (authStateTask.Result.User.IsInRole("Coordenador")
+        || authStateTask.Result.User.IsInRole("Formando")))
+{
+    navManager.NavigateTo($"CalendarCoor/{aulaVM.TurmaId}");
+}
 		else
 		{
 	// fallback if source isn't defined

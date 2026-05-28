@@ -1,0 +1,139 @@
+﻿@page "/TurmasFormando/{TurmaId:int}"
+
+@inject ITurmaData turmaData
+@inject IFormandoData formandoData
+@inject IModuloData moduloData
+@inject IFormadorData formadorData
+
+<div class="cardstyle">
+    @if (turma != null)
+    {
+        <h2>@turma.Nome</h2>
+
+        <br />
+
+        <p><b>Curso:</b> @turma.Curso?.Nome</p>
+        <p><b>Data de Início:</b> @String.Format("{0:d}", turma.DataInicioCurso)</p>
+        <p><b>Data de Fim:</b> @String.Format("{0:d}", turma.DataFimCurso)</p>
+
+        <p><b>Módulos:</b></p>
+        <ul>
+            @foreach (Modulo modulo in modulos)
+            {
+                string sigla = $"M{modulo.Id}";
+                <li><b>@sigla</b> - @modulo.Nome - @modulo.Formador?.Nome</li>
+            }
+        </ul>
+    }
+</div>
+
+<div class="cardstyle">
+    <h3>Formandos</h3>
+
+    <RadzenGrid Data="@formandos"
+                TItem="Formando"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowPaging="true"
+                PageSize="10">
+        <Columns>
+            <RadzenGridColumn TItem="Formando" Property="Nome" Title="Nome" />
+
+            @for (int i = 0; i < modulos.Count(); i++)
+            {
+                int index = i;
+                string title = $"Média M{modulos[index].Id}";
+
+                <RadzenGridColumn TItem="Formando" Title="@title" Sortable="false">
+                    <Template Context="Formando">
+                        @if (Formando.DictAvaliacaoModular != null &&
+                             Formando.DictAvaliacaoModular.ContainsKey(modulos[index].Id))
+                        {
+                            var avaliacao = Formando.DictAvaliacaoModular[modulos[index].Id];
+
+                            if (avaliacao.NotaFinal >= 10)
+                            {
+                                <span style="color:green">@avaliacao.NotaFinal.ToString("0.##")</span>
+                            }
+                            else
+                            {
+                                <span style="color:red">@avaliacao.NotaFinal.ToString("0.##")</span>
+                            }
+                        }
+                        else
+                        {
+                            <span>Sem nota</span>
+                        }
+                    </Template>
+                </RadzenGridColumn>
+            }
+
+            <RadzenGridColumn TItem="Formando" Title="Nota Final" Sortable="false">
+                <Template Context="Formando">
+                    @if (Formando.AvaliacaoFinal != null && Formando.AvaliacaoFinal.NotaFinal >= 10)
+                    {
+                        <span style="color:darkgreen">@Formando.AvaliacaoFinal.NotaFinal.ToString("0.##")</span>
+                    }
+                    else if (Formando.AvaliacaoFinal != null && Formando.AvaliacaoFinal.NotaFinal < 10)
+                    {
+                        <span style="color:red">@Formando.AvaliacaoFinal.NotaFinal.ToString("0.##")</span>
+                    }
+                    else
+                    {
+                        <span>Sem nota</span>
+                    }
+                </Template>
+            </RadzenGridColumn>
+        </Columns>
+    </RadzenGrid>
+</div>
+
+<div class="cardstyle">
+    <h3>Formadores</h3>
+
+    <RadzenGrid Data="@formadores"
+                TItem="Formador"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowPaging="true"
+                PageSize="10">
+        <Columns>
+            <RadzenGridColumn TItem="Formador" Property="Nome" Title="Nome" />
+            <RadzenGridColumn TItem="Formador" Property="Email" Title="Email" />
+            <RadzenGridColumn TItem="Formador" Property="ContactoTelemovel" Title="Contacto Telemóvel" />
+        </Columns>
+    </RadzenGrid>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                      Icon="cancel"
+                      Text="Voltar"
+                      Click="@(() => navManager.NavigateTo("Index"))" />
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int TurmaId { get; set; }
+
+    Turma turma;
+    List<Formando> formandos = new List<Formando>();
+    List<Modulo> modulos = new List<Modulo>();
+    List<Formador> formadores = new List<Formador>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        turma = turmaData.GetById(TurmaId);
+
+        formandos = formandoData.GetAllByTurmaWithAvaliacao(TurmaId);
+
+        modulos = moduloData.GetModulosComFormadorByTurma(TurmaId);
+        modulos = modulos.OrderBy(m => m.Id).ToList();
+
+        formadores = formadorData.GetFormadoresByTurma(TurmaId);
+    }
+}

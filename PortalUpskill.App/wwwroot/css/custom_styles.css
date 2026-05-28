@@ -220,3 +220,9 @@
     .quick-info-close:hover {
         color: #343a40;
     }
+.sumario-readonly textarea {
+    background-color: #e9ecef !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 1 !important;
+}

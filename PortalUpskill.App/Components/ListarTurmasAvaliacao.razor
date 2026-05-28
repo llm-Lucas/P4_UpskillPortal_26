@@ -6,12 +6,12 @@
     <h2>Avaliações</h2>
 
     <RadzenGrid Data="@turmas"
-    TItem="Turma"
-    AllowSorting="true"
-    AllowFiltering="true"
-    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-    AllowPaging="true"
-    PageSize="10">
+                TItem="Turma"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowPaging="true"
+                PageSize="10">
 
         <Columns>
             <RadzenGridColumn TItem="Turma" Property="Nome" Title="Turma" />
@@ -22,7 +22,7 @@
                                     Style="width:100%"
                                     Placeholder="Selecione um Curso"
                                     Change="@(_ => ApplyFilters())"
-                                    Data="@(new[] { "Todos" }.Concat(turmasOriginais?.Where(t => t.Curso?.Nome != null).Select(t => t.Curso.Nome).Distinct()))" />
+                                    Data="@(new[] { "Todos" }.Concat((turmasOriginais ?? new List<Turma>()).Where(t => t.Curso?.Nome != null).Select(t => t.Curso.Nome).Distinct()))" />
                 </FilterTemplate>
                 <Template Context="Turma">
                     @if (Turma.Curso != null)
@@ -38,7 +38,7 @@
                                     Style="width:100%"
                                     Placeholder="Filtrar por Ano Letivo"
                                     Change="@(_ => ApplyFilters())"
-                                    Data="@(new[] { "Todos" }.Concat(turmasOriginais?.Where(t => t.AnoLetivo != null).Select(t => t.AnoLetivo.Nome).Distinct()))" />
+                                    Data="@(new[] { "Todos" }.Concat((turmasOriginais ?? new List<Turma>()).Where(t => t.AnoLetivo != null).Select(t => t.AnoLetivo.Nome).Distinct()))" />
                 </FilterTemplate>
                 <Template Context="Turma">
                     @Turma.AnoLetivo?.Nome
@@ -63,12 +63,11 @@
     <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
         <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
 
-                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
 
     </div>
 </div>
 <!-- FIM -->
-
 @code {
 
     List<Turma> turmas;
@@ -113,8 +112,8 @@
     /// </summary>
     void LoadTurmas()
     {
-        turmasOriginais = turmaData.GetAll(); 
-        if (Filter != null)
+        turmasOriginais = turmaData.GetAll();
+        if (Filter != null) 
             turmasOriginais = turmasOriginais.Where(Filter).ToList();
 
         turmas = turmasOriginais;

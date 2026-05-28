@@ -1,0 +1,71 @@
+﻿@inject IFormandoData formandoData
+@inject ProtectedSessionStorage sessionStorage
+
+@using Newtonsoft.Json
+
+<div @onclick = "@(() => Toggle.InvokeAsync(true))" style = "cursor:pointer; padding: 1rem; display:flex; justify-content: flex-start;" >
+    <img src="img/dashboard/outline_menu_black_48dp.png" style="height: 2.5rem; filter: invert(1);" />
+</div>
+
+<RadzenPanelMenu Style="width:250px; background-color:transparent" Click="@(() => Toggle.InvokeAsync(true))">
+
+    <RadzenPanelMenuItem class="rz-custom-panel-menu"
+                         Path="/CalendarCoor"
+                         Image="img/dashboard/baseline_event_white_48dp.png"
+                         Text="Calendário">
+    </RadzenPanelMenuItem>
+
+    <RadzenPanelMenuItem class="rz-custom-panel-menu"
+                         Path="/AvaliacoesFormando"
+                         Image="img/dashboard/outline_inventory_white_48dp.png"
+                         Text="Avaliações">
+    </RadzenPanelMenuItem>
+
+    <RadzenPanelMenuItem class="rz-custom-panel-menu"
+                         Path="@($"/TurmasFormando/{turmaFormandoId}")"
+                         Image="img/dashboard/baseline_groups_white_48dp.png"
+                         Text="Turma">
+    </RadzenPanelMenuItem>
+
+    <RadzenPanelMenuItem class="rz-custom-panel-menu"
+                         Image="img/dashboard/icons8-report-50.png"
+                         Text="Faltas"
+                         Path="/FaltasFormando">
+    </RadzenPanelMenuItem>
+
+    <RadzenPanelMenuItem class="rz-custom-panel-menu"
+                         Path="/DetalhesFaqFormando"
+                         Image="img/dashboard/outline_help_outline_white_48dp.png"
+                         Text="FAQ">
+    </RadzenPanelMenuItem>
+
+</RadzenPanelMenu>
+
+@code {
+    [Parameter]
+    public EventCallback<bool> Toggle { get; set; }
+
+    [Parameter]
+    public string LogoTransparency { get; set; }
+
+    
+    Pessoa user;
+    int turmaFormandoId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var readUserFromSession = await sessionStorage.GetAsync<string>("user");
+
+        if (readUserFromSession.Success)
+        {
+            user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
+
+            Formando formando = formandoData.GetById(user.Id);
+
+            if (formando?.Turma != null)
+            {
+                turmaFormandoId = formando.Turma.Id;
+            }
+        }
+    }
+}

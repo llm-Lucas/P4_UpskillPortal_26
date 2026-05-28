@@ -1,4 +1,4 @@
-﻿@attribute [Authorize(Roles = "Coordenador")]
+﻿@attribute [Authorize(Roles = "Coordenador, Formando")]
 @page "/CalendarCoor"
 @page "/CalendarCoor/{Id:int}"
 
@@ -8,22 +8,33 @@
 @inject IAulaData aulaData
 @inject IPessoaData pessoaData
 @inject IFormadorData formadorData
+@inject IFormandoData formandoData
 @inject IModuloData moduloData
 @inject ProtectedSessionStorage sessionStorage
 
 <div class="cardstyle">
     <div style="display: flex; gap: 1rem; align-items: flex-start;">
-        <div style="flex:1">
-    <h3>Selecione uma turma</h3>
+        @if (!isFormando)
+        {
+            <div style="flex:1">
+                <h3>Selecione uma turma</h3>
 
-    <RadzenDropDown class="w-75" Data="@turmas" @bind-Value="SelectedTurmaId" Change="OnTurmaSelected" TValue="int" ValueProperty="Id" TextProperty="Nome"
-                    AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                    AllowClear="false">
-        <Template Context="Turma">
-            <span>@Turma.Nome - @Turma.Curso.Nome</span>
-        </Template>
-    </RadzenDropDown>
-</div>
+                <RadzenDropDown class="w-75"
+                                Data="@turmas"
+                                @bind-Value="SelectedTurmaId"
+                                Change="OnTurmaSelected"
+                                TValue="int"
+                                ValueProperty="Id"
+                                TextProperty="Nome"
+                                AllowFiltering="true"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                AllowClear="false">
+                    <Template Context="Turma">
+                        <span>@Turma.Nome - @Turma.Curso.Nome</span>
+                    </Template>
+                </RadzenDropDown>
+            </div>
+        }
         <div style="flex:1">
         <h3>Selecione o ano letivo</h3>
         <RadzenDropDown class="w-25"
@@ -48,7 +59,18 @@
     {
         @if(DataSource.Count > 0)
         {
+            @if (isFormando && SelectedTurma != null)
+            {
+                <div class="mb-3">
+                    <h3>
+                        Turma: @SelectedTurma.Nome
+                    </h3>
 
+                    <h5>
+                        Curso: @SelectedTurma.Curso?.Nome
+                    </h5>
+                </div>
+            }
         <SfSchedule TValue="AppointmentData" @ref="Scheduler" @bind-SelectedDate="@CurrentDate" @bind-CurrentView="@CurrentView">
             <ScheduleResources>
                 <ScheduleEvents TValue="AppointmentData" OnPopupOpen="@OnPopupOpen"></ScheduleEvents>
@@ -206,7 +228,7 @@
     [CascadingParameter]
     Task<AuthenticationState> authStateTask { get; set; }
 
-
+    bool isFormando = false;
     protected override async Task OnInitializedAsync()
     {
         int idCoor = 0;
@@ -217,8 +239,25 @@
             idCoor = user.Id;
         };
 
-        turmas = formadorData.GetTurmaByIdCoordenador(idCoor);
-        turmas = turmas.Where(t => t.Nome != "Sem turma associada").ToList();
+        Formando formando = formandoData.GetById(user.Id);
+
+        if (formando?.Turma != null)
+        {
+            isFormando = true;
+
+            turmas = new List<Turma> { formando.Turma };
+
+            SelectedTurmaId = formando.Turma.Id;
+
+            OnTurmaSelected();
+        }
+        else
+        {
+            isFormando = false;
+
+            turmas = turmaData.GetAll();
+            turmas = turmas.Where(t => t.Nome != "Sem turma associada").ToList();
+        }
 
         List<int> idsAutorizados = turmas.Select(t => t.Id).ToList();
         if (Id != 0 && idsAutorizados.Contains(Id))
