@@ -216,11 +216,9 @@
             idCoor = user.Id;
         }
 
-        turmas = formadorData.GetTurmaByIdCoordenador(idCoor);
-        turmas = turmas.Where(t => t.Nome != "Sem turma associada").ToList();
+        turmas = turmaData.GetAll();
 
-        List<int> idsAutorizados = turmas.Select(t => t.Id).ToList();
-        if (Id != 0 && idsAutorizados.Contains(Id))
+        if (Id != 0)
         {
             SelectedTurmaId = Id;
             OnTurmaSelected();

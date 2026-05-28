@@ -30,24 +30,7 @@
     </RadzenDropDown>
         </div>
     
-    <!--Adicionar um Drop down com os anos letivos para filtragem"-->
-        <div style="flex:1">
-        <h3>Selecione o ano letivo</h3>
-        <RadzenDropDown class="w-25"
-                        Data="@AnosLetivos"
-                        @bind-Value="AnoLetivoSelecionado"
-                        Change="OnAnoLetivoChange"
-                        TValue="string"
-                        ValueProperty="Ano"
-                        TextProperty="Ano"
-                        AllowFiltering="true"
-                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                        AllowClear="false">
-            <Template Context="ano">
-                <span>@ano.Ano</span>
-            </Template>
-        </RadzenDropDown>
-    </div>
+
 
         
     </div>
