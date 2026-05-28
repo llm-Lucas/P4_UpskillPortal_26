@@ -42,6 +42,7 @@
         @if (formadoresDoCurso.Count > 0)
         {
             <div class="cardstyle">
+                <ModulosFormador @ref="modulosFormadorRef" Id="Turma.Id" cursoId="ReceivedCurso" />
                 <div>
                     <h4>Formadores Associados</h4>
                     <table class="table-borderless table-sm">
@@ -52,40 +53,6 @@
                             </tr>
                         }
                     </table>
-                </div>
-            </div>
-        }
-
-        @if (Turma.Id != null && Turma.Id != 0)
-        {
-            <div class="cardstyle">
-                <div>
-                    <h4>Associar formadores aos módulos</h4>
-                    @if (modulos.Count == 0)
-                    {
-                        <p>Não existem Módulos associados a esta turma.</p>
-                        <p>Procure um Módulo abaixo e clique em "Adicionar".</p>
-                    }
-                    else
-                    {
-                        <table class="table-borderless table-sm">
-                            @foreach (var modulo in modulos)
-                            {
-                                <tr>
-                                    <td>
-                                        <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="add" Click=@(args => dialogService.Open<AssociarFormador>(
-                                          "Associar Formadores",
-                                          new Dictionary<string, object>() { { "ModuloId", modulo.Id } },
-                                          new DialogOptions() { Width = "80%", Height = "90%" }
-                                          )) />
-                                    </td>
-                                    <td>
-                                        <span>@modulo.Nome</span>
-                                    </td>
-                                </tr>
-                            }
-                        </table>
-                    }
                 </div>
             </div>
         }
@@ -159,6 +126,7 @@
     ///     associados a esse curso da BD
     /// </summary>
     int? ReceivedCurso = 0;
+    private ModulosFormador modulosFormadorRef;
 
     /// <summary>
     /// Assinala ao componente <ModulosFormador /> que a PáginaCriacaoTurma está pronta para receber o
@@ -266,15 +234,44 @@
     /// <summary>
     /// Corre quando o evento SendTurma do componente <CriarTurma /> for disparado
     /// </summary>
-void ReceiveTurma(Turma turma)
-{
-    formandos = Turma.Formandos;
-    Turma = turma;
-    Turma.Formandos = formandos;
+    void ReceiveTurma(Turma turma)
+    {
+        // 1. Criar a variável e capturar os dados dos formadores/módulos do componente
+        Dictionary<int, ModuloFormadorHora> dicionarioModulos = new Dictionary<int, ModuloFormadorHora>();
 
-    // Chama directamente com dicionário vazio em vez de esperar pelo ModulosFormador
-    InserirTurmaBD(Turma, new Dictionary<int, ModuloFormadorHora>());
-}
+        if (modulosFormadorRef != null)
+        {
+            dicionarioModulos = modulosFormadorRef.ObterDadosAtuais();
+        }
+
+        // 2. Lógica de inserção
+        if (Turma.Id == 0)
+        {
+            turma.Formandos = Turma.Formandos;
+
+            // Usamos o teu método correto: CreateReturnId, passando a turma e o dicionário lido do componente!
+            turmaId = TurmaData.CreateReturnId(turma, dicionarioModulos);
+
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = $"Turma criada com sucesso.", Duration = 4000 });
+            navManager.NavigateTo("Turmas");
+        }
+
+        // 3. Lógica de update
+        else
+        {
+            // Usamos o teu método Update original, passando a turma e o dicionário lido do componente!
+            TurmaData.Update(turma, dicionarioModulos);
+
+            var formandosQueEntraram = Turma.Formandos.Except(TurmaEstadoInicial.Formandos).ToList();
+            var formandosQueSairam = TurmaEstadoInicial.Formandos.Except(Turma.Formandos).ToList();
+
+            TurmaData.RemoveFormandos(turma, formandosQueSairam);
+            TurmaData.InsertFormandos(turma, formandosQueEntraram);
+
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = $"Turma actualizada com sucesso.", Duration = 4000 });
+            navManager.NavigateTo("Turmas");
+        }
+    }
 
     /// <summary>
     /// Corre quando o evento SendDictionary do componente <ModulosFormador /> for disparado

@@ -31,7 +31,6 @@ else
                         </Template>
                     </RadzenDropDown>
                 </td>
-                <td><RadzenNumeric TValue="double" @bind-Value="ModuloFormador[modulo.Id].Horas" /></td>
             </tr>        
         }
     </table>
@@ -45,9 +44,6 @@ else
     Dictionary<int,ModuloFormadorHora> ModuloFormador = new Dictionary<int,ModuloFormadorHora>();
 
     int? ultimoCurso;
-
-    [Parameter]
-    public bool RequestModulosFormador { get; set; } = false;
 
     [Parameter]
     public int Id { get; set; }
@@ -64,17 +60,9 @@ else
         }
     }
 
-    [Parameter]
-    public EventCallback<Dictionary<int,ModuloFormadorHora>> SendDictionary { get; set; }
-
-    protected override Task OnParametersSetAsync()
+    public Dictionary<int, ModuloFormadorHora> ObterDadosAtuais()
     {
-        if (RequestModulosFormador == true)
-        {
-            SendDictionary.InvokeAsync(ModuloFormador);
-            RequestModulosFormador = false;
-        }
-        return base.OnParametersSetAsync();
+        return ModuloFormador;
     }
 
     void CursoHasChanged()

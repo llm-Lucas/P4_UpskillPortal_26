@@ -52,41 +52,26 @@
                                                                                                                }))" />
 
         <RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
-        <!-- INICIO #008 -->
-        <!-- O RadzenButton nao sei como meter a funcionar -->
-        <!-- <RadzenButton Text="Enviar Email" Icon="email" Disabled="@(!selectedFormandos.Any())" Click="@EnviarEmailParaSelecionados" /> -->
-        <span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@BuildMailToLink()" disabled="@(selectedFormandos.Count == 0)">Enviar Email</a>
-        <!--FIM-->
     }
 
-    <RadzenGrid @ref="grid" Data="@filteredFormandos"
+    <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>Itens por página:</span>
+        <RadzenDropDown @bind-Value="@pageSize"
+                        Data="@(new int[] { 10, 15, 20, 50 })"
+                        Change="@(() => grid.Reload())"
+                        Style="width: 80px" />
+    </div>
+
+    <RadzenGrid @ref="grid" 
+        Data="@filteredFormandos"
     TItem="Formando"
     AllowSorting="true"
     AllowFiltering="true"
     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
     AllowPaging="true"
-    PageSize="10">
+    PageSize="@pageSize">
         <Columns>
-            <!--INICIO #008-->
-            <!--Adicionei checkbox para selecionar o mail da row especifica-->
-            @if (!IsViewedAsChild)
-            {
-                <RadzenGridColumn TItem="Formando" Title="Selecionar" Sortable="true" Filterable="true" Width="50px">
-                    <HeaderTemplate>
-                        <RadzenCheckBox TValue="bool"
-                        Value="@selectAll"
-                        ValueChanged="@((bool value) => ToggleSelectAll(value))"
-                        Change="@((args) => {})" /> <!-- required to trigger change -->
-                    </HeaderTemplate>
-                    <Template Context="formando">
-                        <RadzenCheckBox TValue="bool"
-                        Value="@IsSelected(formando.Id)"
-                        ValueChanged="@((bool checkedValue) => ToggleSelection(formando.Id, checkedValue))"
-                        Change="@((args) => {})" />
-                    </Template>
-                </RadzenGridColumn>
-            }
-            <!--FIM-->
+            
             <RadzenGridColumn TItem="Formando" Property="Nome" Title="Nome" />
             <RadzenGridColumn TItem="Formando" Property="Email" Title="Email" />
             <RadzenGridColumn TItem="Formando" Property="ContactoTelemovel" Title="Telemovel" />
@@ -165,30 +150,6 @@
                 </RadzenGridColumn>
             }
 
-            @*INICIO #008*@
-            @*Coluna do Ano Letivo*@
-            <RadzenGridColumn TItem="Formando" Title="Ano Letivo" Sortable="false">
-                <FilterTemplate>
-                    <RadzenDropDown @bind-Value="@filtroAnoLetivo" TextProperty="Nome" ValueProperty="Id" Style="width:100%" Placeholder="Filtrar por Ano Letivo"/>
-                    @*Inserir Logica de Filtragem Ano Letivo
-                        - string filtroAnoLetivo ja existe
-                        - pode ser necessario colocar em mais sitios
-                        - metodo de filtrar e o ApplyFilters()
-                        - ver os outros filtros, tem de ser semelhante
-                        - falta ano letivo na minha base de dados (Roman)
-
-                        Change="@(_ => ApplyFilters())"
-                        Data="@(estados.Select(t => t.Nome))" />
-                    *@
-                </FilterTemplate>
-                <Template Context="Formando">
-                    <span>
-                        @(Formando.Turma?.AnoLetivo?.Nome ?? "—")
-                    </span>
-                </Template>
-            </RadzenGridColumn>
-            @*FIM #008*@
-
             <RadzenGridColumn TItem="Formando" Title="Estado" Sortable="false">
                 <FilterTemplate>
                     <RadzenDropDown @bind-Value="@filtroEstado" TextProperty="Nome" ValueProperty="Id" Style="width:100%"
@@ -212,10 +173,11 @@
                 <RadzenGridColumn Title="Opções" TItem="Formando" Sortable="false" Filterable="false">
                     <Template Context="Formando">
                         <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesFormando>("Detalhes do Formando",
-                                                                                       new Dictionary<string, object>() { { "FormandoId", Formando.Id } },
-                                                                                       new DialogOptions(){ Width = "80%", Height = "90%" })) />
+                                                                                                                             new Dictionary<string, object>() { { "FormandoId", Formando.Id } },
+                                                                                                                             new DialogOptions() { Width = "80%", Height = "90%" })) />
                         <RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Formando/{Formando.Id}"))" />
                         <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Formando))" />
+                        <RadzenButton Title="Enviar Email" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="email" Click="@(() => navManager.NavigateTo($"mailto:{Formando.Email}", true))" />
                     </Template>
                 </RadzenGridColumn>
             }
@@ -255,6 +217,7 @@
     // END #008
 
     RadzenGrid<Formando> grid;
+    int pageSize = 10;
 
     [Parameter]
     public Func<Formando, bool> Filter { get; set; }

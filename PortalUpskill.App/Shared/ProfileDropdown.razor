@@ -1,0 +1,177 @@
+﻿@inject AuthenticationStateProvider AuthStateProvider
+@inject IFormadorData FormadorData
+@inject IPessoalData PessoalData
+@inject IFormandoData FormandoData
+@inject NavigationManager NavManager
+
+<div class="profile-wrapper">
+    <button class="profile-trigger @(isOpen ? "active" : "")" @onclick="ToggleDropdown" title="Perfil">
+        <div class="avatar-circle">
+            <span>@initials</span>
+        </div>
+    </button>
+
+    @if (isOpen)
+    {
+        <div class="profile-dropdown-backdrop" @onclick="CloseDropdown"></div>
+        <div class="profile-dropdown">
+            <div class="dropdown-header">
+                <div class="avatar-circle avatar-lg">
+                    <span>@initials</span>
+                </div>
+                <div class="dropdown-user-info">
+                    <strong class="dropdown-name">@userName</strong>
+                    @if (!string.IsNullOrEmpty(userEmail))
+                    {
+                        <span class="dropdown-email">@userEmail</span>
+                    }
+                    @if (!string.IsNullOrEmpty(userRole))
+                    {
+                        <span class="role-badge">@userRole</span>
+                    }
+                </div>
+            </div>
+
+            <div class="dropdown-divider"></div>
+
+            <div class="dropdown-actions">
+                @if (!string.IsNullOrEmpty(detalhesUrl))
+                {
+                    <a class="dropdown-item" href="@detalhesUrl" @onclick="CloseDropdown">
+                        <span class="material-icons">person</span>
+                        Ver detalhes do perfil
+                    </a>
+                }
+                <a class="dropdown-item" href="/AreaPessoal" @onclick="CloseDropdown">
+                    <span class="material-icons">settings</span>
+                    Configurações
+                </a>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item dropdown-item-danger" @onclick="Logout">
+                    <span class="material-icons">logout</span>
+                    Terminar sessão
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback OnLogout { get; set; }
+
+    private bool isOpen = false;
+    private string userName = "";
+    private string userEmail = "";
+    private string userRole = "";
+    private string initials = "?";
+    private string detalhesUrl = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userName = user.Identity.Name ?? "";   // temporário para o lookup
+
+            if (user.IsInRole("Administrador") || user.IsInRole("Secretariado"))
+            {
+                userRole = user.IsInRole("Administrador") ? "Administrador" : "Secretariado";
+                await LoadPessoalDetails();
+            }
+            else if (user.IsInRole("Formador"))
+            {
+                userRole = "Formador";
+                await LoadFormadorDetails();
+            }
+            else if (user.IsInRole("Coordenador"))
+            {
+                userRole = "Coordenador";
+                await LoadPessoalDetails();
+            }
+            else if (user.IsInRole("Formando"))
+            {
+                userRole = "Formando";
+                await LoadFormandoDetails();
+            }
+
+            initials = BuildInitials(userName);
+        }
+    }
+
+    private async Task LoadFormadorDetails()
+    {
+        try
+        {
+            var todos = FormadorData.GetAll();
+            var match = todos.FirstOrDefault(f =>
+                f.Nome.Equals(userName, StringComparison.OrdinalIgnoreCase) ||
+                f.Email.Equals(userName, StringComparison.OrdinalIgnoreCase));
+
+            if (match != null)
+            {
+                userName = match.Nome;        // <- adiciona esta linha
+                userEmail = match.Email ?? "";
+                detalhesUrl = $"/Detalhes/Formador/{match.Id}";
+            }
+        }
+        catch { }
+    }
+
+    private async Task LoadFormandoDetails()
+    {
+        try
+        {
+            var todos = FormandoData.GetAll();
+            var match = todos.FirstOrDefault(f =>
+                f.Nome.Equals(userName, StringComparison.OrdinalIgnoreCase) ||
+                f.Email.Equals(userName, StringComparison.OrdinalIgnoreCase));
+
+            if (match != null)
+            {
+                userName = match.Nome;
+                userEmail = match.Email ?? "";
+                detalhesUrl = $"/Detalhes/Formando/{match.Id}";
+            }
+        }
+        catch { }
+    }
+
+    private async Task LoadPessoalDetails()
+    {
+        try
+        {
+            var todos = PessoalData.GetAll();
+            var match = todos.FirstOrDefault(p =>
+                p.Nome.Equals(userName, StringComparison.OrdinalIgnoreCase) ||
+                p.Email.Equals(userName, StringComparison.OrdinalIgnoreCase));
+
+            if (match != null)
+            {
+                userName = match.Nome;        // <- adiciona esta linha
+                userEmail = match.Email ?? "";
+                detalhesUrl = $"/Detalhes/Admin/{match.Id}";
+            }
+        }
+        catch { }
+    }
+
+    private static string BuildInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+        var parts = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2
+            ? $"{parts[0][0]}{parts[^1][0]}".ToUpper()
+            : name[0].ToString().ToUpper();
+    }
+
+    private void ToggleDropdown() => isOpen = !isOpen;
+    private void CloseDropdown() => isOpen = false;
+
+    private void Logout()
+    {
+        isOpen = false;
+        NavManager.NavigateTo("/logout", forceLoad: true);
+    }
+}

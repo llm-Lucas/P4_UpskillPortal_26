@@ -5,13 +5,23 @@
 <div class="cardstyle">
     <h2>Avaliações</h2>
 
-    <RadzenGrid Data="@turmas"
+
+    <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>Itens por página:</span>
+        <RadzenDropDown @bind-Value="@pageSize"
+                        Data="@(new int[] { 10, 15, 20, 50 })"
+                        Change="@(() => grid.Reload())"
+                        Style="width: 80px" />
+    </div>
+
+    <RadzenGrid @ref="grid"
+                Data="@turmas"
                 TItem="Turma"
                 AllowSorting="true"
                 AllowFiltering="true"
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                 AllowPaging="true"
-                PageSize="10">
+                PageSize="@pageSize">
 
         <Columns>
             <RadzenGridColumn TItem="Turma" Property="Nome" Title="Turma" />
@@ -75,6 +85,9 @@
 
     string filtroCursoNome = null;
     string filtroAnoLetivo = null;
+
+    RadzenGrid<Turma> grid;
+    int pageSize = 10;
 
     [Parameter]
     public string Mode { get; set; }

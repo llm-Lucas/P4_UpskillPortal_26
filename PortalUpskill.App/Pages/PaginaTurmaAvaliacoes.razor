@@ -107,6 +107,17 @@
             HeaderText="Nota Final do Módulo"
             EditType="EditType.NumericEdit"
             AllowEditing="true">
+
+					<EditTemplate>
+						@{
+							var linha = (AvaliacaoLinha)context;
+						}
+						<SfNumericTextBox @bind-Value="linha.NotaFinal"
+										  Min="0"
+										  Max="20"
+										  Decimals="2"
+										  Format="n2" />
+					</EditTemplate>
 </GridColumn>
 
 <GridColumn Field="@nameof(AvaliacaoLinha.Comentarios)"

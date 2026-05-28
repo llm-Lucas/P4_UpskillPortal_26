@@ -1,0 +1,12 @@
+﻿@page "/logout"
+@layout BlankLayout
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavManager
+
+@code {
+    protected override void OnInitialized()
+    {
+        ((UpskillAuthenticationStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
+        NavManager.NavigateTo("/", forceLoad: true);
+    }
+}

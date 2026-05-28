@@ -1,9 +1,6 @@
 ﻿@page "/Formadores"
-@*INICIO #008*@
-@*Agora podemos meter o source, para sabermos de onde estamos a ir e para onde voltar*@
 @page "/Formadores/{source?}"
 @page "/Formadores/{source?}/{Idt:int}"
-@*FIM*@
 
 @inject IFormadorData formadorData
 @inject IModuloData moduloData
@@ -13,45 +10,32 @@
 
 	@if (Mode != "Add")
 	{
-		@if (filteredFormadores.Count == 0)
-		{
-			<span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="/Formadores">Enviar email aos Formadores</a>
-			<br />
-			<span style="margin-left:5px; font-size:10px; color:darkgray">(Filtrar os formadores por estado)</span>
-		}
-		else
-		{
-			<span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@email">Enviar email aos Formadores</a>
-			<br />
-			<span style="margin-left:5px; font-size:10px; color:darkgray">(Filtrar os formadores por estado)</span>
-		}
 		<br />
 
 		<AuthorizeView Roles="Administrador, Secretariado">
 			<Authorized>
-
-		<RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Formador" Icon="add" Click="@(() => dialogService.Open<CriarFormador>(
-																										   "Criar Formador",
-																										   new Dictionary<string, object>()
-																										   {
-																											   { "RedirectAfterCreation", IsViewedAsChild ? false : true}
-																										   },
-																										   new DialogOptions()
-																										   {
-																											   Width = "90%",
-																											   Height = "90%"
-																										   }))" />
+				<RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Formador" Icon="add" Click="@(() => dialogService.Open<CriarFormador>(
+																																	 "Criar Formador",
+																																	 new Dictionary<string, object>()
+																																	 {
+																														 { "RedirectAfterCreation", IsViewedAsChild ? false : true}
+																																	 },
+																																	 new DialogOptions()
+																																	 {
+																																		 Width = "90%",
+																																		 Height = "90%"
+																																	 }))" />
 			</Authorized>
 		</AuthorizeView>
 	}
 
 	<RadzenGrid Data="@filteredFormadores"
-	TItem="Formador"
-	AllowSorting="true"
-	AllowFiltering="true"
-	FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-	AllowPaging="true"
-	PageSize="10">
+				TItem="Formador"
+				AllowSorting="true"
+				AllowFiltering="true"
+				FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+				AllowPaging="true"
+				PageSize="10">
 		<Columns>
 			<RadzenGridColumn TItem="Formador" Property="Nome" Title="Nome" />
 			<RadzenGridColumn TItem="Formador" Property="Email" Title="Email">
@@ -61,20 +45,16 @@
 			</RadzenGridColumn>
 			<RadzenGridColumn TItem="Formador" Property="ContactoTelemovel" Title="Telemóvel" />
 			<RadzenGridColumn TItem="Formador" Property="ContactoTelefone" Title="Telefone" />
-            @*INICIO #008*@
-            @*Adicionar coluna dos Módulos*@
-            <RadzenGridColumn Title="Módulos" TItem="Formador" Sortable="false" Filterable="true">
-                <Template Context="Formador">
-                    @*Adicionar Lógica*@
-                </Template>
-            </RadzenGridColumn>
-            @*FIM*@
+			<RadzenGridColumn Title="Módulos" TItem="Formador" Sortable="false" Filterable="true">
+				<Template Context="Formador">
+					@*Adicionar Lógica*@
+				</Template>
+			</RadzenGridColumn>
 			<RadzenGridColumn TItem="Formador" Title="Estado" Sortable="false">
 				<FilterTemplate>
 					<RadzenDropDown @bind-Value="@filtroEstado" TextProperty="Text" ValueProperty="Value" Style="width:100%"
-					Change=@FiltrarPorEstado
-					Data="@(Estados.Select(t => new { Text = $"{t}", Value = t }))" />
-
+									Change=@FiltrarPorEstado
+									Data="@(Estados.Select(t => new { Text = $"{t}", Value = t }))" />
 				</FilterTemplate>
 				<Template Context="Formador">
 					<span>@Formador.Estado.Nome</span>
@@ -88,33 +68,26 @@
 						<RadzenButton Title="Adicionar Formador" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="add" Click="@(() => SendFormador(Formador.Id))" />
 					</Template>
 				</RadzenGridColumn>
-
 			}
 			else
 			{
-
-							<AuthorizeView Roles="Administrador, Secretariado">
-			<Authorized>
-				<RadzenGridColumn Title="Opções" TItem="Formador" Sortable="false" Filterable="false" Width="260px">
-					<Template Context="Formador">
-						<RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesFormador>($"Detalhes",
-																					   new Dictionary<string, object>() { { "FormadorId", Formador.Id } },
-																					   new DialogOptions() { Width = "80%", Height = "90%" })) />
-						<RadzenButton Title="Módulos"
-              Size="ButtonSize.Medium"
-              ButtonStyle="ButtonStyle.Info"
-              Icon="library_books"
-             
-              Click="@(() => navManager.NavigateTo($"AssociarModulo/{Formador.Id}"))" />
-																					   <RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Formador/{Formador.Id}"))" />
-						<RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Formador))" />
-						
-						<!-- INÍCIO #004 -->
-					@* 	<!-- Remover botao associar modulo a formador -->
-						<!-- <RadzenButton Title="Associar Módulos" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="library_add" Click="@(() => navManager.NavigateTo($"AssociarModulo/{Formador.Id}"))" /> --> *@
-						<!-- FIM -->
-					</Template>
-				</RadzenGridColumn>
+				<AuthorizeView Roles="Administrador, Secretariado">
+					<Authorized>
+						<RadzenGridColumn Title="Opções" TItem="Formador" Sortable="false" Filterable="false" Width="300px">
+							<Template Context="Formador">
+								<RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesFormador>($"Detalhes",
+																																 new Dictionary<string, object>() { { "FormadorId", Formador.Id } },
+																																 new DialogOptions() { Width = "80%", Height = "90%" })) />
+								<RadzenButton Title="Módulos"
+											  Size="ButtonSize.Medium"
+											  ButtonStyle="ButtonStyle.Info"
+											  Icon="library_books"
+											  Click="@(() => navManager.NavigateTo($"AssociarModulo/{Formador.Id}"))" />
+								<RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Formador/{Formador.Id}"))" />
+								<RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Formador))" />
+								<RadzenButton Title="Enviar Email" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="email" Click="@(() => navManager.NavigateTo($"mailto:{Formador.Email}", true))" />
+							</Template>
+						</RadzenGridColumn>
 					</Authorized>
 				</AuthorizeView>
 			}
@@ -124,11 +97,8 @@
 </div>
 @if (Mode != "Add")
 {
-	<!-- INÍCIO #004 -->
-	<!-- Botão de Voltar -->
 	<div class="row justify-content-center">
 		<div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-			<!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
 			<RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
 		</div>
 	</div>
@@ -141,11 +111,9 @@ else
 		</div>
 	</div>
 }
-<!-- FIM -->
 
 @code {
 
-	///Trata da lógica necessária para adicionar outras entidades eg: adicionar formadores a modulos
 	private void ReceiveFormador(int FormadorId)
 	{
 		if (Modulo.Formadores.FirstOrDefault(f => f.Id == FormadorId) != null)
@@ -162,7 +130,6 @@ else
 		Modulo.Formadores.Remove(formador);
 	}
 
-
 	Modulo Modulo = new Modulo();
 	public int ModuloId { get; set; }
 	List<Formador> Formadores = new List<Formador>();
@@ -171,7 +138,6 @@ else
 	List<Formador> FormadoresEstadoInicial = new List<Formador>();
 	void AtualizarFormadores(Modulo modulo)
 	{
-
 		var formadoresQueEntraram = Modulo.Formadores.Except(ModuloEstadoInicial.Formadores).ToList();
 		var formadoresQueSairam = ModuloEstadoInicial.Formadores.Except(Modulo.Formadores).ToList();
 
@@ -185,25 +151,21 @@ else
 		}
 
 		notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = $"Operação efetuada com sucesso.", Duration = 4000 });
-		//navManager.NavigateTo($"/Modulos");
 		dialogService.Close();
 	}
+
 	List<Formador> formadores;
 	List<Formador> filteredFormadores;
 
-	// INICIO #008
-	// Parametro de source
 	[Parameter]
 	public string? source { get; set; }
 
 	[Parameter]
-	public int Idt { get; set; } //id da turma
+	public int Idt { get; set; }
 
-	// Parametro de autorizacao
 	[CascadingParameter]
 	Task<AuthenticationState> authStateTask { get; set; }
 
-	// Metodo para voltar, tendo em conta a source
 	void Voltar()
 	{
 		if (source == "Turmas" && authStateTask.Result.User.IsInRole("Administrador"))
@@ -211,15 +173,10 @@ else
 			navManager.NavigateTo("/Turmas");
 		}
 	}
-	// FIM
 
-	//Mode serve para esconder/mostrar os botões da última coluna
-	// - "Add" serve para quando este componente é usado dentro de uma página de criação
-	// - qualquer outra coisa mostra os botões de editar e apagar
 	[Parameter]
 	public string Mode { get; set; }
 
-	//Evento que comunica com os componentes exteriores
 	[Parameter]
 	public EventCallback<int> OutgoingFormador { get; set; }
 
@@ -229,23 +186,15 @@ else
 	string email;
 	string mail;
 
-	/// <summary>
-	/// Caso este componente seja visto através de uma tab e precise de comunicar com <CriarFormando />
-	/// para que este não redirecione após criação
-	/// </summary>
 	[Parameter]
 	public bool IsViewedAsChild { get; set; } = false;
 
-	//Na inicialização do componente...
 	protected override async Task OnInitializedAsync()
 	{
 		if (ModuloId != 0)
 		{
 			Modulo = moduloData.GetByIdWithFormador(ModuloId);
-
-			//Guardar a lista original dos formadores caso haja uma alteração na listagem
 			ModuloEstadoInicial.Formadores = new List<Formador>();
-
 			foreach (var formador in Modulo.Formadores)
 			{
 				ModuloEstadoInicial.Formadores.Add(formador);
@@ -254,31 +203,14 @@ else
 		LoadFormadores();
 	}
 
-	/// <summary>
-	/// Carrega a lista de formadores da BD
-	/// </summary>
 	void LoadFormadores()
 	{
 		formadores = formadorData.GetAll().Where(f => f.PerfilId == 3 || f.PerfilId == 5).ToList();
 		filteredFormadores = formadores.OrderBy(f => f.Nome).ToList();
-
-		mail = "";
-
-		foreach (var formador in filteredFormadores)
-		{
-			mail = mail + formador.Email + ";";
-		}
-
-		email = $"mailto:{mail}";
 	}
 
-	/// <summary>
-	/// Incova o evento acionado pelo botão Acionar.
-	/// O componente que subescrever o evento irá receber ToSendId
-	/// </summary>
 	private async Task SendFormador(int ToSendId)
 	{
-		//evento que vai ser apanhado pelo componente que estiver a ouvir por ele
 		await OutgoingFormador.InvokeAsync(ToSendId);
 	}
 
@@ -293,11 +225,11 @@ else
 				<div class="row">
 					<div class="col-md-12 d-flex justify-content-center">
 						<RadzenButton class="w-150 mx-2" Text="Ok" Click='() =>
-																		  {
-																			  FileManagerService.RemoveFile(formador.Foto); FileManagerService.RemoveFile(formador.CV);
-																			  formadorData.Remove(formador.Id); ds.Close(true); LoadFormadores();
-																			  notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Formador apagado com sucesso", Duration = 4000 });
-																		  }' />
+																												{
+																													FileManagerService.RemoveFile(formador.Foto); FileManagerService.RemoveFile(formador.CV);
+																													formadorData.Remove(formador.Id); ds.Close(true); LoadFormadores();
+																													notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Formador apagado com sucesso", Duration = 4000 });
+																												}' />
 						<RadzenButton class="w-150 mx-2" Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" />
 					</div>
 				</div>
@@ -314,9 +246,6 @@ else
 		</div>);
 	}
 
-	/// <summary>
-	/// Opções disponíveis para o filtro da coluna de Estado
-	/// </summary>
 	List<string> Estados = new List<string>
 	{
 		"Filtrar por estado",
@@ -324,24 +253,10 @@ else
 		"Inativo"
 	};
 
-	/// <summary>
-	/// Filtro da coluna Estado que está activo
-	/// </summary>
 	string filtroEstado = "Filtrar por estado";
 
-	/// <summary>
-	/// Corre quando o filtro da coluna Estado é alterado
-	/// </summary>
 	void FiltrarPorEstado()
 	{
 		filteredFormadores = formadores.Where(f => filtroEstado != "Filtrar por estado" ? f.Estado.Nome == filtroEstado : true).OrderBy(f => f.Nome).ToList();
-
-		mail = "";
-		foreach (var formador in filteredFormadores)
-		{
-			mail = mail + formador.Email + ";";
-		}
-
-		email = $"mailto:{mail}";
 	}
 }
