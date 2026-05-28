@@ -74,11 +74,14 @@
 			<Authorized>
 				<RadzenGridColumn Title="Opções" TItem="Formador" Sortable="false" Filterable="false">
 					<Template Context="Formador">
+								
 						<RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesFormador>($"Detalhes",
                                                                                        new Dictionary<string, object>() { { "FormadorId", Formador.Id } },
                                                                                        new DialogOptions(){ Width = "80%", Height = "90%" })) />
+								<RadzenButton Title="Associar Turma" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Info" Icon="library_books" />
 						<RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Coordenador/{Formador.Id}"))" />
 						<RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Formador))" />
+					
 					</Template>
 				</RadzenGridColumn>
 					</Authorized>
