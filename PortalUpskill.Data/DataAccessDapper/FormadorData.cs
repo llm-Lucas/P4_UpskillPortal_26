@@ -85,29 +85,33 @@ namespace PortalUpskill.Data.DataAccessDapper
 		//	}
 		//}
 
-		public List<Turma> GetTurmaByIdFormador(int formadorId)
-		{
-			using (var connection = new SqlConnection(_connectionString))
-			{
-				string sql = @"SELECT DISTINCT f.PessoaId, t.*, c.* FROM Formador AS f
-								INNER JOIN Pessoa AS p
-									ON f.PessoaId = p.Id
-								LEFT JOIN FormadorModulo AS fm
-									ON p.Id = fm.FormadorId
-								INNER JOIN FormadorModuloTurma fmt
-									ON fmt.FormadorModuloId = fm.Id
-								INNER JOIN Turma as t
-									ON t.Id = fmt.TurmaId
-								LEFT JOIN Curso AS c
-									ON c.Id = t.CursoId
-			                    WHERE p.Id = @Id";
-				return connection.Query<Turma, Curso, Turma>(sql, (turma, curso) =>
-				{
-					turma.Curso = curso;
-					return turma;
-				}, new { Id = formadorId }, splitOn: "Id, Id").ToList();
-			}
-		}
+	public List<Turma> GetTurmaByIdFormador(int formadorId)
+{
+    using (var connection = new SqlConnection(_connectionString))
+    {
+        string sql = @"SELECT DISTINCT f.PessoaId, t.*, c.*, al.Id, al.Nome FROM Formador AS f
+                        INNER JOIN Pessoa AS p
+                            ON f.PessoaId = p.Id
+                        LEFT JOIN FormadorModulo AS fm
+                            ON p.Id = fm.FormadorId
+                        INNER JOIN FormadorModuloTurma fmt
+                            ON fmt.FormadorModuloId = fm.Id
+                        INNER JOIN Turma as t
+                            ON t.Id = fmt.TurmaId
+                        LEFT JOIN Curso AS c
+                            ON c.Id = t.CursoId
+                        LEFT JOIN AnoLetivo AS al
+                            ON t.AnoLetivoId = al.Id
+                        WHERE p.Id = @Id";
+
+        return connection.Query<Turma, Curso, AnoLetivo, Turma>(sql, (turma, curso, anoLetivo) =>
+        {
+            turma.Curso = curso;
+            turma.AnoLetivo = anoLetivo;
+            return turma;
+        }, new { Id = formadorId }, splitOn: "Id, Id, Id").ToList();
+    }
+}
 
         public List<Turma> GetTurmaByIdCoordenador(int coordenadorId)
         {

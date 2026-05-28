@@ -96,6 +96,8 @@
         </table>
     </div>
 
+        <h3 style="margin-top: 25px;"></h3>
+
     @if (DataSource.Count > 0)
     {
             <SfSchedule TValue="AppointmentData" @ref="Scheduler" @bind-SelectedDate="@CurrentDate" @bind-CurrentView="@CurrentView">
@@ -142,6 +144,7 @@
                                 {
                                     <RadzenButton ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Text="Ver Detalhes" Click="@(() => navManager.NavigateTo($"DetalhesAula/{(context as AppointmentData).Id}/{Idf}/{Idt}/CalendarCoor"))" />
                                 }
+
                             </div>
                         }
                     </FooterTemplate>
