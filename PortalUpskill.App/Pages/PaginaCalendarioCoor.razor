@@ -11,6 +11,8 @@
 @inject IFormandoData formandoData
 @inject IModuloData moduloData
 @inject ProtectedSessionStorage sessionStorage
+@inject FileManagerService fileManager
+@using System.Globalization
 
 <div class="cardstyle">
     <div style="display: flex; gap: 1rem; align-items: flex-start;">
@@ -35,30 +37,43 @@
                 </RadzenDropDown>
             </div>
         }
-        <div style="flex:1">
-        <h3>Selecione o ano letivo</h3>
-        <RadzenDropDown class="w-25"
-                        Data="@AnosLetivos"
-                        @bind-Value="AnoLetivoSelecionado"
-                        Change="OnAnoLetivoChange"
-                        TValue="string"
-                        ValueProperty="Ano"
-                        TextProperty="Ano"
-                        AllowFiltering="true"
-                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                        AllowClear="false">
-            <Template Context="ano">
-                <span>@ano.Ano</span>
-            </Template>
-        </RadzenDropDown>
-    </div>
 
-    <!--FIM #004-->
-</div>
     @if (SelectedTurma != null)
-    {
-        @if(DataSource.Count > 0)
+{
+    <div class="row">
+        @if (SelectedTurma.HorarioAssincronoInicio.HasValue && SelectedTurma.HorarioAssincronoFim.HasValue)
         {
+            <span class="col-4"><b>Horário Assíncrono:</b> @SelectedTurma.HorarioAssincronoInicio.Value.ToString("HH:mm") - @SelectedTurma.HorarioAssincronoFim.Value.ToString("HH:mm")</span>
+        }
+        @if (SelectedTurma.HorarioSincronoInicio.HasValue && SelectedTurma.HorarioSincronoFim.HasValue)
+        {
+            <span class="col"><b>Horário Síncrono:</b> @SelectedTurma.HorarioSincronoInicio.Value.ToString("HH:mm") - @SelectedTurma.HorarioSincronoFim.Value.ToString("HH:mm")</span>
+        }
+    </div>
+    <div class="row">
+        <span class="col-4"><b>Ano Letivo:</b> @(SelectedTurma.AnoLetivo?.Nome ?? "Não definido")</span>
+            @if (SelectedTurma.HorarioAssincronoInicio.HasValue && SelectedTurma.HorarioAssincronoFim.HasValue && SelectedTurma.HorarioSincronoInicio.HasValue && SelectedTurma.HorarioSincronoFim.HasValue)
+            {
+                <span class="col"><b>Carga Horária:</b> @SelectedTurma.CargaHoraria</span>
+            }
+            else
+            {
+                <span class="col"><b>Carga Horária:</b> Não definida</span>
+            }
+    </div>
+    @if (SelectedTurma.DataInicioCurso.HasValue)
+    {
+        <div class="row">
+            <span class="col-4"><b>Data Início:</b> @SelectedTurma.DataInicioCurso.Value.ToString("dd/MM/yyyy")</span>
+            <span class="col"><b>Duração do curso:</b> @($"{SelectedTurma.Curso.DuracaoHoras}h")</span>
+        </div>
+    }
+    @if (SelectedTurma.DataFimCurso.HasValue)
+    {
+        <div class="row">
+            <span class="col"><b>Data Fim:</b> @SelectedTurma.DataFimCurso.Value.ToString("dd/MM/yyyy")</span>
+        </div>
+    }
             @if (isFormando && SelectedTurma != null)
             {
                 <div class="mb-3">
@@ -66,6 +81,84 @@
                         Turma: @SelectedTurma.Nome
                     </h3>
 
+    <RadzenButton class="mt-4" data-toggle="collapse" data-target="#tabela" Text="Mostrar módulos" ButtonStyle="ButtonStyle.Primary" Icon="expand" />
+    <RadzenButton class="mt-4" Text="Download" ButtonStyle="ButtonStyle.Primary" Icon="file_download" Click="Exportar" />
+
+    <div class="collapse" id="tabela">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Módulo</th>
+                    <th>Formadores</th>
+                    <th>Horas</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var moduloHora in SelectedTurma.Curso.Modulos)
+                {
+                    <tr>
+                        <td>M@(moduloHora.Key.Id)</td>
+                        <td>@moduloHora.Key.Nome</td>
+                        <td>
+                            @foreach (var formador in SelectedTurma.Modulos.Where(m => m.Id == moduloHora.Key.Id).Select(m => m.Formador))
+                            {
+                                <span>@formador.Nome</span><br />
+                            }
+                        </td>
+                        <td>@(HorasPorModulo.ContainsKey(moduloHora.Key.Id) ? HorasPorModulo[moduloHora.Key.Id] : "0")/@(moduloHora.Value)h</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+        <h3 style="margin-top: 25px;"></h3>
+
+    @if (DataSource.Count > 0)
+    {
+            <SfSchedule TValue="AppointmentData" @ref="Scheduler" @bind-SelectedDate="@CurrentDate" @bind-CurrentView="@CurrentView">
+                <ScheduleResources>
+                    <ScheduleEvents TValue="AppointmentData" OnPopupOpen="@OnPopupOpen"></ScheduleEvents>
+                    <ScheduleResource TItem="ResourceData" TValue="int" DataSource="@OwnerData" Field="OwnerId" Title="Owner"
+                                      Name="Owner" TextField="Text" IdField="Id" ColorField="Color"></ScheduleResource>
+                </ScheduleResources>
+                <ScheduleEventSettings DataSource="@DataSource"></ScheduleEventSettings>
+                <ScheduleQuickInfoTemplates TemplateType="TemplateType.Both">
+                    <HeaderTemplate>
+                        <div class="quick-info-header">
+                            <div class="quick-info-header-content" style="@(GetHeaderStyles((context as AppointmentData)))">
+                                <div class="quick-info-title">
+                                    @((context as AppointmentData).OwnerId == 0 ? "Calendarizar dia" : (context as AppointmentData).Subject)
+                                </div>
+                                <div class="duration-text">
+                                    @((context as AppointmentData).StartTime.ToString("dd/MM/yyyy") + " (" + (context as AppointmentData).StartTime.ToString("HH:mm") + "-" + (context as AppointmentData).EndTime.ToString("HH:mm") + ")")
+                                </div>
+                            </div>
+                        </div>
+                    </HeaderTemplate>
+                    <ContentTemplate>
+                        @if ((context as AppointmentData).ElementType != "cell")
+                        {
+                            AppointmentData Data = context as AppointmentData;
+                            <div class="event-content">
+                                <div class="meeting-type-wrap">
+                                    <label>Disciplina</label>:
+                                    <span>@(Data.Subject)</span>
+                                </div>
+                                <div class="meeting-subject-wrap">
+                                    <label>Tipo</label>:
+                                    <span>@((Data.OwnerId != 0) ? OwnerData.Where(item => item.Id.Equals(Data.OwnerId)).FirstOrDefault().Text : "")</span>
+                                </div>
+                            </div>
+                        }
+                    </ContentTemplate>
+                    <FooterTemplate>
+                        @if ((context as AppointmentData).ElementType != "cell")
+                        {
+                            <div class="cell-footer">
+                                @if ((context as AppointmentData).OwnerId == 3)
+                                {
                     <h5>
                         Curso: @SelectedTurma.Curso?.Nome
                     </h5>
@@ -123,106 +216,67 @@
                             @if ((context as AppointmentData).OwnerId == 3)
                             {
                                     <RadzenButton ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Text="Ver Detalhes" Click="@(() => navManager.NavigateTo($"DetalhesAula/{(context as AppointmentData).Id}/{Idf}/{Idt}/CalendarCoor"))" />
-                            }
-                        </div>
-                    }
-                </FooterTemplate>
-            </ScheduleQuickInfoTemplates>
-            <ScheduleViews>
-                <ScheduleView Option="View.Week" StartHour="08:00" EndHour="20:00" DisplayName="Semanal"></ScheduleView>
-                <ScheduleView Option="View.Month" MaxEventsPerRow="10" ShowWeekend="false" DisplayName="Mensal"></ScheduleView>
-                <ScheduleView Option="View.TimelineYear" MaxEventsPerRow="3" DisplayName="Anual" IsSelected="true">
-                    <EventTemplate>
-                        <div class="e-appointment-details">
-                            <div class="e-subject e-text-center">@((context as AppointmentData).Subject)</div>
-                        </div>
-                    </EventTemplate>
-                </ScheduleView>
-            </ScheduleViews>
-        </SfSchedule>
-        }
-        else
-        {
-            <p>Não existem aulas calendarizadas para a turma selecionada.</p>
-        }
+                                }
+
+                            </div>
+                        }
+                    </FooterTemplate>
+                </ScheduleQuickInfoTemplates>
+                <ScheduleViews>
+                    <ScheduleView Option="View.Week" StartHour="08:00" EndHour="20:00" DisplayName="Semanal"></ScheduleView>
+                    <ScheduleView Option="View.Month" MaxEventsPerRow="10" ShowWeekend="false" DisplayName="Mensal"></ScheduleView>
+                    <ScheduleView Option="View.TimelineYear" MaxEventsPerRow="3" DisplayName="Anual" IsSelected="true">
+                        <EventTemplate>
+                            <div class="e-appointment-details">
+                                <div class="e-subject e-text-center">@((context as AppointmentData).Subject)</div>
+                            </div>
+                        </EventTemplate>
+                    </ScheduleView>
+                </ScheduleViews>
+            </SfSchedule>
     }
+    else
+    {
+        <p>Não existem aulas calendarizadas para a turma selecionada.</p>
+    }
+} 
+   
+
+       
+    
+    
 </div>
 
-<!-- INÍCIO #008 -->
-<!-- Botão de Voltar -->
 <div class="row justify-content-center">
     <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
         <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
     </div>
 </div>
-<!-- FIM -->
 
 @code {
-    //#004 Inicio falta alterar a logica para ir buscar os anos letivos à BD
-    private List<AnoLetivo> AnosLetivos { get; set; }
-    private string AnoLetivoSelecionado { get; set; }
-    private class AnoLetivo
-    {
-        public string Ano { get; set; }
-    }
-    private void OnAnoLetivoChange(object value)
-    {
-        AnoLetivoSelecionado = value?.ToString();
-        // Adicionar aqui logica quando o ano letivo é selecionado
-    }
-    //#004 fim
-
-    // INÍCIO #008
-    // Instancia a ViewModel para a Aula
-    // É necessário para o botão de Voltar
-
-    AulaViewModel aulaVM = new AulaViewModel();
+    [Parameter]
+    public int Idf { get; set; }
 
     [Parameter]
-    public int Idf { get; set; }//id do Formador
-
-    [Parameter]
-    public int Idt { get; set; }//id da Turma
-
-	// FIM
+    public int Idt { get; set; }
 
     [Parameter]
     public int Id { get; set; }
 
-    // Lista de todas disponíveis para o formador
     List<Turma> turmas = new List<Turma>();
-
-    // Turma Selectionada pelo dropdown
     int SelectedTurmaId;
     Turma SelectedTurma;
-
-    //Aulas associadas à turma selecionada
     List<Aula> aulas = new List<Aula>();
-
-    //Dicionário com as horas que estão contabilizadas no calendário
     Dictionary<int, double> HorasPorModulo = new Dictionary<int, double>();
 
-    #region VariaveisSfScheduler
+    AulaViewModel aulaVM = new AulaViewModel();
 
     SfSchedule<AppointmentData> Scheduler;
-    // determina a vista actual do Scheduler. Ao início é TimelineYear
     View CurrentView = View.TimelineYear;
-
-    //Data para qual o Scheduler está apontado.
     DateTime CurrentDate = DateTime.Now;
-
-    //Lista de todos os eventos no Scheduler
     List<AppointmentData> DataSource = new List<AppointmentData>();
-
-    //ResourceData são grupos de eventos
-    //é o que permite ter cores e agrupamento de eventos
     List<ResourceData> OwnerData = new List<ResourceData>();
 
-    #endregion
-
-    //User que está a consultar a página
-    //isto é para enviar o id do formador para prencher na aula
     Pessoa user;
 
     [CascadingParameter]
@@ -237,7 +291,7 @@
         {
             user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
             idCoor = user.Id;
-        };
+        }
 
         Formando formando = formandoData.GetById(user.Id);
 
@@ -259,26 +313,13 @@
             turmas = turmas.Where(t => t.Nome != "Sem turma associada").ToList();
         }
 
-        List<int> idsAutorizados = turmas.Select(t => t.Id).ToList();
-        if (Id != 0 && idsAutorizados.Contains(Id))
+        if (Id != 0)
         {
             SelectedTurmaId = Id;
             OnTurmaSelected();
         }
-        AnosLetivos = new List<AnoLetivo>
-        {
-            new AnoLetivo { Ano = "2020/2021" },
-            new AnoLetivo { Ano = "2021/2022" },
-            new AnoLetivo { Ano = "2022/2023" },
-            new AnoLetivo { Ano = "2023/2024" },
-            new AnoLetivo { Ano = "2024/2025" },
-            new AnoLetivo { Ano = "2025/2026" }
-        };
     }
 
-    /// <summary>
-    /// Prepara a página para quando uma turma é selecionada
-    /// </summary>
     void OnTurmaSelected()
     {
         DataSource.Clear();
@@ -319,53 +360,223 @@
         }
 
     }
+    async Task Exportar()
+    {
+        if (DataSource.Count() == 0)
+        {
+            dialogService.OpenAsync("Erro", render =>
+    @<div class="row justify-content-center">
+        Não existe nada para exportar.
+    </div>
+    , new DialogOptions { Height = "auto", Width = "auto" }
+    );
+            return;
+        }
+        //Criar workbook com uma worksheet
+        IXLWorkbook wb = new XLWorkbook(env.ContentRootPath + "/Files/Calendars/template_cronograma.xlsx");
+        IXLWorksheet ws = wb.Worksheet("Calendarização");
 
-    /// <summary>
-    /// Cria uma lista de Grupos consoante os módulos que existam no Curso da turma Selecionada
-    /// isto permito agrupar aulas pelos módulos
-    /// </summary>
+        ws.Cell("B1").SetValue(SelectedTurma.Curso.Nome);
+        ws.Cell("B2").SetValue(SelectedTurma.Nome);
+
+        Calendar calendar = CultureInfo.InvariantCulture.Calendar;
+
+        //determinar primeiro e último dia
+        DateTime firstDay = DataSource.OrderBy(apt => apt.StartTime).First().StartTime.Date;
+        DateTime lastDay = DataSource.OrderByDescending(apt => apt.EndTime).First().StartTime.Date;
+
+        //currentDay é o primeiro dia do mês do primeiro dia da turma
+        DateTime currentDay = new DateTime(firstDay.Year, firstDay.Month, 1);
+
+
+        #region CicloMensal
+        CellPointer c = new(4, 1);
+        int monthRowCount = 27;
+
+        while (currentDay.Month <= lastDay.Month || currentDay.Year < lastDay.Year)
+        {
+            ws.Cell(c.Row, c.Col).SetValue(Meses[currentDay.Month]);
+            ws.Range(c.Row, c.Col, ++c.Row, c.Col).Merge().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            c.Row++;
+            ws.Cell(c.Row++, c.Col)
+                .SetValue("Horário")
+                .Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
+
+            CellPointer hoursColumn = new CellPointer(c.Row, c.Col);
+            foreach (var hours in HoursColumnIEnumerable)
+            {
+                ws.Cell(c.Row++, c.Col).Value = hours;
+            }
+
+            ws.Range(hoursColumn.Row, hoursColumn.Col, c.Row - 1, c.Col).Style
+                .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+                .Border.SetInsideBorder(XLBorderStyleValues.Thin)
+                .Border.SetInsideBorderColor(XLColor.AshGrey);
+
+            c.Row -= monthRowCount;
+            c.Col++;
+
+            int daysInMonth = calendar.GetDaysInMonth(currentDay.Year, currentDay.Month);
+
+            for (int i = 1; i <= daysInMonth; i++)
+            {
+                int dayOfWeek = (int)currentDay.DayOfWeek;
+
+                ws.Cell(c.Row++, c.Col)
+                    .SetValue(DiaSemana[dayOfWeek])
+                    .Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
+                ws.Cell(c.Row--, c.Col++)
+                    .SetValue(i)
+                    .Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
+
+                //ínicio da coluna do dia
+                CellPointer dayStart = new CellPointer(c.Row + 3, c.Col - 1);
+
+                //fim da coluna do dia
+                CellPointer dayEnd = new CellPointer(c.Row + 26, c.Col - 1);
+
+                ws.Range(dayStart.Row, dayStart.Col, dayEnd.Row, dayEnd.Col)
+                    .Style
+                        .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+                        .Border.SetInsideBorder(XLBorderStyleValues.Thin)
+                        .Border.SetInsideBorderColor(XLColor.AshGrey);
+
+                //fim de semana
+                if (dayOfWeek == 0 || dayOfWeek == 6)
+                    ws.Range(dayStart.Row, dayStart.Col, dayEnd.Row, dayEnd.Col)
+                        .Style
+                            .Fill.SetBackgroundColor(XLColor.FromArgb(221, 221, 221))
+                            .Border.SetInsideBorderColor(XLColor.FromArgb(221, 221, 221));
+
+                var currentDayApts = DataSource.Where(apt => apt.StartTime.Date == currentDay.Date);
+                if (currentDayApts.Count() != 0)
+                {
+                    foreach (var apt in currentDayApts)
+                    {
+                        if (apt.OwnerId != 1 && apt.OwnerId != 2)//se não for interrupção
+                        {
+                            var ts = apt.StartTime.TimeOfDay;
+                            var startRowOffset = (int)((apt.StartTime.TimeOfDay.TotalHours - 8) * 2);
+                            var endRowOffset = (int)((apt.EndTime.TimeOfDay.TotalHours - 8) * 2 - 1);
+
+                            var aptCellRange = ws.Range(dayStart.Row + startRowOffset, dayStart.Col, dayStart.Row + endRowOffset, dayStart.Col);
+
+                            aptCellRange.Merge()
+                                .Style
+                                    .Border.SetOutsideBorder(XLBorderStyleValues.Medium)
+                                    .Border.SetOutsideBorderColor(XLColor.Black)
+                                    .Border.SetInsideBorder(XLBorderStyleValues.None);
+
+                            string atividade = apt.Subject.Contains("Assíncrono") ? "Autónomo" : "Aula";
+                            string formador = apt.Formador != null ? apt.Formador.Nome : "Sem Formador";
+                            aptCellRange.Value = $"M{apt.ModuloId}\n\n{formador}\n\n{atividade}";
+                        }
+                        else
+                        {
+                            if (apt.OwnerId == 1) //interrupção paga
+                            {
+                                ws.Range(dayStart.Row, dayStart.Col, dayEnd.Row, dayEnd.Col)
+                                    .Merge()
+                                    .SetValue(apt.Subject)
+                                    .Style
+                                        .Fill.SetBackgroundColor(XLColor.FromArgb(178, 178, 178))
+                                        .Font.SetFontColor(XLColor.Black);
+                            }
+                            else
+                            {
+                                ws.Range(dayStart.Row, dayStart.Col, dayEnd.Row, dayEnd.Col)
+                                            .Merge()
+                                            .SetValue(apt.Subject)
+                                            .Style
+                                                .Fill.SetBackgroundColor(XLColor.FromArgb(102, 102, 102))
+                                                .Font.SetFontColor(XLColor.Black);
+                            }
+                        }
+                    }
+                }
+                currentDay = currentDay.AddDays(1);
+            }
+
+            c.Row += monthRowCount + 2;
+            c.Col = 1;
+        }
+
+        #endregion
+
+        await fileManager.DownloadWorkbook(wb, filename: $"{SelectedTurma.Nome} Calendarização");
+    }
+
+    void CalcularHorasPorModulo()
+    {
+        HorasPorModulo.Clear();
+        foreach (var apt in DataSource)
+        {
+            var totalHoras = (apt.EndTime - apt.StartTime).TotalHours;
+            var recurStr = apt.RecurrenceRule;
+            if (recurStr != null)
+            {
+                recurStr = recurStr.Substring(recurStr.IndexOf("UNTIL=") + 6, 8);
+                var until = DateTime.ParseExact(recurStr, "yyyyMMdd", CultureInfo.InvariantCulture);
+
+                totalHoras *= (until - apt.StartTime.Date).TotalDays;
+            }
+
+            if (HorasPorModulo.ContainsKey(apt.ModuloId))
+            {
+                HorasPorModulo[apt.ModuloId] += totalHoras;
+            }
+            else
+            {
+                HorasPorModulo.Add(apt.ModuloId, totalHoras);
+            }
+        }
+    }
+
+
     void CreateResourceData()
     {
         OwnerData.Clear();
-
         OwnerData.Add(new ResourceData { Id = 3, Color = "#5db774", Text = "Aulas Sumarizadas" });
 
         int resourceDataId = 4;
         foreach (var modulo in SelectedTurma.Curso.Modulos.Keys)
         {
-            OwnerData.Add(new ResourceData
-            {
-                Id = resourceDataId,
-                Color = "#479cc8",
-                Text = $"M{modulo.Id} - Síncrono",
-                ModuloId = modulo.Id
-            });
+            OwnerData.Add(new ResourceData { Id = resourceDataId, Color = "#479cc8", Text = $"M{modulo.Id} - Síncrono", ModuloId = modulo.Id });
             resourceDataId++;
-            OwnerData.Add(new ResourceData
-            {
-                Id = resourceDataId,
-                Color = "#479ca8",
-                Text = $"M{modulo.Id} - Assíncrono",
-                ModuloId = modulo.Id
-            });
+            OwnerData.Add(new ResourceData { Id = resourceDataId, Color = "#479ca8", Text = $"M{modulo.Id} - Assíncrono", ModuloId = modulo.Id });
             resourceDataId++;
         }
     }
 
-    /// <summary>
-    ///Prepara um objecto aula guarda em SessionStorage e redireciona para a página de detalhes de
-    /// </summary
     async Task CriarSumario(AppointmentData data)
     {
         Aula novaAula = new Aula
-        {
-            HoraInicio = data.StartTime,
-            HoraFim = data.EndTime,
-            TurmaId = SelectedTurmaId,
-            ModuloId = data.ModuloId
-        };
+            {
+                HoraInicio = data.StartTime,
+                HoraFim = data.EndTime,
+                TurmaId = SelectedTurmaId,
+                ModuloId = data.ModuloId
+            };
         await sessionStorage.SetAsync("CriarAula", JsonConvert.SerializeObject(novaAula));
         navManager.NavigateTo($"DetalhesAula/");
+    }
+
+    private string GetHeaderStyles(AppointmentData data)
+    {
+        try
+        {
+            if (data.ElementType == "cell")
+                return "align-items: center ; color: #919191;";
+            else
+                return "background:" + this.OwnerData.Where(item => item.Id.Equals(data.OwnerId)).FirstOrDefault().Color + "; color: #FFFFFF;";
+        }
+        catch (Exception e) { return e.Message; }
+    }
+
+    void OnPopupOpen(PopupOpenEventArgs<AppointmentData> args)
+    {
+        if (args.Type == PopupType.Editor)
+            args.Cancel = true;
     }
 
     public class ResourceData
@@ -393,6 +604,7 @@
         public string ElementType { get; set; }
         public int ModuloId { get; set; }
         public string ModuloName { get; set; }
+        public Formador Formador { get; set; }
 
         public void AddWorkingDays(int days)
         {
@@ -400,37 +612,37 @@
             EndTime = EndTime.AddWorkingDays(1);
         }
     }
-
-    /// <summary>
-    /// Muda o estilo do header para o editor de evento do Scheduler
-    /// </summary>
-    private string GetHeaderStyles(AppointmentData data)
+    class CellPointer
     {
-        try
-        {
-            if (data.ElementType == "cell")
-            {
-                //CellClick Header Styles
-                return "align-items: center ; color: #919191;";
-            }
-            else
-            {
-                //EventClick Header Styles
-
-                return "background:" + this.OwnerData.Where(item => item.Id.Equals(data.OwnerId)).FirstOrDefault().Color + "; color: #FFFFFF;";
-
-            }
-
-        }
-        catch (Exception e) { return e.Message; }
+        public CellPointer(int x, int y) { Row = x; Col = y; }
+        public int Row { get; set; }
+        public int Col { get; set; }
     }
 
-    //Função que bloqueia a abertura da janela de detalhes do Scheduler
-    void OnPopupOpen(PopupOpenEventArgs<AppointmentData> args)
+    IEnumerable<string> HoursColumnIEnumerable
     {
-        if (args.Type == PopupType.Editor)
+        get
         {
-            args.Cancel = true;
+            DateTime hour = DateTime.ParseExact("08:00", "hh:mm", CultureInfo.InvariantCulture);
+            string returnString = string.Empty;
+            for (int i = 0; i <= 23; i++)
+            {
+                returnString = hour.ToShortTimeString();
+                hour = hour.AddMinutes(30);
+                returnString += " - " + hour.ToShortTimeString();
+                yield return returnString;
+            }
         }
     }
+
+    string[] Meses = new string[]
+    {
+    "", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    };
+
+    string[] DiaSemana = new string[]
+    {
+    "Dom", "2ª F", "3ª F", "4ª F", "5ª F", "6ª F", "Sáb"
+    };
 }
