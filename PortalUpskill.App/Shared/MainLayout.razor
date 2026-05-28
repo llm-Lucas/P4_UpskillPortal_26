@@ -24,13 +24,18 @@
                     </Authorized>
                 </AuthorizeView>
                 <AuthorizeView Roles="Coordenador">
-                    <div class="sidebar" @onclick="@Toggletrue">
-                        <UpSkillCoordenadorNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggletrue" />
+                    <div class="sidebar">
+                        <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
                     </div>
                 </AuthorizeView>
                 <AuthorizeView Roles="Formador">
-                    <div class="sidebar" @onclick="@Toggletrue">
-                        <UpsKillFormadorNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggletrue" />
+                    <div class="sidebar">
+                        <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
+                    </div>
+                </AuthorizeView>
+                <AuthorizeView Roles="Formando">
+                    <div class="sidebar">
+                        <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
                     </div>
                 </AuthorizeView>
             </div>
@@ -40,7 +45,7 @@
     <div class="main">
         <div class="top-row d-flex justify-content-between px-2">
             <div class="d-flex flex-row align-items-center">
-                <a href="/Index"><img class="hvr-back-pulse" src="/img/MetaDigital_sem_fundo_negativo.png" style="height: 3rem" /></a>
+                <a href="/Index"><img src="/img/MetaDigital_sem_fundo_negativo.png" style="height: 5rem; filter: invert(1);" /></a>
             </div>
             
             <div class="d-flex flex-row align-items-center">
