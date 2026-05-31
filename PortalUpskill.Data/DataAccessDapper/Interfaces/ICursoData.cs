@@ -24,5 +24,7 @@ namespace PortalUpskill.Data.DataAccessDapper
 		void InsertCoordenadores(int cursoId, List<Formador> Coordenadores);
 		void RemoveCoordenadores(int cursoId, List<Formador> coordenadoresToRemove);
 		void UpdateOrdemModulos(Curso curso);
-	}
+
+        List<Curso> GetAll();
+    }
 }

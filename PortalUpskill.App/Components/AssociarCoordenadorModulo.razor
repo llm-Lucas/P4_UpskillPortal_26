@@ -1,0 +1,107 @@
+﻿@inject ICursoCoordenadorData cursoCoordenadorData
+@inject ICursoData cursoData
+@inject DialogService dialogService
+
+<div class="cardstyle">
+    <h2>Associar Curso ao Coordenador</h2>
+    <h3>Coordenador: @Coordenador.Nome</h3>
+
+    <RadzenFieldset Text="Cursos Associados">
+        @if (cursosCoordenador.Count == 0)
+        {
+            <p>Não existem Cursos associados a este Coordenador.</p>
+            <p>Procure um curso abaixo e clique em "Adicionar".</p>
+        }
+        else
+        {
+            <table class="table-borderless table-sm">
+                @foreach (var curso in cursosCoordenador)
+                {
+                    <tr>
+                        <td>
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => RemoverCurso(curso))" Icon="remove" />
+                        </td>
+                        <td>@curso.Nome</td>
+                    </tr>
+                }
+            </table>
+        }
+    </RadzenFieldset>
+
+    <RadzenFieldset Text="Cursos Disponíveis" class="mt-4">
+        @if (cursosDisponiveis.Count == 0)
+        {
+            <p>Não existem cursos disponíveis para associar.</p>
+        }
+        else
+        {
+            <table class="table-borderless table-sm">
+                @foreach (var curso in cursosDisponiveis)
+                {
+                    <tr>
+                        <td>
+                            <RadzenButton ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Click="@(() => AdicionarCurso(curso))" Icon="add" />
+                        </td>
+                        <td>@curso.Nome</td>
+                    </tr>
+                }
+            </table>
+        }
+    </RadzenFieldset>
+
+    <div class="row justify-content-center mt-4">
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Text="Fechar" Icon="close" Click="@(() => dialogService.Close())" />
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int CoordenadorId { get; set; }
+
+    Pessoa Coordenador = new Pessoa();
+    List<Curso> cursosCoordenador = new List<Curso>();
+    List<Curso> cursosDisponiveis = new List<Curso>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (CoordenadorId != 0)
+        {
+            Coordenador.Id = CoordenadorId;
+            await CarregarDados();
+        }
+    }
+
+    async Task CarregarDados()
+    {
+        cursosCoordenador = cursoCoordenadorData.GetCursosByCoordenador(CoordenadorId);
+        var todosCursos = cursoData.GetAll();
+        cursosDisponiveis = todosCursos
+            .Where(c => !cursosCoordenador.Any(cc => cc.Id == c.Id))
+            .ToList();
+        StateHasChanged();
+    }
+
+    void AdicionarCurso(Curso curso)
+    {
+        cursoCoordenadorData.InsertCursoCoordenador(curso.Id, CoordenadorId);
+        notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = $"Curso {curso.Nome} associado com sucesso.",
+                Duration = 3000
+            });
+        CarregarDados();
+    }
+
+    void RemoverCurso(Curso curso)
+    {
+        cursoCoordenadorData.RemoveCursoCoordenador(curso.Id, CoordenadorId);
+        notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = $"Curso {curso.Nome} removido com sucesso.",
+                Duration = 3000
+            });
+        CarregarDados();
+    }
+}

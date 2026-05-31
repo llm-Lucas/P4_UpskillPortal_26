@@ -65,8 +65,13 @@
 						<RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesFormador>($"Detalhes",
                                                                                        new Dictionary<string, object>() { { "FormadorId", Formador.Id } },
                                                                                        new DialogOptions(){ Width = "80%", Height = "90%" })) />
-								<RadzenButton Title="Associar Turma" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Info" Icon="library_books" />
-						<RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Coordenador/{Formador.Id}"))" />
+								<RadzenButton Title="Associar Curso" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Info" Icon="library_books"
+											  Click="@(args => dialogService.Open<AssociarCoordenador>(
+        "Associar Curso",
+        new Dictionary<string, object>() { { "CoordenadorId", Formador.Id } },
+        new DialogOptions() { Width = "60%", Height = "80%" }
+    ))" />
+		<RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Coordenador/{Formador.Id}"))" />
 						<RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Formador))" />
 					<RadzenButton Title="Enviar Email" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="email" Click="@(() => navManager.NavigateTo($"mailto:{Formador.Email}", true))"/>
 					</Template>
