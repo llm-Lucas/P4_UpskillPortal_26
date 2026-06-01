@@ -217,12 +217,13 @@ namespace UpskillPortal.Api.Controllers
         }
 
         [HttpPut("{id}/decidir")]
-        public IActionResult DecidirFalta(int id, [FromQuery] string estado, [FromQuery] bool justificada)
+        public IActionResult DecidirFalta(int id, [FromQuery] string estado, [FromQuery] bool justificada, [FromQuery] string? observacoes = null)
         {
             if (estado != "Justificada" && estado != "Injustificada")
                 return BadRequest("Estado inválido. Use 'Justificada' ou 'Injustificada'.");
 
-            _faltaData.AtualizarEstadoFalta(id, estado, justificada);
+            _faltaData.AtualizarEstadoFalta(id, estado, justificada, observacoes);
+
             return Ok(new { message = $"Falta atualizada para {estado} com sucesso." });
         }
 
