@@ -15,6 +15,8 @@ namespace PortalUpskill.Data.Models
         //public Formando Formando { get; set; }
         public DateTime HoraInicio { get; set; }
         public DateTime HoraFim { get; set; }
+        public string Observacoes { get; set; }
+        public string Estado { get; set; }
         public bool Justificada { get; set; }
         public string Anexo { get; set; }
         public int Duracao { get; set; }

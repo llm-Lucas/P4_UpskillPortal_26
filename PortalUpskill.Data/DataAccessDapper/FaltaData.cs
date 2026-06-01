@@ -137,5 +137,52 @@ namespace PortalUpskill.Data.DataAccessDapper
                 }
             }
         }
+
+        public List<Falta> GetFaltasPendentes()
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                // Vai buscar as faltas com estado Pendente
+                return connection.Query<Falta>("SELECT * FROM Falta WHERE Estado = 'Pendente' ORDER BY HoraInicio DESC").ToList();
+            }
+        }
+
+        public void SubmeterJustificacao(int faltaId, string caminhoAnexo)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string sql = "UPDATE Falta SET Anexo = @Anexo, Estado = 'Pendente' WHERE Id = @Id";
+                connection.Execute(sql, new { Id = faltaId, Anexo = caminhoAnexo });
+            }
+        }
+
+        public void AtualizarEstadoFalta(int faltaId, string estado, bool justificada, string observacoes)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                // Se for rejeitada (Injustificada), limpamos o anexo e gravamos a observação/motivo
+                string sql = estado == "Injustificada"
+                    ? "UPDATE Falta SET Estado = @Estado, Justificada = @Justificada, Observacoes = @Observacoes, Anexo = NULL WHERE Id = @Id"
+                    : "UPDATE Falta SET Estado = @Estado, Justificada = @Justificada, Observacoes = @Observacoes WHERE Id = @Id";
+
+                connection.Execute(sql, new { Id = faltaId, Estado = estado, Justificada = justificada, Observacoes = observacoes });
+            }
+        }
+
+        public void ProcessarValidacao(int faltaId, string novoEstado, string observacoes)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string sql = @"UPDATE Falta 
+                       SET Estado = @Estado, 
+                           Observacoes = @Observacoes, 
+                           Justificada = @Justificada 
+                       WHERE Id = @Id";
+
+                bool justificada = (novoEstado == "Justificada");
+
+                connection.Execute(sql, new { Id = faltaId, Estado = novoEstado, Observacoes = observacoes, Justificada = justificada });
+            }
+        }
     }
 }

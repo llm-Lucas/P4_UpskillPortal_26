@@ -1,6 +1,110 @@
 ﻿@page "/FaltasFormando"
 
-<div class="cardstyle">
-    <h2> Faltas</h2>
-    <p>Página de faltas do formando em construção.</p>
-</div>
+@using PortalUpskill.App.Utils
+@using PortalUpskill.Data.Models
+@using Newtonsoft.Json @* 1. ADICIONADO: Para conseguir ler o JSON do utilizador *@
+
+@inject IFaltaData faltaData
+@inject FileManagerService FileManager
+@inject ProtectedSessionStorage sessionStorage
+
+<h3>As Minhas Faltas</h3>
+
+<RadzenGrid Data="@minhasFaltas" TItem="Falta" AllowPaging="true" PageSize="10">
+    <Columns>
+        <RadzenGridColumn TItem="Falta" Property="HoraInicio" Title="Data/Hora" />
+        <RadzenGridColumn TItem="Falta" Property="Estado" Title="Estado" />
+        <RadzenGridColumn TItem="Falta" Title="Justificação da Falta">
+            <Template Context="falta">
+                @if (falta.Estado == "Injustificada" || string.IsNullOrEmpty(falta.Estado))
+                {
+                    <label class="btn btn-outline-danger d-inline-flex align-items-center justify-content-center gap-2 m-0"
+                           style="cursor: pointer; padding: 6px 12px; font-size: 0.875rem; font-weight: 500; border-radius: 4px; transition: all 0.2s;">
+
+                        <span class="material-icons" style="font-size: 18px;">cloud_upload</span>
+                        <span><b>Submeter Justificação</b></span>
+
+                        <InputFile OnChange="@(e => SubmeterComprovativo(e, falta))"
+                                   style="display: none;"
+                                   accept=".pdf,.png,.jpg,.jpeg" />
+                    </label>
+                }
+                else if (falta.Estado == "Pendente")
+                {
+                    <span class="badge bg-warning text-dark d-inline-flex align-items-center gap-1" style="padding: 8px 12px; font-size: 0.85rem;">
+                        <span class="material-icons" style="font-size: 16px;">schedule</span> A aguardar validação...
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-success text-white d-inline-flex align-items-center gap-1" style="padding: 8px 12px; font-size: 0.85rem;">
+                        <span class="material-icons" style="font-size: 16px; color: white">check_circle</span> Falta Justificada
+                    </span>
+                }
+            </Template>
+        </RadzenGridColumn>
+
+        <RadzenGridColumn TItem="Falta" Property="Observacoes" Title="Observações / Motivo">
+            <Template Context="falta">
+                @if (!string.IsNullOrEmpty(falta.Observacoes))
+                {
+                    <span class="text-danger fw-bold">@falta.Observacoes</span>
+                }
+                else
+                {
+                    <span class="text-muted"><i>Sem observações</i></span>
+                }
+            </Template>
+        </RadzenGridColumn>
+    </Columns>
+</RadzenGrid>
+
+@code {
+    private List<Falta> minhasFaltas = new();
+    private int loggeInFormandoId; 
+
+    protected override async Task OnInitializedAsync() 
+    {
+        var readUserFromSession = await sessionStorage.GetAsync<string>("user");
+
+        if (readUserFromSession.Success && !string.IsNullOrEmpty(readUserFromSession.Value))
+        {
+            var user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
+            
+            loggeInFormandoId = user.Id; 
+
+            CarregarFaltas();
+        }
+    }
+
+    private void CarregarFaltas()
+    {
+        if (loggeInFormandoId > 0)
+        {
+            minhasFaltas = faltaData.GetByFormandoId(loggeInFormandoId);
+        }
+    }
+
+    private async Task SubmeterComprovativo(InputFileChangeEventArgs e, Falta falta)
+    {
+        string caminhoFinal = FileManager.FilePath(e.File, "justificacao", falta.FormandoId, falta.AulaId);
+
+        if (string.IsNullOrEmpty(caminhoFinal))
+        {
+            return;
+        }
+
+        try
+        {
+            await FileManager.UploadFile(e.File, caminhoFinal);
+
+            faltaData.SubmeterJustificacao(falta.Id, caminhoFinal);
+
+            CarregarFaltas();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}

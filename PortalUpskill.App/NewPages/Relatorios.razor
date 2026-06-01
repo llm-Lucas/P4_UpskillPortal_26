@@ -157,6 +157,18 @@
                     </RadzenGridColumn>
                 </Columns>
             </RadzenGrid>
+            
+            <br />
+
+            <AuthorizeView Roles="Administrador, Coordenador">
+                <Authorized>
+                    <RadzenButton Text="Validar Justificações Pendentes"
+                                  Icon="pageview"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Click="@(() => navManager.NavigateTo("/Admin/ValidarJustificacoes"))"
+                                  Style="margin-bottom: 20px; margin-right: 10px;" />
+                </Authorized>
+            </AuthorizeView>
         }
 
         @* SUBPÁGINA: SUMÁRIOS *@

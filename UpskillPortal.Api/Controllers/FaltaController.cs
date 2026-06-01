@@ -198,5 +198,55 @@ namespace UpskillPortal.Api.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpGet("pendentes")]
+        public IActionResult GetFaltasPendentes()
+        {
+            var faltas = _faltaData.GetFaltasPendentes();
+            return Ok(faltas);
+        }
+
+        [HttpPut("{id}/submeter-justificacao")]
+        public IActionResult SubmeterJustificacao(int id, [FromBody] string caminhoAnexo)
+        {
+            if (string.IsNullOrEmpty(caminhoAnexo))
+                return BadRequest("O caminho do anexo não pode ser nulo ou vazio.");
+
+            _faltaData.SubmeterJustificacao(id, caminhoAnexo);
+            return Ok(new { message = "Justificação submetida com sucesso e a aguardar validação." });
+        }
+
+        [HttpPut("{id}/decidir")]
+        public IActionResult DecidirFalta(int id, [FromQuery] string estado, [FromQuery] bool justificada)
+        {
+            if (estado != "Justificada" && estado != "Injustificada")
+                return BadRequest("Estado inválido. Use 'Justificada' ou 'Injustificada'.");
+
+            _faltaData.AtualizarEstadoFalta(id, estado, justificada);
+            return Ok(new { message = $"Falta atualizada para {estado} com sucesso." });
+        }
+
+        [HttpGet("ver_anexo")]
+        public IActionResult VerAnexo([FromQuery] string caminho)
+        {
+            if (string.IsNullOrEmpty(caminho) || !System.IO.File.Exists(caminho))
+            {
+                return NotFound("Ficheiro não encontrado ou caminho inválido.");
+            }
+
+            var bytes = System.IO.File.ReadAllBytes(caminho);
+            var extensao = Path.GetExtension(caminho).ToLower();
+
+            // Define o tipo de conteúdo correto para o browser saber abrir ou descarregar
+            string contentType = extensao switch
+            {
+                ".pdf" => "application/pdf",
+                ".png" => "image/png",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                _ => "application/octet-stream"
+            };
+
+            return File(bytes, contentType, Path.GetFileName(caminho));
+        }
     }
 }
