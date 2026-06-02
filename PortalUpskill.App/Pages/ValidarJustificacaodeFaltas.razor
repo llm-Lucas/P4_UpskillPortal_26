@@ -16,6 +16,19 @@
 
         <RadzenGridColumn TItem="Falta" Property="HoraInicio" Title="Data da Falta" />
 
+        <RadzenGridColumn TItem="Falta" Title="Módulo">
+            <Template Context="falta">
+                @if (falta.Aula?.Modulo != null)
+                {
+                    <span>@($"M{@falta.Aula.Modulo.Id} - {@falta.Aula.Modulo.Nome}")</span>
+                }
+                else
+                {
+                    <span class="text-muted"><i>Sem módulo</i></span>
+                }
+            </Template>
+        </RadzenGridColumn>
+
         <RadzenGridColumn TItem="Falta" Property="Duracao" Title="Duração (Min)" width="120px" />
 
         <RadzenGridColumn TItem="Falta" Title="Documento" Filterable="false" Sortable="false">

@@ -22,13 +22,29 @@ namespace PortalUpskill.Data.DataAccessDapper
         {
             using (var connection = new SqlConnection(_connectionString))
             {
+                // 1. Corrigido: Adicionado o "FROM Falta f" e organizada a seleção (f.*, a.*, m.*)
                 string sql = @"
-                SELECT * 
-                FROM Falta 
-                WHERE FormandoId = @FormandoId
-                ORDER BY HoraInicio DESC";
+        SELECT f.*, a.*, m.* FROM Falta f
+        INNER JOIN Aula a ON f.AulaId = a.Id
+        INNER JOIN Modulo m ON a.ModuloId = m.Id
+        WHERE f.FormandoId = @FormandoId
+        ORDER BY f.HoraInicio DESC";
 
-                return connection.Query<Falta>(sql, new { FormandoId = formandoId }).ToList();
+                // 2. Corrigido: Usar o mapeamento de múltiplos objetos <Falta, Aula, Modulo, Falta>
+                return connection.Query<Falta, Aula, Modulo, Falta>(
+                    sql,
+                    (falta, aula, modulo) =>
+                    {
+                        falta.Aula = aula;
+                        if (falta.Aula != null)
+                        {
+                            falta.Aula.Modulo = modulo;
+                        }
+                        return falta;
+                    },
+                    new { FormandoId = formandoId },
+                    splitOn: "Id,Id" // Indica ao Dapper para dividir os objetos sempre que encontrar a coluna 'Id'
+                ).ToList();
             }
         }
         // FIM
@@ -142,8 +158,28 @@ namespace PortalUpskill.Data.DataAccessDapper
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                // Vai buscar as faltas com estado Pendente
-                return connection.Query<Falta>("SELECT * FROM Falta WHERE Estado = 'Pendente' ORDER BY HoraInicio DESC").ToList();
+                // 1. O SQL precisa de selecionar f.*, a.* e m.* e fazer os JOINs
+                string sql = @"
+        SELECT f.*, a.*, m.* FROM Falta f
+        INNER JOIN Aula a ON f.AulaId = a.Id
+        INNER JOIN Modulo m ON a.ModuloId = m.Id
+        WHERE f.Estado = 'Pendente' OR f.Estado IS NULL OR f.Estado = ''
+        ORDER BY f.HoraInicio DESC";
+
+                // 2. Usar o Query<Falta, Aula, Modulo, Falta> para ligar os objetos em memória
+                return connection.Query<Falta, Aula, Modulo, Falta>(
+                    sql,
+                    (falta, aula, modulo) =>
+                    {
+                        falta.Aula = aula;
+                        if (falta.Aula != null)
+                        {
+                            falta.Aula.Modulo = modulo;
+                        }
+                        return falta;
+                    },
+                    splitOn: "Id,Id" // Diz ao Dapper onde começa a separação de colunas de cada tabela
+                ).ToList();
             }
         }
 

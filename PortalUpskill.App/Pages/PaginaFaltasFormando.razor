@@ -8,11 +8,24 @@
 @inject FileManagerService FileManager
 @inject ProtectedSessionStorage sessionStorage
 
+
 <h2>As Minhas Faltas</h2>
 
 <RadzenGrid Data="@minhasFaltas" TItem="Falta" AllowPaging="true" PageSize="10">
     <Columns>
         <RadzenGridColumn TItem="Falta" Property="HoraInicio" Title="Data/Hora" />
+        <RadzenGridColumn TItem="Falta" Title="Módulo">
+            <Template Context="falta">
+                @if (falta.Aula?.Modulo != null)
+                {
+                    <span>@($"M{@falta.Aula.Modulo.Id} - {@falta.Aula.Modulo.Nome}")</span>
+                }
+                else
+                {
+                    <span class="text-muted"><i>Sem módulo</i></span>
+                }
+            </Template>
+        </RadzenGridColumn>
         <RadzenGridColumn TItem="Falta" Property="Estado" Title="Estado" />
         <RadzenGridColumn TItem="Falta" Title="Justificação da Falta">
             <Template Context="falta">
