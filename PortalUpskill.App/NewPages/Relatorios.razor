@@ -78,7 +78,6 @@
     else
     {
         <div class="mb-4 d-flex justify-content-between align-items-center bg-light p-3 rounded">
-            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="arrow_back" Text="Voltar" Click="VoltarParaSelecao" />
             <span class="fs-5 fw-bold text-dark">Turma Atual: <span class="text-primary">@SelectedTurma?.Nome</span></span>
         </div>
 
@@ -215,6 +214,16 @@
                 </RadzenGrid>
             </div>
         }
+
+        <div class="row justify-content-center">
+            <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                              Icon="cancel"
+                              style="display: inline-block; margin-left: 10px;"
+                              Text="Voltar"
+                              Click="VoltarParaSelecao" />
+            </div>
+        </div>
     }
 </div>
 

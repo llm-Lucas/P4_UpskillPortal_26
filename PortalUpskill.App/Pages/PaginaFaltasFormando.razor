@@ -8,7 +8,7 @@
 @inject FileManagerService FileManager
 @inject ProtectedSessionStorage sessionStorage
 
-<h3>As Minhas Faltas</h3>
+<h2>As Minhas Faltas</h2>
 
 <RadzenGrid Data="@minhasFaltas" TItem="Falta" AllowPaging="true" PageSize="10">
     <Columns>
@@ -58,6 +58,16 @@
         </RadzenGridColumn>
     </Columns>
 </RadzenGrid>
+
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                      Icon="cancel"
+                      style="display: inline-block; margin-left: 10px;"
+                      Text="Voltar"
+                      Click="@(() => navManager.NavigateTo($"Index"))" />
+    </div>
+</div>
 
 @code {
     private List<Falta> minhasFaltas = new();
