@@ -111,30 +111,21 @@
     {
         try
         {
-            if (string.IsNullOrEmpty(caminhoFicheiro) || !System.IO.File.Exists(caminhoFicheiro))
+            if (string.IsNullOrEmpty(caminhoFicheiro))
             {
-                await JSRuntime.InvokeVoidAsync("alert", "O ficheiro não foi encontrado no servidor ou o caminho é inválido.");
+                await JSRuntime.InvokeVoidAsync("alert", "O caminho do ficheiro está vazio.");
                 return;
             }
 
-            var bytes = await System.IO.File.ReadAllBytesAsync(caminhoFicheiro);
-            var base64 = Convert.ToBase64String(bytes);
-            var extensao = System.IO.Path.GetExtension(caminhoFicheiro).ToLower();
+            string caminhoCodificado = Uri.EscapeDataString(caminhoFicheiro);
 
-            string mimeType = extensao switch
-            {
-                ".pdf" => "application/pdf",
-                ".png" => "image/png",
-                ".jpg" or ".jpeg" => "image/jpeg",
-                _ => "application/octet-stream"
-            };
+            string urlApi = $"https://localhost:7257/api/Falta/ver_anexo?caminho={caminhoCodificado}";
 
-            var dataUrl = $"data:{mimeType};base64,{base64}";
-            await JSRuntime.InvokeVoidAsync("open", dataUrl, "_blank");
+            await JSRuntime.InvokeVoidAsync("open", urlApi, "_blank");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", "Erro ao tentar ler o ficheiro: " + ex.Message);
+            await JSRuntime.InvokeVoidAsync("alert", "Erro ao tentar abrir o ficheiro: " + ex.Message);
         }
     }
 }
