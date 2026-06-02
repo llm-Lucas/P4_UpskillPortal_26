@@ -355,6 +355,11 @@
             DataSource.Clear();
         }
 
+        if (SelectedTurma.DataInicioCurso.HasValue)
+        {
+            CurrentDate = SelectedTurma.DataInicioCurso.Value;
+        }
+
         //colocar todos os eventos como não editáveis
         DataSource.ForEach(apt => apt.IsReadonly = true);
 

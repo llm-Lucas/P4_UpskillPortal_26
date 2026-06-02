@@ -398,7 +398,10 @@
 			SelectedTurma.Curso.Modulos[moduloHora.Key] = result[moduloHora.Key.Id].Horas;
 		}
 
-		SelectedTurma.Aulas = aulaData.GetByTurma(SelectedTurma);
+		if (SelectedTurma.DataInicioCurso.HasValue)
+		{
+			CurrentDate = SelectedTurma.DataInicioCurso.Value;
+		}
 
 		//Aponta a vista do calendário para o ínicio do curso da turma
 		CurrentDate = SelectedTurma.DataInicioCurso.Value;
@@ -444,6 +447,7 @@
 				apt.Formador = aula.Formador;
 			}
 		}
+
 		CalcularHorasPorModulo();
 	}
 

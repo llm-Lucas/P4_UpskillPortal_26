@@ -42,20 +42,25 @@ namespace PortalUpskill.Data.DataAccessDapper
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                string sql = @"SELECT * FROM Aula AS a
-                                INNER JOIN Formador as f 
-                                    ON a.FormadorId = f.PessoaId
-								INNER JOIN Pessoa as p
-									on f.PessoaId = p.Id
+                string sql = @"SELECT a.*, m.*, t.*, f.*, s.* FROM Aula AS a
+                       LEFT JOIN Modulo AS m ON a.ModuloId = m.Id
+                       LEFT JOIN Turma AS t ON a.TurmaId = t.Id
+                       LEFT JOIN Formador AS f ON a.FormadorId = f.Id
+                       LEFT JOIN Sala AS s ON a.SalaId = s.Id
                                 WHERE TurmaId = @TurmaId";
-                return connection.Query<Aula, Formador, Aula>(sql,
-                    (aula, formador) =>
-                    {
-                        aula.Formador = formador;
-                        return aula;
-                    }
-                    ,new { TurmaId = TurmaId }).Distinct()
-                    .ToList();
+                return connection.Query<Aula, Modulo, Turma, Formador, Sala, Aula>(sql,
+            (aula, modulo, turma, formador, sala) =>
+            {
+                aula.Modulo = modulo;
+                aula.Turma = turma;
+                aula.Formador = formador;
+                aula.Sala = sala;
+                return aula;
+            },
+            new { TurmaId = TurmaId },
+            splitOn: "Id") 
+            .Distinct()
+            .ToList();
             }
         }
 
@@ -63,20 +68,24 @@ namespace PortalUpskill.Data.DataAccessDapper
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                string sql = @"SELECT * FROM Aula AS a
-                                INNER JOIN Formador as f 
-                                    ON a.FormadorId = f.PessoaId
-								INNER JOIN Pessoa as p
-									on f.PessoaId = p.Id
+                string sql = @"SELECT a.*, m.*, t.*, f.*, s.* FROM Aula AS a
+                       LEFT JOIN Modulo AS m ON a.ModuloId = m.Id
+                       LEFT JOIN Turma AS t ON a.TurmaId = t.Id
+                       LEFT JOIN Formador AS f ON a.FormadorId = f.Id
+                       LEFT JOIN Sala AS s ON a.SalaId = s.Id
                                 WHERE a.TurmaId = @TurmaId AND a.FormadorId = @FormadorId";
-                return connection.Query<Aula, Formador, Aula>(sql,
-                    (aula, formador) =>
-                    {
-                        aula.Formador = formador;
-                        return aula;
-                    }
-                    , new { TurmaId = TurmaId, FormadorId = FormadorId }).Distinct()
-                    .ToList();
+                return connection.Query<Aula, Modulo, Turma, Formador, Sala, Aula>(sql,
+             (aula, modulo, turma, formador, sala) =>
+             {
+                 aula.Modulo = modulo;
+                 aula.Turma = turma;
+                 aula.Formador = formador;
+                 aula.Sala = sala;
+                 return aula;
+             },
+             new { TurmaId = TurmaId },
+             splitOn: "Id")
+             .ToList();
             }
         }
 

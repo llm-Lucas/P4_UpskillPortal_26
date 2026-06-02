@@ -294,6 +294,11 @@
                 apt.Subject = "Aula Sumarizada";
             }
         }
+
+        if (SelectedTurma.DataInicioCurso.HasValue)
+        {
+            CurrentDate = SelectedTurma.DataInicioCurso.Value;
+        }
     }
 
     void CreateResourceData()

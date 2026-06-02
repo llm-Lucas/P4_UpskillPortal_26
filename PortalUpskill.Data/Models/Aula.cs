@@ -27,5 +27,6 @@ namespace PortalUpskill.Data.Models
         public Modulo Modulo { get; set; }
         public Turma Turma { get; set; }
         public Formador Formador { get; set; }
+        public Sala Sala { get; set; }
     }
 }
