@@ -1,133 +1,394 @@
-﻿@page "/FaltasFormando"
+﻿@attribute [Authorize(Roles = "Formando, Aluno")]
+@page "/FaltasFormando"
 
 @using PortalUpskill.App.Utils
 @using PortalUpskill.Data.Models
-@using Newtonsoft.Json @* 1. ADICIONADO: Para conseguir ler o JSON do utilizador *@
+@using Newtonsoft.Json
 
 @inject IFaltaData faltaData
 @inject FileManagerService FileManager
 @inject ProtectedSessionStorage sessionStorage
+@inject NotificationService notificationService
 
+<div class="cardstyle">
+    <h2>As Minhas Faltas</h2>
 
-<h2>As Minhas Faltas</h2>
+    @* ───────────────────────────────────────────────────────
+       PAINEL DE PRÉ-VISUALIZAÇÃO
+       Aparece quando o utilizador seleciona um ficheiro mas
+       ainda não confirmou a submissão.
+    ─────────────────────────────────────────────────────── *@
+    @if (faltaEmPreview != null)
+    {
+        <div class="alert alert-warning border border-warning shadow-sm mb-4 animate-fade-in" role="alert">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="m-0">
+                    <span class="material-icons align-middle me-1" style="font-size:20px;">preview</span>
+                    Confirmar Submissão de Justificação
+                </h5>
+                <button type="button" class="btn-close" @onclick="CancelarPreview" aria-label="Fechar"></button>
+            </div>
 
-<RadzenGrid Data="@minhasFaltas" TItem="Falta" AllowPaging="true" PageSize="10">
-    <Columns>
-        <RadzenGridColumn TItem="Falta" Property="HoraInicio" Title="Data/Hora" />
-        <RadzenGridColumn TItem="Falta" Title="Módulo">
-            <Template Context="falta">
-                @if (falta.Aula?.Modulo != null)
+            @* Resumo da falta a justificar *@
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <small class="text-muted d-block">Data da falta</small>
+                    <strong>@faltaEmPreview.HoraInicio.ToString("dd/MM/yyyy HH:mm")</strong>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block">Módulo</small>
+                    <strong>
+                        @if (faltaEmPreview.Aula?.Modulo != null)
+                        {
+                            @($"M{faltaEmPreview.Aula.Modulo.Id} - {faltaEmPreview.Aula.Modulo.Nome}")
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sem módulo</span>
+                        }
+                    </strong>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block">Duração</small>
+                    <strong>@faltaEmPreview.Duracao min</strong>
+                </div>
+            </div>
+
+            @* Ficheiro selecionado *@
+            <div class="d-flex align-items-center gap-2 p-2 mb-3 rounded" style="background:#fff3cd;">
+                <span class="material-icons text-warning">attach_file</span>
+                <div>
+                    <span class="fw-bold">@nomeAnexoPreview</span>
+                    <small class="text-muted ms-2">(@tamanhoAnexoPreview)</small>
+                </div>
+            </div>
+
+            @* Campo de observação obrigatório *@
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    Descrição / Motivo da Falta
+                    <span class="text-danger">*</span>
+                </label>
+                <textarea class="form-control"
+                          rows="3"
+                          maxlength="500"
+                          placeholder="Descreva brevemente o motivo da falta (ex: consulta médica, urgência familiar...)"
+                          @bind="observacaoPreview"></textarea>
+                <small class="text-muted">@(observacaoPreview?.Length ?? 0)/500 caracteres</small>
+                @if (mostrarErroObservacao)
                 {
-                    <span>@($"M{@falta.Aula.Modulo.Id} - {@falta.Aula.Modulo.Nome}")</span>
+                    <div class="text-danger small mt-1">
+                        <span class="material-icons align-middle" style="font-size:14px;">error</span>
+                        Por favor, preencha o motivo da falta antes de submeter.
+                    </div>
                 }
-                else
-                {
-                    <span class="text-muted"><i>Sem módulo</i></span>
-                }
-            </Template>
-        </RadzenGridColumn>
-        <RadzenGridColumn TItem="Falta" Property="Estado" Title="Estado" />
-        <RadzenGridColumn TItem="Falta" Title="Justificação da Falta">
-            <Template Context="falta">
-                @if (falta.Estado == "Injustificada" || string.IsNullOrEmpty(falta.Estado))
-                {
-                    <label class="btn btn-outline-danger d-inline-flex align-items-center justify-content-center gap-2 m-0"
-                           style="cursor: pointer; padding: 6px 12px; font-size: 0.875rem; font-weight: 500; border-radius: 4px; transition: all 0.2s;">
+            </div>
 
-                        <span class="material-icons" style="font-size: 18px;">cloud_upload</span>
-                        <span><b>Submeter Justificação</b></span>
+            @* Botões de ação *@
+            <div class="d-flex gap-2 justify-content-end">
+                <RadzenButton ButtonStyle="ButtonStyle.Light"
+                              Icon="close"
+                              Text="Cancelar"
+                              Click="CancelarPreview"
+                              Disabled="@aSubmeter" />
+                <RadzenButton ButtonStyle="ButtonStyle.Warning"
+                              Icon="send"
+                              Text="@(aSubmeter ? "A submeter..." : "Confirmar Submissão")"
+                              Click="ConfirmarSubmissao"
+                              Disabled="@aSubmeter" />
+            </div>
+        </div>
+    }
 
-                        <InputFile OnChange="@(e => SubmeterComprovativo(e, falta))"
-                                   style="display: none;"
-                                   accept=".pdf,.png,.jpg,.jpeg" />
-                    </label>
-                }
-                else if (falta.Estado == "Pendente")
-                {
-                    <span class="badge bg-warning text-dark d-inline-flex align-items-center gap-1" style="padding: 8px 12px; font-size: 0.85rem;">
-                        <span class="material-icons" style="font-size: 16px;">schedule</span> A aguardar validação...
+    @* ───────────────────────────────────────────────────────
+       TABELA DE FALTAS
+    ─────────────────────────────────────────────────────── *@
+    <RadzenGrid Data="@minhasFaltas"
+                TItem="Falta"
+                AllowPaging="true"
+                AllowSorting="true"
+                PageSize="10"
+                EmptyText="Não tens faltas registadas.">
+        <Columns>
+
+            <RadzenGridColumn TItem="Falta" Title="Data" Width="140px">
+                <Template Context="falta">
+                    @falta.HoraInicio.ToString("dd/MM/yyyy")
+                </Template>
+            </RadzenGridColumn>
+
+            <RadzenGridColumn TItem="Falta" Title="Módulo">
+                <Template Context="falta">
+                    @if (falta.Aula?.Modulo != null)
+                    {
+                        <span>@($"M{falta.Aula.Modulo.Id} - {falta.Aula.Modulo.Nome}")</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted"><i>Sem módulo</i></span>
+                    }
+                </Template>
+            </RadzenGridColumn>
+
+            <RadzenGridColumn TItem="Falta" Title="Duração" Width="100px">
+                <Template Context="falta">
+                    @falta.Duracao min
+                </Template>
+            </RadzenGridColumn>
+
+            <RadzenGridColumn TItem="Falta" Title="Estado" Width="180px">
+                <Template Context="falta">
+                    @{
+                        var (badgeClass, icon, label) = ObterBadge(falta.Estado);
+                    }
+                    <span class="badge @badgeClass d-inline-flex align-items-center gap-1"
+                          style="padding: 6px 10px; font-size: 0.82rem;">
+                        <span class="material-icons" style="font-size:15px;">@icon</span>
+                        @label
                     </span>
-                }
-                else
-                {
-                    <span class="badge bg-success text-white d-inline-flex align-items-center gap-1" style="padding: 8px 12px; font-size: 0.85rem;">
-                        <span class="material-icons" style="font-size: 16px; color: white">check_circle</span> Falta Justificada
-                    </span>
-                }
-            </Template>
-        </RadzenGridColumn>
+                </Template>
+            </RadzenGridColumn>
 
-        <RadzenGridColumn TItem="Falta" Property="Observacoes" Title="Observações / Motivo">
-            <Template Context="falta">
-                @if (!string.IsNullOrEmpty(falta.Observacoes))
-                {
-                    <span class="text-danger fw-bold">@falta.Observacoes</span>
-                }
-                else
-                {
-                    <span class="text-muted"><i>Sem observações</i></span>
-                }
-            </Template>
-        </RadzenGridColumn>
-    </Columns>
-</RadzenGrid>
+            <RadzenGridColumn TItem="Falta" Title="Observações / Feedback" Width="220px">
+                <Template Context="falta">
+                    @if (!string.IsNullOrEmpty(falta.Observacoes))
+                    {
+                        <span class="@(falta.Estado == "Injustificada" ? "text-danger" : "text-muted")">
+                            @falta.Observacoes
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-muted"><i>—</i></span>
+                    }
+                </Template>
+            </RadzenGridColumn>
+
+            <RadzenGridColumn TItem="Falta" Title="Ação" Width="200px" Sortable="false">
+                <Template Context="falta">
+                    @if (string.IsNullOrEmpty(falta.Estado) || falta.Estado == "Injustificada")
+                    {
+                        @* Estado inicial ou rejeitado — pode submeter (ou re-submeter) *@
+                        <label class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 m-0"
+                               style="cursor:pointer;">
+                            <span class="material-icons" style="font-size:16px;">upload_file</span>
+                            @(falta.Estado == "Injustificada" ? "Re-submeter" : "Submeter justificação")
+                            <InputFile OnChange="@(e => SelecionarFicheiro(e, falta))"
+                                       style="display:none;"
+                                       accept=".pdf,.png,.jpg,.jpeg" />
+                        </label>
+                    }
+                    else if (falta.Estado == "Pendente")
+                    {
+                        @* Pendente — mostra o que foi submetido e permite cancelar *@
+                        <div class="d-flex flex-column gap-1">
+                            @if (!string.IsNullOrEmpty(falta.Anexo))
+                            {
+                                <small class="text-muted d-flex align-items-center gap-1">
+                                    <span class="material-icons" style="font-size:14px;">attach_file</span>
+                                    @System.IO.Path.GetFileName(falta.Anexo)
+                                </small>
+                            }
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger"
+                                          Size="ButtonSize.Small"
+                                          Icon="cancel"
+                                          Text="Cancelar submissão"
+                                          Click="@(() => CancelarSubmissaoPendente(falta))" />
+                        </div>
+                    }
+                    else if (falta.Estado == "Justificada")
+                    {
+                        @* Aprovada — não há ação disponível *@
+                        <span class="text-muted small"><i>Sem ações disponíveis</i></span>
+                    }
+                </Template>
+            </RadzenGridColumn>
+
+        </Columns>
+    </RadzenGrid>
+</div>
 
 <div class="row justify-content-center">
     <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
         <RadzenButton ButtonStyle="ButtonStyle.Secondary"
-                      Icon="cancel"
-                      style="display: inline-block; margin-left: 10px;"
+                      Icon="arrow_back"
                       Text="Voltar"
-                      Click="@(() => navManager.NavigateTo($"Index"))" />
+                      Click="@(() => navManager.NavigateTo("Index"))" />
     </div>
 </div>
 
+<style>
+    .animate-fade-in {
+        animation: fadeIn 0.25s ease-in-out;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
 @code {
     private List<Falta> minhasFaltas = new();
-    private int loggeInFormandoId; 
+    private int loggedInFormandoId;
 
-    protected override async Task OnInitializedAsync() 
+    // ── Estado do fluxo de preview ──────────────────────────
+    private Falta faltaEmPreview;
+    private IBrowserFile ficheiroEmPreview;
+    private string observacaoPreview = "";
+    private string nomeAnexoPreview = "";
+    private string tamanhoAnexoPreview = "";
+    private bool aSubmeter = false;
+    private bool mostrarErroObservacao = false;
+
+    protected override async Task OnInitializedAsync()
     {
         var readUserFromSession = await sessionStorage.GetAsync<string>("user");
 
         if (readUserFromSession.Success && !string.IsNullOrEmpty(readUserFromSession.Value))
         {
             var user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
-            
-            loggeInFormandoId = user.Id; 
-
+            loggedInFormandoId = user.Id;
             CarregarFaltas();
         }
     }
 
     private void CarregarFaltas()
     {
-        if (loggeInFormandoId > 0)
-        {
-            minhasFaltas = faltaData.GetByFormandoId(loggeInFormandoId);
-        }
+        if (loggedInFormandoId > 0)
+            minhasFaltas = faltaData.GetByFormandoId(loggedInFormandoId);
     }
 
-    private async Task SubmeterComprovativo(InputFileChangeEventArgs e, Falta falta)
+    private void SelecionarFicheiro(InputFileChangeEventArgs e, Falta falta)
     {
-        string caminhoFinal = FileManager.FilePath(e.File, "justificacao", falta.FormandoId, falta.AulaId);
+        ficheiroEmPreview = e.File;
+        faltaEmPreview = falta;
+        observacaoPreview = "";
+        mostrarErroObservacao = false;
+        nomeAnexoPreview = e.File.Name;
+        tamanhoAnexoPreview = FormatarTamanho(e.File.Size);
+    }
 
-        if (string.IsNullOrEmpty(caminhoFinal))
+    private void CancelarPreview()
+    {
+        ficheiroEmPreview = null;
+        faltaEmPreview = null;
+        observacaoPreview = "";
+        mostrarErroObservacao = false;
+        nomeAnexoPreview = "";
+        tamanhoAnexoPreview = "";
+    }
+
+    private async Task ConfirmarSubmissao()
+    {
+        if (string.IsNullOrWhiteSpace(observacaoPreview))
         {
+            mostrarErroObservacao = true;
             return;
         }
 
+        mostrarErroObservacao = false;
+        aSubmeter = true;
+
         try
         {
-            await FileManager.UploadFile(e.File, caminhoFinal);
+            string caminhoFinal = FileManager.FilePath(
+                ficheiroEmPreview, "justificacao",
+                faltaEmPreview.FormandoId, faltaEmPreview.AulaId);
 
-            faltaData.SubmeterJustificacao(falta.Id, caminhoFinal);
+            if (string.IsNullOrEmpty(caminhoFinal))
+            {
+                notificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Ficheiro inválido",
+                    Detail = "Apenas são aceites ficheiros PDF, PNG, JPG ou JPEG.",
+                    Duration = 5000
+                });
+                return;
+            }
+
+            await FileManager.UploadFile(ficheiroEmPreview, caminhoFinal);
+            faltaData.SubmeterJustificacao(faltaEmPreview.Id, caminhoFinal, observacaoPreview.Trim());
+
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Justificação submetida",
+                Detail = "A sua justificação ficou pendente de validação.",
+                Duration = 5000
+            });
+
+            CancelarPreview();
+            CarregarFaltas();
+        }
+        catch (Exception ex)
+        {
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Erro ao submeter",
+                Detail = ex.Message,
+                Duration = 5000
+            });
+        }
+        finally
+        {
+            aSubmeter = false;
+        }
+    }
+
+    private void CancelarSubmissaoPendente(Falta falta)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(falta.Anexo))
+                FileManagerService.RemoveFile(falta.Anexo);
+
+            faltaData.CancelarJustificacao(falta.Id);
+
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Info,
+                Summary = "Submissão cancelada",
+                Detail = "Pode agora submeter uma nova justificação.",
+                Duration = 4000
+            });
 
             CarregarFaltas();
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Erro ao cancelar",
+                Detail = ex.Message,
+                Duration = 5000
+            });
         }
     }
+
+    private static string FormatarTamanho(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:0.#} KB";
+        return $"{bytes / (1024.0 * 1024):0.#} MB";
+    }
+
+    private static (string badgeClass, string icon, string label) ObterBadge(string estado) =>
+        estado switch
+        {
+            "Pendente" => ("bg-warning text-dark", "schedule", "Pendente"),
+            "Justificada" => ("bg-success text-white", "check_circle", "Justificada"),
+            "Injustificada" => ("bg-danger text-white", "cancel", "Injustificada"),
+            _ => ("bg-secondary text-white", "help", "Sem justificação")
+        };
 }
