@@ -336,7 +336,7 @@
     {
         DataSource.Clear();
 
-        SelectedTurma = turmas.Single(t => t.Id == SelectedTurmaId);
+        SelectedTurma = turmaData.GetById(SelectedTurmaId); 
         SelectedTurma.Curso = cursoData.GetById(SelectedTurma.CursoId.Value);
         SelectedTurma.Aulas = aulaData.GetByTurma(SelectedTurma);
 
@@ -353,11 +353,6 @@
         else
         {
             DataSource.Clear();
-        }
-
-        if (SelectedTurma.DataInicioCurso.HasValue)
-        {
-            CurrentDate = SelectedTurma.DataInicioCurso.Value;
         }
 
         //colocar todos os eventos como não editáveis
