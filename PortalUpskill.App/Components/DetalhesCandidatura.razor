@@ -1,0 +1,70 @@
+﻿@inject ICandidaturaData candidaturaData
+
+<div class="cardstyle">
+    @if (candidatura == null)
+    {
+        <p>A carregar...</p>
+    }
+    else
+    {
+        <h4>Dados Pessoais</h4>
+        <table class="table table-borderless table-sm">
+            <tr><td><b>Nome</b></td><td>@candidatura.Pessoa.Nome</td></tr>
+            <tr><td><b>Email</b></td><td>@candidatura.Pessoa.Email</td></tr>
+            <tr><td><b>Telemóvel</b></td><td>@candidatura.Pessoa.ContactoTelemovel</td></tr>
+            <tr><td><b>NIF</b></td><td>@candidatura.Pessoa.NIF</td></tr>
+            <tr><td><b>Data de Nascimento</b></td><td>@(candidatura.Pessoa.DataNascimento?.ToString("dd/MM/yyyy") ?? "—")</td></tr>
+        </table>
+
+        <h4 class="mt-4">Candidatura</h4>
+        <table class="table table-borderless table-sm">
+            <tr><td><b>1ª Opção</b></td><td>@candidatura.PrimeiraOpcao.Nome</td></tr>
+            <tr><td><b>2ª Opção</b></td><td>@(candidatura.SegundaOpcao?.Nome ?? "—")</td></tr>
+            <tr><td><b>Observações</b></td><td>@(candidatura.Observacoes ?? "—")</td></tr>
+            <tr><td><b>Estado</b></td><td>@candidatura.Estado.Nome</td></tr>
+            <tr><td><b>Data de Submissão</b></td><td>@candidatura.DataCriacao.ToString("dd/MM/yyyy HH:mm")</td></tr>
+        </table>
+
+        <div class="row justify-content-center mt-4">
+            @if (candidatura.EstadoId == 1 || candidatura.EstadoId == 2)
+            {
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="check" Text="Aprovar"
+                              Click="@(() => AlterarEstado(3))" style="margin-right: 10px;" />
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Reprovar"
+                              Click="@(() => AlterarEstado(4))" style="margin-right: 10px;" />
+            }
+            @if (candidatura.EstadoId == 1)
+            {
+                <RadzenButton ButtonStyle="ButtonStyle.Warning" Icon="search" Text="Marcar em Análise"
+                              Click="@(() => AlterarEstado(2))" style="margin-right: 10px;" />
+            }
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="close" Text="Fechar"
+                          Click="@(() => dialogService.Close())" />
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int CandidaturaId { get; set; }
+
+    Candidatura candidatura;
+
+    protected override async Task OnInitializedAsync()
+    {
+        candidatura = candidaturaData.GetById(CandidaturaId);
+    }
+
+    void AlterarEstado(int novoEstadoId)
+    {
+        candidaturaData.UpdateEstado(CandidaturaId, novoEstadoId);
+        candidatura = candidaturaData.GetById(CandidaturaId);
+        notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Estado actualizado com sucesso.",
+                Duration = 3000
+            });
+        StateHasChanged();
+    }
+}

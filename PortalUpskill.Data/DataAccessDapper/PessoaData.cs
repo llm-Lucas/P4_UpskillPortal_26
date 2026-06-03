@@ -99,5 +99,15 @@ namespace PortalUpskill.Data.DataAccessDapper
                 connection.Execute(sql, new { Id = pessoa.Id, NewPass = newPass });
             }
         }
+        public int CreateReturnId(Pessoa pessoa)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string sql = @"INSERT INTO Pessoa (Nome, DataNascimento, Email, Password, Sexo, NIF, CC, ContactoTelemovel, ContactoTelefone, Morada, CP, CodigoCNAEF, HabilitacoesLiterarias, Nacionalidade, Foto, PerfilId, CV)
+                        VALUES (@Nome, @DataNascimento, @Email, @Password, @Sexo, @NIF, @CC, @ContactoTelemovel, @ContactoTelefone, @Morada, @CP, @CodigoCNAEF, @HabilitacoesLiterarias, @Nacionalidade, @Foto, @PerfilId, @CV)
+                        SELECT CAST(SCOPE_IDENTITY() as int)";
+                return connection.ExecuteScalar<int>(sql, pessoa);
+            }
+        }
     }
 }

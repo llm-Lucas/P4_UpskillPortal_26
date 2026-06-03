@@ -5,7 +5,16 @@
                 <Loading />
             </Authorizing>
             <NotAuthorized>
-                <p>O que se mostra quando não se está autorizado! ficheiro <i>App.Razor</i></p>
+                @if (routeData.PageType == typeof(PortalUpskill.App.Pages.RegistoCandidato))
+                {
+                    <LayoutView Layout="@typeof(BlankLayout)">
+                        <PortalUpskill.App.Pages.RegistoCandidato />
+                    </LayoutView>
+                }
+                else
+                {
+                    <p>O que se mostra quando não se está autorizado! ficheiro <i>App.Razor</i></p>
+                }
             </NotAuthorized>
         </AuthorizeRouteView>
     </Found>
@@ -16,5 +25,4 @@
             </LayoutView>
         </CascadingAuthenticationState>
     </NotFound>
-    
 </Router>
