@@ -26,17 +26,16 @@
         </table>
 
         <div class="row justify-content-center mt-4">
-            @if (candidatura.EstadoId == 1 || candidatura.EstadoId == 2)
+            @if (candidatura.EstadoId == 2)
             {
                 <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="check" Text="Aprovar"
-                              Click="@(() => AlterarEstado(3))" style="margin-right: 10px;" />
+                              Click="@(() => ConfirmarAlteracaoEstado(3))" style="margin-right: 10px;" />
                 <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Reprovar"
-                              Click="@(() => AlterarEstado(4))" style="margin-right: 10px;" />
+                              Click="@(() => ConfirmarAlteracaoEstado(4))" style="margin-right: 10px;" />
             }
             @if (candidatura.EstadoId == 1)
             {
-                <RadzenButton ButtonStyle="ButtonStyle.Warning" Icon="search" Text="Marcar em Análise"
-                              Click="@(() => AlterarEstado(2))" style="margin-right: 10px;" />
+                
             }
             <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="close" Text="Fechar"
                           Click="@(() => dialogService.Close())" />
@@ -66,5 +65,22 @@
                 Duration = 3000
             });
         StateHasChanged();
+    }
+    async Task ConfirmarAlteracaoEstado(int novoEstadoId)
+    {
+        string acao = novoEstadoId == 3 ? "aprovar" : "reprovar";
+
+        await dialogService.OpenAsync("Confirmar", render =>
+    @<div>
+        <p>Tem a certeza que quer @acao a candidatura de @candidatura.Pessoa.Nome?</p>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1rem;">
+            <RadzenButton ButtonStyle="@(novoEstadoId == 3 ? ButtonStyle.Success : ButtonStyle.Danger)"
+                          Text="@(novoEstadoId == 3 ? "Aprovar" : "Reprovar")"
+                          Click="@(() => { AlterarEstado(novoEstadoId); dialogService.Close(); })" />
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Text="Cancelar"
+                          Click="@(() => dialogService.Close())" />
+        </div>
+    </div>
+    , new DialogOptions { Width = "400px", Height = "auto" });
     }
 }

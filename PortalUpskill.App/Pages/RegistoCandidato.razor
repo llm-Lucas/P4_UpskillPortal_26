@@ -36,13 +36,14 @@
                     <tr><td><b>Nome</b></td><td>@user.Nome</td></tr>
                     <tr><td><b>Email</b></td><td>@user.Email</td></tr>
                     <tr><td><b>NIF</b></td><td>@user.NIF</td></tr>
-                    <tr><td><b>CC</b></td><td>@user.CC</td></tr>
+                    <tr><td><b>Cartão de Cidadão</b></td><td>@user.CC</td></tr>
                     <tr><td><b>Telemóvel</b></td><td>@user.ContactoTelemovel</td></tr>
                     <tr><td><b>Data de Nascimento</b></td><td>@(user.DataNascimento?.ToString("dd/MM/yyyy") ?? "—")</td></tr>
                     <tr><td><b>Género</b></td><td>@(user.Sexo ?? "—")</td></tr>
                     <tr><td><b>Morada</b></td><td>@(user.Morada ?? "—")</td></tr>
                     <tr><td><b>Código Postal</b></td><td>@(user.CP ?? "—")</td></tr>
                     <tr><td><b>Naturalidade</b></td><td>@(user.Nacionalidade ?? "—")</td></tr>
+                    <tr><td><b>Qualificações Académicas</b></td><td>@(habilitacoes.FirstOrDefault(h => h.Codigo == user.HabilitacoesLiterarias)?.HabilitacoesLiterarias ?? "—")</td></tr>
                     <tr><td><b>Situação Profissional</b></td><td>@(candidatura.SituacaoProfissional ?? "—")</td></tr>
                 </table>
 
@@ -68,10 +69,10 @@
                 {
                     <div class="mt-3" style="gap: 10px; display: flex;">
                         <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Text="Editar"
-                                      Click="@(() => modoEditar = true)" />
+                        Click="@(() => modoEditar = true)" />
                         <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="send" Text="Submeter Candidatura"
-                                      Click="SubmeterCandidatura2"
-                                      Disabled="@(candidatura.EstadoId == 2)" />
+                        Click="SubmeterCandidatura2"
+                        Disabled="@(candidatura.EstadoId == 2)" />
                     </div>
                 }
             }
@@ -101,7 +102,7 @@
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Género" /></div>
                     <div class="col-md-8">
                         <RadzenDropDown class="form-control w-100" @bind-Value="vmDados.Sexo"
-                                        Data="@(new List<string> { "Masculino", "Feminino", "Outro" })" TValue="string" />
+                        Data="@(new List<string> { "Masculino", "Feminino", "Outro" })" TValue="string" />
                     </div>
                 </div>
                 <div class="row form-group">
@@ -120,14 +121,14 @@
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Qualificações Académicas" /></div>
                     <div class="col-md-8">
                         <RadzenDropDown class="form-control w-100" @bind-Value="vmDados.HabilitacoesLiterarias"
-                                        Data="@habilitacoes" TValue="int?" ValueProperty="Codigo" TextProperty="HabilitacoesLiterarias" />
+                        Data="@habilitacoes" TValue="int?" ValueProperty="Codigo" TextProperty="HabilitacoesLiterarias" />
                     </div>
                 </div>
                 <div class="row form-group">
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Situação Profissional" /></div>
                     <div class="col-md-8">
                         <RadzenDropDown class="form-control w-100" @bind-Value="vmDados.SituacaoProfissional"
-                                        Data="@(new List<string> { "Desempregado", "Empregado", "Estudante", "Outro" })" TValue="string" />
+                        Data="@(new List<string> { "Desempregado", "Empregado", "Estudante", "Outro" })" TValue="string" />
                     </div>
                 </div>
 
@@ -136,15 +137,15 @@
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="1ª Opção de Curso *" /></div>
                     <div class="col-md-8">
                         <RadzenDropDown class="form-control w-100" @bind-Value="vmEditar.PrimeiraOpcaoId"
-                                        Data="@cursosAbertos" TValue="int?" ValueProperty="Id" TextProperty="Nome" />
+                        Data="@cursosAbertos" TValue="int?" ValueProperty="Id" TextProperty="Nome" />
                     </div>
                 </div>
                 <div class="row form-group">
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="2ª Opção de Curso" /></div>
                     <div class="col-md-8">
                         <RadzenDropDown class="form-control w-100" @bind-Value="vmEditar.SegundaOpcaoId"
-                                        Data="@cursosAbertos" TValue="int?" ValueProperty="Id" TextProperty="Nome"
-                                        AllowClear="true" Placeholder="Opcional" />
+                        Data="@cursosAbertos" TValue="int?" ValueProperty="Id" TextProperty="Nome"
+                        AllowClear="true" Placeholder="Opcional" />
                     </div>
                 </div>
 
@@ -179,16 +180,16 @@
 
                 <div class="row justify-content-center mt-4" style="gap: 10px;">
                     <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar Alterações"
-                                  Click="GuardarEdicao" />
+                    Click="GuardarEdicao" />
                     <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" Text="Cancelar"
-                                  Click="@(() => modoEditar = false)" />
+                    Click="@(() => modoEditar = false)" />
                 </div>
             }
         }
 
         <div class="row justify-content-center mt-4">
             <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="arrow_back" Text="Voltar"
-                          Click="@(() => navManager.NavigateTo("Index"))" />
+            Click="@(() => navManager.NavigateTo("Index"))" />
         </div>
     }
     else
@@ -211,6 +212,10 @@
                 <div class="row form-group">
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Nome Completo *" /></div>
                     <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vm.Nome" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Email" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vmDados.Email" /></div>
                 </div>
                 <div class="row form-group">
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Cartão de Cidadão *" /></div>
@@ -240,7 +245,7 @@
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Género" /></div>
                     <div class="col-md-8">
                         <RadzenDropDown class="form-control w-100" @bind-Value="vm.Sexo"
-                                        Data="@(new List<string> { "Masculino", "Feminino", "Outro" })" TValue="string" />
+                        Data="@(new List<string> { "Masculino", "Feminino", "Outro" })" TValue="string" />
                     </div>
                 </div>
                 <div class="row form-group">
@@ -259,14 +264,14 @@
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Qualificações Académicas" /></div>
                     <div class="col-md-8">
                         <RadzenDropDown class="form-control w-100" @bind-Value="vm.HabilitacoesLiterarias"
-                                        Data="@habilitacoes" TValue="int?" ValueProperty="Codigo" TextProperty="HabilitacoesLiterarias" />
+                        Data="@habilitacoes" TValue="int?" ValueProperty="Codigo" TextProperty="HabilitacoesLiterarias" />
                     </div>
                 </div>
                 <div class="row form-group">
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Situação Profissional" /></div>
                     <div class="col-md-8">
                         <RadzenDropDown class="form-control w-100" @bind-Value="vm.SituacaoProfissional"
-                                        Data="@(new List<string> { "Desempregado", "Empregado", "Estudante", "Outro" })" TValue="string" />
+                        Data="@(new List<string> { "Desempregado", "Empregado", "Estudante", "Outro" })" TValue="string" />
                     </div>
                 </div>
 
@@ -276,16 +281,16 @@
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="1ª Opção de Curso *" /></div>
                     <div class="col-md-8">
                         <RadzenDropDown class="form-control w-100" @bind-Value="vm.PrimeiraOpcaoId"
-                                        Data="@cursosAbertos" TValue="int?" ValueProperty="Id" TextProperty="Nome"
-                                        Placeholder="Selecione o curso" />
+                        Data="@cursosAbertos" TValue="int?" ValueProperty="Id" TextProperty="Nome"
+                        Placeholder="Selecione o curso" />
                     </div>
                 </div>
                 <div class="row form-group">
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="2ª Opção de Curso" /></div>
                     <div class="col-md-8">
                         <RadzenDropDown class="form-control w-100" @bind-Value="vm.SegundaOpcaoId"
-                                        Data="@cursosAbertos" TValue="int?" ValueProperty="Id" TextProperty="Nome"
-                                        AllowClear="true" Placeholder="Opcional" />
+                        Data="@cursosAbertos" TValue="int?" ValueProperty="Id" TextProperty="Nome"
+                        AllowClear="true" Placeholder="Opcional" />
                     </div>
                 </div>
 
@@ -362,9 +367,9 @@
         if (auth.User.Identity.IsAuthenticated)
         {
             user = pessoaData.GetByEmail(auth.User.Identity.Name);
-            user = pessoaData.GetByEmail(auth.User.Identity.Name);
             perfilIdOriginal = user.PerfilId;
             funcaoOriginal = user.Funcao;
+            habilitacoes = habilitacoesData.GetAll();
             var todas = candidaturaData.GetAll();
             candidatura = todas.FirstOrDefault(c => c.PessoaId == user.Id);
             modoVer = true;
@@ -377,30 +382,27 @@
                 vmEditar.SegundaOpcaoId = candidatura.SegundaOpcaoId;
                 vmEditar.Observacoes = candidatura.Observacoes;
             }
+
+            vmDados = new CandidaturaViewModel
+                {
+                    Nome = user.Nome,
+                    NIF = user.NIF,
+                    CC = user.CC,
+                    Telemovel = user.ContactoTelemovel,
+                    Morada = user.Morada,
+                    CP = user.CP,
+                    Nacionalidade = user.Nacionalidade,
+                    Sexo = user.Sexo,
+                    DataNascimento = user.DataNascimento,
+                    HabilitacoesLiterarias = user.HabilitacoesLiterarias,
+                    SituacaoProfissional = candidatura?.SituacaoProfissional
+                };
         }
         else
         {
             cursosAbertos = cursoData.GetAll().Where(c => c.CandidaturasAbertas).ToList();
             habilitacoes = habilitacoesData.GetAll();
         }
-
-        vmDados = new CandidaturaViewModel
-            {
-                Nome = user.Nome,
-                NIF = user.NIF,
-                CC = user.CC,
-                Telemovel = user.ContactoTelemovel,
-                Morada = user.Morada,
-                CP = user.CP,
-                Nacionalidade = user.Nacionalidade,
-                Sexo = user.Sexo,
-                DataNascimento = user.DataNascimento,
-                HabilitacoesLiterarias = user.HabilitacoesLiterarias,
-                SituacaoProfissional = candidatura?.SituacaoProfissional
-            };
-
-        if (candidatura != null)
-            vmDados.SituacaoProfissional = candidatura.SituacaoProfissional;
     }
 
     async Task CarregarFicheiro(InputFileChangeEventArgs e, string tipo)
@@ -532,6 +534,7 @@
         }
         // Guardar dados pessoais — preservar PerfilId e Funcao
         user.Nome = vmDados.Nome;
+        user.Email = vmDados.Email;
         user.NIF = vmDados.NIF;
         user.CC = vmDados.CC;
         user.ContactoTelemovel = vmDados.Telemovel;

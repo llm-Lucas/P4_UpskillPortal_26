@@ -129,5 +129,37 @@ namespace PortalUpskill.Data.DataAccessDapper
                 connection.Execute(sql, new { Id = candidaturaId, Situacao = situacao });
             }
         }
+        public List<Candidatura> GetAprovadosByCurso(int cursoId)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string sql = @"SELECT c.*, 
+                              p.Id, p.Nome, p.Email, p.ContactoTelemovel, p.ContactoTelefone,
+                              p.DataNascimento, p.Sexo, p.NIF, p.CC, p.Morada, p.CP,
+                              p.CodigoCNAEF, p.HabilitacoesLiterarias, p.Nacionalidade,
+                              c1.Id, c1.Nome,
+                              c2.Id, c2.Nome,
+                              ec.Id, ec.Nome
+                       FROM Candidatura c
+                       INNER JOIN Pessoa p ON p.Id = c.PessoaId
+                       INNER JOIN Curso c1 ON c1.Id = c.PrimeiraOpcaoId
+                       LEFT JOIN Curso c2 ON c2.Id = c.SegundaOpcaoId
+                       INNER JOIN EstadoCandidatura ec ON ec.Id = c.EstadoId
+                       WHERE c.EstadoId = 3
+                        AND c.PrimeiraOpcaoId = @CursoId
+                       AND c.PrimeiraOpcaoId = @CursoId
+                       ORDER BY p.Nome";
+
+                return connection.Query<Candidatura, Pessoa, Curso, Curso, EstadoCandidatura, Candidatura>(
+                    sql, (candidatura, pessoa, primeiraOpcao, segundaOpcao, estado) =>
+                    {
+                        candidatura.Pessoa = pessoa;
+                        candidatura.PrimeiraOpcao = primeiraOpcao;
+                        candidatura.SegundaOpcao = segundaOpcao;
+                        candidatura.Estado = estado;
+                        return candidatura;
+                    }, new { CursoId = cursoId }, splitOn: "Id, Id, Id, Id").ToList();
+            }
+        }
     }
 }
