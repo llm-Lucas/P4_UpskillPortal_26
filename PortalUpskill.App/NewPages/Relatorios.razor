@@ -66,6 +66,14 @@
                     <span class="texto-card">SUMÁRIOS</span>
                 </a>
             </div>
+            <div class="col-md-4 text-center d-flex justify-content-center">
+                <a class="corbotao hvr-underline-from-center c-pointer"
+                       @onclick="@(() => navManager.NavigateTo($"/RelatorioInqueritos/{SelectedTurmaId}"))"
+                       role="button">
+                    <span class="oi oi-bar-chart" style="font-size: 48px; margin-top: 5px;"></span>
+                    <span class="texto-card">INQUÉRITOS</span>
+                </a>
+            </div>
         </div>
 
         <div class="row justify-content-center mt-5">

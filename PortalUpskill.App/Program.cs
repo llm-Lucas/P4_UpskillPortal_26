@@ -50,6 +50,7 @@ builder.Services.AddScoped<IPessoaData, PessoaData>();
 builder.Services.AddScoped<IPessoalData, PessoalData>();
 builder.Services.AddScoped<IFormadorData, FormadorData>();
 builder.Services.AddScoped<IFormandoData, FormandoData>();
+builder.Services.AddScoped<IInqueritoData, InqueritoData>();
 builder.Services.AddScoped<ITurmaData, TurmaData>();
 builder.Services.AddScoped<ICNAEFData, CNAEFData>();
 builder.Services.AddScoped<IHabilitacoesData, HabilitacoesData>();

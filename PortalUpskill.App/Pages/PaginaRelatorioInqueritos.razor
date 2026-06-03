@@ -1,0 +1,367 @@
+﻿@page "/RelatorioInqueritos/{TurmaId:int}"
+
+@attribute [Authorize(Roles = "Administrador, Secretariado, Coordenador")]
+
+@inject IInqueritoData inqueritoData
+
+@using PortalUpskill.Data.DataAccessDapper.Interfaces
+
+<div class="cardstyle">
+    <h2>Relatório de Inquéritos</h2>
+
+    <p><b>Total de inquéritos submetidos:</b> @totalSubmissoes</p>
+
+    @if (relatorioGeral != null && relatorioGeral.TotalRespostas > 0)
+    {
+        <p>
+            <b>Média geral do curso:</b>
+            @relatorioGeral.MediaAvaliacaoGeral.ToString("0.##") / 5
+        </p>
+    }
+    else
+    {
+        <p><b>Média geral do curso:</b> Sem respostas</p>
+    }
+</div>
+<div class="cardstyle">
+    <h3>Comentários Gerais do Curso</h3>
+
+    @if (comentariosGerais.Count == 0)
+    {
+        <p>Não existem comentários gerais para esta turma.</p>
+    }
+    else
+    {
+        var comentario = comentariosGerais[comentarioGeralIndex];
+
+        <div class="d-flex justify-content-between align-items-center" style="gap: 1rem;">
+            <RadzenButton ButtonStyle="ButtonStyle.Light"
+                          Icon="chevron_left"
+                          Click="@(() => ComentarioAnterior(comentariosGerais, ref comentarioGeralIndex))" />
+
+            <div class="w-100 p-4 border rounded bg-light">
+                <p style="white-space: pre-line; margin-bottom: 0;">
+                    @comentario.Comentario
+                </p>
+
+                <div class="text-muted text-center mt-3">
+                    Comentário @(comentarioGeralIndex + 1) de @comentariosGerais.Count
+                </div>
+            </div>
+
+            <RadzenButton ButtonStyle="ButtonStyle.Light"
+                          Icon="chevron_right"
+                          Click="@(() => ComentarioSeguinte(comentariosGerais, ref comentarioGeralIndex))" />
+        </div>
+    }
+</div>
+
+<div class="cardstyle">
+    <h3>Avaliação dos Módulos</h3>
+
+    <RadzenGrid Data="@relatorioModulos"
+                TItem="RelatorioInqueritoModulo"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowPaging="true"
+                PageSize="10">
+        <Columns>
+            <RadzenGridColumn TItem="RelatorioInqueritoModulo" Property="ModuloNome" Title="Módulo" />
+
+            <RadzenGridColumn TItem="RelatorioInqueritoModulo" Title="Média">
+                <Template Context="item">
+                    @item.MediaAvaliacao.ToString("0.##")
+                </Template>
+            </RadzenGridColumn>
+
+            <RadzenGridColumn TItem="RelatorioInqueritoModulo" Property="TotalRespostas" Title="Total Respostas" />
+        </Columns>
+    </RadzenGrid>
+</div>
+<div class="cardstyle">
+    <h3>Comentários dos Módulos</h3>
+
+    @if (comentariosModulos.Count == 0 || modulosComComentarios.Count == 0)
+    {
+        <p>Não existem comentários sobre módulos para esta turma.</p>
+    }
+    else
+    {
+        var moduloAtual = modulosComComentarios[moduloSelecionadoIndex];
+
+        var comentariosDoModulo = comentariosModulos
+            .Where(c => c.Nome == moduloAtual)
+            .ToList();
+
+        if (comentarioModuloIndex >= comentariosDoModulo.Count)
+        {
+            comentarioModuloIndex = 0;
+        }
+
+        var comentario = comentariosDoModulo[comentarioModuloIndex];
+
+        <div class="d-flex justify-content-between align-items-center mb-3" style="gap: 1rem;">
+            <RadzenButton ButtonStyle="ButtonStyle.Light"
+                          Icon="chevron_left"
+                          Click="@ModuloAnterior" />
+
+            <div class="text-center w-100">
+                <h4 style="margin-bottom:0;">@moduloAtual</h4>
+                <div class="text-muted">
+                    Módulo @(moduloSelecionadoIndex + 1) de @modulosComComentarios.Count
+                </div>
+            </div>
+
+            <RadzenButton ButtonStyle="ButtonStyle.Light"
+                          Icon="chevron_right"
+                          Click="@ModuloSeguinte" />
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center" style="gap: 1rem;">
+            <RadzenButton ButtonStyle="ButtonStyle.Light"
+                          Icon="chevron_left"
+                          Click="@(() => ComentarioAnterior(comentariosDoModulo, ref comentarioModuloIndex))" />
+
+            <div class="w-100 p-4 border rounded bg-light">
+                <p style="white-space: pre-line; margin-bottom: 0;">
+                    @comentario.Comentario
+                </p>
+
+                <div class="text-muted text-center mt-3">
+                    Comentário @(comentarioModuloIndex + 1) de @comentariosDoModulo.Count
+                </div>
+            </div>
+
+            <RadzenButton ButtonStyle="ButtonStyle.Light"
+                          Icon="chevron_right"
+                          Click="@(() => ComentarioSeguinte(comentariosDoModulo, ref comentarioModuloIndex))" />
+        </div>
+    }
+</div>
+
+<div class="cardstyle">
+    <h3>Avaliação dos Formadores</h3>
+
+    <RadzenGrid Data="@relatorioFormadores"
+                TItem="RelatorioInqueritoFormador"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowPaging="true"
+                PageSize="10">
+        <Columns>
+            <RadzenGridColumn TItem="RelatorioInqueritoFormador" Property="FormadorNome" Title="Formador" />
+
+            <RadzenGridColumn TItem="RelatorioInqueritoFormador" Title="Média">
+                <Template Context="item">
+                    @item.MediaAvaliacao.ToString("0.##")
+                </Template>
+            </RadzenGridColumn>
+
+            <RadzenGridColumn TItem="RelatorioInqueritoFormador" Property="TotalRespostas" Title="Total Respostas" />
+        </Columns>
+    </RadzenGrid>
+</div>
+<div class="cardstyle">
+    <h3>Comentários dos Formadores</h3>
+
+    @if (comentariosFormadores.Count == 0 || formadoresComComentarios.Count == 0)
+    {
+        <p>Não existem comentários sobre formadores para esta turma.</p>
+    }
+    else
+    {
+        var formadorAtual = formadoresComComentarios[formadorSelecionadoIndex];
+
+        var comentariosDoFormador = comentariosFormadores
+            .Where(c => c.Nome == formadorAtual)
+            .ToList();
+
+        if (comentarioFormadorIndex >= comentariosDoFormador.Count)
+        {
+            comentarioFormadorIndex = 0;
+        }
+
+        var comentario = comentariosDoFormador[comentarioFormadorIndex];
+
+        <div class="d-flex justify-content-between align-items-center mb-3" style="gap: 1rem;">
+            <RadzenButton ButtonStyle="ButtonStyle.Light"
+                          Icon="chevron_left"
+                          Click="@FormadorAnterior" />
+
+            <div class="text-center w-100">
+                <h4 style="margin-bottom:0;">@formadorAtual</h4>
+                <div class="text-muted">
+                    Formador @(formadorSelecionadoIndex + 1) de @formadoresComComentarios.Count
+                </div>
+            </div>
+
+            <RadzenButton ButtonStyle="ButtonStyle.Light"
+                          Icon="chevron_right"
+                          Click="@FormadorSeguinte" />
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center" style="gap: 1rem;">
+            <RadzenButton ButtonStyle="ButtonStyle.Light"
+                          Icon="chevron_left"
+                          Click="@(() => ComentarioAnterior(comentariosDoFormador, ref comentarioFormadorIndex))" />
+
+            <div class="w-100 p-4 border rounded bg-light">
+                <p style="white-space: pre-line; margin-bottom: 0;">
+                    @comentario.Comentario
+                </p>
+
+                <div class="text-muted text-center mt-3">
+                    Comentário @(comentarioFormadorIndex + 1) de @comentariosDoFormador.Count
+                </div>
+            </div>
+
+            <RadzenButton ButtonStyle="ButtonStyle.Light"
+                          Icon="chevron_right"
+                          Click="@(() => ComentarioSeguinte(comentariosDoFormador, ref comentarioFormadorIndex))" />
+        </div>
+    }
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                      Icon="cancel"
+                      Text="Voltar"
+                      Click="@(() => navManager.NavigateTo("Index"))" />
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int TurmaId { get; set; }
+
+    int totalSubmissoes;
+    RelatorioInqueritoGeral relatorioGeral = new RelatorioInqueritoGeral();
+
+    List<RelatorioInqueritoModulo> relatorioModulos = new List<RelatorioInqueritoModulo>();
+    List<RelatorioInqueritoFormador> relatorioFormadores = new List<RelatorioInqueritoFormador>();
+    List<RelatorioInqueritoComentario> comentarios = new List<RelatorioInqueritoComentario>();
+
+    List<RelatorioInqueritoComentario> comentariosGerais = new List<RelatorioInqueritoComentario>();
+    List<RelatorioInqueritoComentario> comentariosModulos = new List<RelatorioInqueritoComentario>();
+    List<RelatorioInqueritoComentario> comentariosFormadores = new List<RelatorioInqueritoComentario>();
+
+    int comentarioGeralIndex = 0;
+    int comentarioModuloIndex = 0;
+    int comentarioFormadorIndex = 0;
+    int moduloSelecionadoIndex = 0;
+    int formadorSelecionadoIndex = 0;
+
+    List<string> modulosComComentarios = new();
+    List<string> formadoresComComentarios = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        totalSubmissoes = inqueritoData.GetTotalSubmissoes(TurmaId);
+
+        relatorioGeral = inqueritoData.GetRelatorioGeral(TurmaId);
+
+        relatorioModulos = inqueritoData.GetRelatorioModulos(TurmaId);
+
+        relatorioFormadores = inqueritoData.GetRelatorioFormadores(TurmaId);
+
+        comentarios = inqueritoData.GetComentarios(TurmaId);
+
+        comentariosGerais = comentarios.Where(c => c.Tipo == "Geral").ToList();
+        comentariosModulos = comentarios.Where(c => c.Tipo == "Módulo").ToList();
+        comentariosFormadores = comentarios.Where(c => c.Tipo == "Formador").ToList();
+        modulosComComentarios = comentariosModulos
+    .Select(c => c.Nome)
+    .Distinct()
+    .OrderBy(x => x)
+    .ToList();
+
+        formadoresComComentarios = comentariosFormadores
+            .Select(c => c.Nome)
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList();
+    }
+    RelatorioInqueritoComentario ComentarioAtual(List<RelatorioInqueritoComentario> lista, int index)
+    {
+        if (lista == null || lista.Count == 0)
+            return null;
+
+        return lista[index];
+    }
+
+    void ComentarioAnterior(List<RelatorioInqueritoComentario> lista, ref int index)
+    {
+        if (lista == null || lista.Count == 0)
+            return;
+
+        if (index == 0)
+            index = lista.Count - 1;
+        else
+            index--;
+    }
+
+    void ComentarioSeguinte(List<RelatorioInqueritoComentario> lista, ref int index)
+    {
+        if (lista == null || lista.Count == 0)
+            return;
+
+        if (index == lista.Count - 1)
+            index = 0;
+        else
+            index++;
+    }
+    void ModuloAnterior()
+    {
+        if (modulosComComentarios.Count == 0)
+            return;
+
+        comentarioModuloIndex = 0;
+
+        if (moduloSelecionadoIndex == 0)
+            moduloSelecionadoIndex = modulosComComentarios.Count - 1;
+        else
+            moduloSelecionadoIndex--;
+    }
+
+    void ModuloSeguinte()
+    {
+        if (modulosComComentarios.Count == 0)
+            return;
+
+        comentarioModuloIndex = 0;
+
+        if (moduloSelecionadoIndex == modulosComComentarios.Count - 1)
+            moduloSelecionadoIndex = 0;
+        else
+            moduloSelecionadoIndex++;
+    }
+    void FormadorAnterior()
+    {
+        if (formadoresComComentarios.Count == 0)
+            return;
+
+        comentarioFormadorIndex = 0;
+
+        if (formadorSelecionadoIndex == 0)
+            formadorSelecionadoIndex = formadoresComComentarios.Count - 1;
+        else
+            formadorSelecionadoIndex--;
+    }
+
+    void FormadorSeguinte()
+    {
+        if (formadoresComComentarios.Count == 0)
+            return;
+
+        comentarioFormadorIndex = 0;
+
+        if (formadorSelecionadoIndex == formadoresComComentarios.Count - 1)
+            formadorSelecionadoIndex = 0;
+        else
+            formadorSelecionadoIndex++;
+    }
+    
+}

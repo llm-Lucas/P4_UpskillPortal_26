@@ -1,0 +1,402 @@
+﻿@page "/InqueritoFormando"
+
+@inject IFormandoData formandoData
+@inject IModuloData moduloData
+@inject ProtectedSessionStorage sessionStorage
+@inject IInqueritoData inqueritoData
+
+@using Newtonsoft.Json
+
+<div class="cardstyle">
+    <h2>Inquérito do Curso</h2>
+    @if (jaSubmeteu)
+    {
+        <div class="alert alert-warning">
+            Este inquérito já foi submetido anteriormente.
+        </div>
+    }
+    <p>
+        Este inquérito é submetido de forma anónima. As respostas serão usadas apenas para avaliação e melhoria do curso.
+    </p>
+
+    @if (formando?.Turma != null)
+    {
+        <p><b>Formando:</b> @formando.Nome</p>
+        <p><b>Curso:</b> @formando.Turma.Curso?.Nome</p>
+        <p><b>Turma:</b> @formando.Turma.Nome</p>
+
+        <hr />
+
+        <h3>Módulos</h3>
+
+        @foreach (var modulo in modulos)
+        {
+            var resposta = respostasModulos.FirstOrDefault(r => r.ModuloId == modulo.Id);
+            <div class="cardstyle">
+                <h4>@($"M{modulo.Id}") - @modulo.Nome</h4>
+                <p><b>Formador:</b> @modulo.Formador?.Nome</p>
+
+                <RadzenLabel Text="Avaliação do módulo" />
+                <RadzenDropDown TValue="int"
+                                Data="@avaliacoes"
+                                TextProperty="Texto"
+                                ValueProperty="Valor"
+                                @bind-Value="@resposta.Avaliacao"
+                                Style="width: 250px;"
+                                Placeholder="Selecionar" />
+
+                <br />
+                <br />
+
+                <RadzenLabel Text="Comentário" />
+                <RadzenTextArea class="w-100"
+                @bind-Value="@resposta.Comentario" />
+            </div>
+        }
+
+        <hr />
+        <hr />
+
+        <h3>Avaliação dos Formadores</h3>
+
+        @foreach (var respostaFormador in respostasFormadores)
+        {
+            <div class="cardstyle">
+                <h4>@respostaFormador.NomeFormador</h4>
+
+                <RadzenLabel Text="Avaliação do formador" />
+                <RadzenDropDown TValue="int"
+                                Data="@avaliacoes"
+                                TextProperty="Texto"
+                                ValueProperty="Valor"
+                                @bind-Value="@respostaFormador.Avaliacao"
+                                Style="width: 250px;"
+                                Placeholder="Selecionar" />
+
+                <br />
+                <br />
+
+                <RadzenLabel Text="Comentário" />
+                <RadzenTextArea class="w-100"
+                                @bind-Value="@respostaFormador.Comentario" />
+            </div>
+        }
+
+        <h3>Avaliação Geral do Curso</h3>
+
+        <RadzenLabel Text="Avaliação geral" />
+        <RadzenDropDown TValue="int"
+                        Data="@avaliacoes"
+                        TextProperty="Texto"
+                        ValueProperty="Valor"
+                        @bind-Value="@avaliacaoGeral"
+                        Style="width: 250px;"
+                        Placeholder="Selecionar" />
+
+        <br />
+        <br />
+
+        <RadzenLabel Text="Comentário geral" />
+        <RadzenTextArea class="w-100"
+                        @bind-Value="@comentarioGeral" />
+
+
+        <br />
+
+        <RadzenButton ButtonStyle="ButtonStyle.Primary"
+                      Icon="save"
+                      Text="Gravar"
+                      Style="margin-top:20px; margin-right:10px;"
+                      Click="@GravarRascunho" />
+
+        <RadzenButton ButtonStyle="ButtonStyle.Warning"
+                      Icon="delete"
+                      Text="Limpar Campos"
+                      Style="margin-top:20px; margin-right:10px;"
+                      Click="@LimparCampos" />
+
+        <RadzenButton ButtonStyle="ButtonStyle.Success"
+                      Icon="check"
+                      Text="Submeter"
+                      Style="margin-top:20px;"
+                      Disabled="@(jaSubmeteu || !PodeSubmeter())"
+                      Click="@SubmeterInquerito" />
+    }
+    else
+    {
+        <p>Não foi encontrada turma associada ao formando.</p>
+    }
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                      Icon="cancel"
+                      Text="Voltar"
+                      Click="@(() => navManager.NavigateTo("Index"))" />
+    </div>
+</div>
+
+@code {
+
+    Pessoa user;
+    Formando formando;
+    bool jaSubmeteu = false;
+    List<Modulo> modulos = new List<Modulo>();
+    public class RespostaModuloInquerito
+    {
+        public int ModuloId { get; set; }
+        public int Avaliacao { get; set; }
+        public string Comentario { get; set; }
+    }
+    public class OpcaoAvaliacao
+    {
+        public int Valor { get; set; }
+        public string Texto { get; set; }
+    }
+    public class RespostaFormadorInquerito
+    {
+        public int FormadorId { get; set; }
+        public string NomeFormador { get; set; }
+        public int Avaliacao { get; set; }
+        public string Comentario { get; set; }
+    }
+
+    List<RespostaFormadorInquerito> respostasFormadores = new List<RespostaFormadorInquerito>();
+    List<RespostaModuloInquerito> respostasModulos = new List<RespostaModuloInquerito>();
+
+    int avaliacaoGeral;
+    string comentarioGeral;
+    List<OpcaoAvaliacao> avaliacoes = new List<OpcaoAvaliacao>
+{
+    new OpcaoAvaliacao { Valor = 1, Texto = "1 - Muito fraco" },
+    new OpcaoAvaliacao { Valor = 2, Texto = "2 - Fraco" },
+    new OpcaoAvaliacao { Valor = 3, Texto = "3 - Adequado" },
+    new OpcaoAvaliacao { Valor = 4, Texto = "4 - Bom" },
+    new OpcaoAvaliacao { Valor = 5, Texto = "5 - Excelente" }
+};
+    bool PodeSubmeter()
+    {
+        if (avaliacaoGeral <= 0)
+            return false;
+
+         if (respostasModulos.Any(r => r.Avaliacao <= 0))
+             return false;
+
+         if (respostasFormadores.Any(r => r.Avaliacao <= 0))
+             return false;
+
+        return true;
+    }
+
+    async Task GravarRascunho()
+    {
+        await sessionStorage.SetAsync("rascunhoInqueritoModulos", JsonConvert.SerializeObject(respostasModulos));
+        await sessionStorage.SetAsync("rascunhoInqueritoFormadores", JsonConvert.SerializeObject(respostasFormadores));
+        await sessionStorage.SetAsync("rascunhoAvaliacaoGeral", avaliacaoGeral);
+        await sessionStorage.SetAsync("rascunhoComentarioGeral", comentarioGeral);
+
+        notificationService.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Success,
+            Summary = "Rascunho gravado",
+            Detail = "As respostas foram guardadas temporariamente.",
+            Duration = 3000
+        });
+    }
+
+    async Task LimparCampos()
+    {
+        bool confirmar = await dialogService.Confirm(
+            "Tem a certeza que pretende limpar todos os campos?",
+            "Confirmar limpeza",
+            new ConfirmOptions() { OkButtonText = "Sim", CancelButtonText = "Cancelar" }) ?? false;
+
+        if (!confirmar)
+            return;
+
+        foreach (var resposta in respostasModulos)
+        {
+            resposta.Avaliacao = 0;
+            resposta.Comentario = "";
+        }
+
+        foreach (var resposta in respostasFormadores)
+        {
+            resposta.Avaliacao = 0;
+            resposta.Comentario = "";
+        }
+
+        avaliacaoGeral = 0;
+        comentarioGeral = "";
+
+        await sessionStorage.DeleteAsync("rascunhoInqueritoModulos");
+        await sessionStorage.DeleteAsync("rascunhoInqueritoFormadores");
+        await sessionStorage.DeleteAsync("rascunhoAvaliacaoGeral");
+        await sessionStorage.DeleteAsync("rascunhoComentarioGeral");
+
+        notificationService.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Info,
+            Summary = "Campos limpos",
+            Detail = "O formulário foi limpo.",
+            Duration = 3000
+        });
+    }
+
+    async Task SubmeterInquerito()
+    
+    {
+        bool confirmar = await dialogService.Confirm(
+            "Após submeter, não poderá alterar nem submeter outro inquérito. Esta acção é definitiva. Pretende continuar?",
+            "Confirmar submissão",
+            new ConfirmOptions() { OkButtonText = "Submeter", CancelButtonText = "Cancelar" }) ?? false;
+
+        if (!confirmar)
+            return;
+
+        if (formando?.Turma == null)
+            return;
+
+        if (inqueritoData.FormandoJaSubmeteu(formando.Id, formando.Turma.Id))
+        {
+            jaSubmeteu = true;
+
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = "Inquérito já submetido",
+                Detail = "Não é possível submeter novamente.",
+                Duration = 4000
+            });
+
+            return;
+        }
+
+        InqueritoSubmissao submissao = new InqueritoSubmissao
+        {
+            TurmaId = formando.Turma.Id,
+            CursoId = formando.Turma.CursoId.Value,
+            DataSubmissao = DateTime.Now,
+            AvaliacaoGeral = avaliacaoGeral,
+            ComentarioGeral = comentarioGeral
+        };
+
+        int submissaoId = inqueritoData.CreateSubmissao(submissao);
+
+        foreach (var resposta in respostasModulos)
+        {
+            InqueritoModulo modulo = new InqueritoModulo
+            {
+                InqueritoSubmissaoId = submissaoId,
+                ModuloId = resposta.ModuloId,
+                Avaliacao = resposta.Avaliacao,
+                Comentario = resposta.Comentario
+            };
+
+            inqueritoData.CreateModulo(modulo);
+        }
+
+        foreach (var resposta in respostasFormadores)
+        {
+            InqueritoFormador formador = new InqueritoFormador
+            {
+                InqueritoSubmissaoId = submissaoId,
+                FormadorId = resposta.FormadorId,
+                Avaliacao = resposta.Avaliacao,
+                Comentario = resposta.Comentario
+            };
+
+            inqueritoData.CreateFormador(formador);
+        }
+
+        InqueritoFormandoSubmetido submetido = new InqueritoFormandoSubmetido
+        {
+            FormandoId = formando.Id,
+            TurmaId = formando.Turma.Id,
+            DataSubmissao = DateTime.Now
+        };
+
+        inqueritoData.MarcarFormandoComoSubmetido(submetido);
+
+        await sessionStorage.DeleteAsync("rascunhoInqueritoModulos");
+        await sessionStorage.DeleteAsync("rascunhoInqueritoFormadores");
+        await sessionStorage.DeleteAsync("rascunhoAvaliacaoGeral");
+        await sessionStorage.DeleteAsync("rascunhoComentarioGeral");
+
+        jaSubmeteu = true;
+
+        notificationService.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Success,
+            Summary = "Inquérito submetido",
+            Detail = "Obrigado pela sua participação.",
+            Duration = 4000
+        });
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        var readUserFromSession = await sessionStorage.GetAsync<string>("user");
+
+        if (readUserFromSession.Success)
+        {
+            user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
+
+            formando = formandoData.GetById(user.Id);
+            if (formando?.Turma != null)
+            {
+                jaSubmeteu = inqueritoData.FormandoJaSubmeteu(
+                    formando.Id,
+                    formando.Turma.Id);
+            }
+
+            if (formando?.Turma != null)
+            {
+                modulos = moduloData.GetModulosComFormadorByTurma(formando.Turma.Id);
+                modulos = modulos.OrderBy(m => m.Id).ToList();
+                respostasModulos = modulos.Select(m => new RespostaModuloInquerito
+                {
+                    ModuloId = m.Id,
+                    Avaliacao = 0,
+                    Comentario = ""
+                }).ToList();
+
+                respostasFormadores = modulos
+    .Where(m => m.Formador != null)
+    .GroupBy(m => m.Formador.Id)
+    .Select(g => new RespostaFormadorInquerito
+    {
+        FormadorId = g.Key,
+        NomeFormador = g.First().Formador.Nome,
+        Avaliacao = 0,
+        Comentario = ""
+    })
+    .ToList();
+                var rascunhoModulos = await sessionStorage.GetAsync<string>("rascunhoInqueritoModulos");
+                if (rascunhoModulos.Success && !string.IsNullOrEmpty(rascunhoModulos.Value))
+                {
+                    respostasModulos = JsonConvert.DeserializeObject<List<RespostaModuloInquerito>>(rascunhoModulos.Value);
+                }
+
+                var rascunhoFormadores = await sessionStorage.GetAsync<string>("rascunhoInqueritoFormadores");
+                if (rascunhoFormadores.Success && !string.IsNullOrEmpty(rascunhoFormadores.Value))
+                {
+                    respostasFormadores = JsonConvert.DeserializeObject<List<RespostaFormadorInquerito>>(rascunhoFormadores.Value);
+                }
+
+                var rascunhoAvaliacaoGeral = await sessionStorage.GetAsync<int>("rascunhoAvaliacaoGeral");
+                if (rascunhoAvaliacaoGeral.Success)
+                {
+                    avaliacaoGeral = rascunhoAvaliacaoGeral.Value;
+                }
+
+                var rascunhoComentarioGeral = await sessionStorage.GetAsync<string>("rascunhoComentarioGeral");
+                if (rascunhoComentarioGeral.Success)
+                {
+                    comentarioGeral = rascunhoComentarioGeral.Value;
+                }
+            }
+        }
+    }
+    
+}
