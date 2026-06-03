@@ -1,0 +1,154 @@
+﻿@page "/Admin/ValidarJustificacoes"
+@using PortalUpskill.Data.Models
+@inject IFaltaData faltaData
+@inject IFormandoData formandoData
+@inject IJSRuntime JSRuntime
+
+<h2 class="mb-4">Validar Justificações de Faltas Pendentes</h2>
+
+<RadzenGrid Data="@faltasPendentes" TItem="Falta" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="15">
+    <Columns>
+        <RadzenGridColumn TItem="Falta" Title="Formando">
+            <Template Context="falta">
+                <span>@ObterNomeFormando(falta.FormandoId)</span>
+            </Template>
+        </RadzenGridColumn>
+
+        <RadzenGridColumn TItem="Falta" Property="HoraInicio" Title="Data da Falta" />
+
+        <RadzenGridColumn TItem="Falta" Title="Módulo">
+            <Template Context="falta">
+                @if (falta.Aula?.Modulo != null)
+                {
+                    <span>@($"M{@falta.Aula.Modulo.Id} - {@falta.Aula.Modulo.Nome}")</span>
+                }
+                else
+                {
+                    <span class="text-muted"><i>Sem módulo</i></span>
+                }
+            </Template>
+        </RadzenGridColumn>
+
+        <RadzenGridColumn TItem="Falta" Property="Duracao" Title="Duração (Min)" width="120px" />
+
+        <RadzenGridColumn TItem="Falta" Title="Documento" Filterable="false" Sortable="false">
+            <Template Context="falta">
+                @if (!string.IsNullOrEmpty(falta.Anexo))
+                {
+                    <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => AbrirDocumento(falta.Anexo)">
+                        Ver Justificação 📄
+                    </button>
+                }
+                else
+                {
+                    <span class="text-muted">Sem documento</span>
+                }
+            </Template>
+        </RadzenGridColumn>
+
+        <RadzenGridColumn TItem="Falta" Title="Decisão" Filterable="false" Sortable="false" width="220px">
+            <Template Context="falta">
+                <RadzenButton Text="Aprovar"
+                              ButtonStyle="ButtonStyle.Success"
+                              Click="@(() => ProcessarDecisao(falta.Id, "Justificada", true))"
+                              Size="ButtonSize.Small" />
+
+                <RadzenButton Text="Rejeitar"
+                              ButtonStyle="ButtonStyle.Danger"
+                              Click="@(() => ProcessarDecisao(falta.Id, "Injustificada", false))"
+                              Size="ButtonSize.Small"
+                              Style="margin-left: 10px;" />
+            </Template>
+        </RadzenGridColumn>
+    </Columns>
+</RadzenGrid>
+
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                      Icon="cancel"
+                      style="display: inline-block; margin-left: 10px;"
+                      Text="Voltar"
+                      Click="@(() => navManager.NavigateTo($"Relatorios"))" />
+    </div>
+</div>
+
+@code {
+    private List<Falta> faltasPendentes = new();
+    private Dictionary<int, string> cacheFormandos = new();
+
+    protected override void OnInitialized()
+    {
+        CarregarDados();
+    }
+
+    private void CarregarDados()
+    {
+        // 1. Carrega as faltas pendentes via Dapper
+        faltasPendentes = faltaData.GetFaltasPendentes();
+
+        // 2. Solução anti N+1: Carrega todos os formandos uma única vez para mapear os nomes em memória
+        var todosFormandos = formandoData.GetAll(); // Substitui pelo teu método real de listar formandos (ex: GetAll)
+        if (todosFormandos != null)
+        {
+            cacheFormandos = todosFormandos.ToDictionary(f => f.Id, f => f.Nome);
+        }
+    }
+
+    private string ObterNomeFormando(int formandoId)
+    {
+        if (cacheFormandos.TryGetValue(formandoId, out var nome))
+        {
+            return nome;
+        }
+        return $"Formando #{formandoId}";
+    }
+
+    private async Task ProcessarDecisao(int faltaId, string novoEstado, bool isJustificada)
+    {
+        try
+        {
+            string observacoes = "";
+
+            if (novoEstado == "Injustificada")
+            {
+                observacoes = await JSRuntime.InvokeAsync<string>("prompt", "Insira o motivo/observação para a rejeição desta falta:");
+
+                if (observacoes == null)
+                {
+                    return;
+                }
+            }
+
+            faltaData.AtualizarEstadoFalta(faltaId, novoEstado, isJustificada, observacoes);
+
+            CarregarDados();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Ocorreu um erro ao processar a decisão: {ex.Message}");
+        }
+    }
+
+    private async Task AbrirDocumento(string caminhoFicheiro)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(caminhoFicheiro))
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "O caminho do ficheiro está vazio.");
+                return;
+            }
+
+            string caminhoCodificado = Uri.EscapeDataString(caminhoFicheiro);
+
+            string urlApi = $"https://localhost:7257/api/Falta/ver_anexo?caminho={caminhoCodificado}";
+
+            await JSRuntime.InvokeVoidAsync("open", urlApi, "_blank");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Erro ao tentar abrir o ficheiro: " + ex.Message);
+        }
+    }
+}

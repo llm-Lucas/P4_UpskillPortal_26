@@ -68,6 +68,8 @@ builder.Services.AddScoped<IAnoLetivoData, AnoLetivoData>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<ICursoCoordenadorData, CursoCoordenadorData>();
 
+builder.Services.AddControllers();
+
 var app = builder.Build();
 
 // Register Syncfusion license

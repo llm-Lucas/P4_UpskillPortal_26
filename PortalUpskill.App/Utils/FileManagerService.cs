@@ -57,12 +57,18 @@ namespace PortalUpskill.App.Utils
         public string FilePath(IBrowserFile selectedFile, string sFile, int Id, int idAula)
         {
             string path;
-            if (sFile == "justificacao" && Path.GetExtension(selectedFile.Name).ToLower() == ".pdf")
+            string extension = Path.GetExtension(selectedFile.Name).ToLower();
+
+            bool isFormatoValido = extension == ".pdf" || extension == ".png" || extension == ".jpg" || extension == ".jpeg";
+
+            if (sFile == "justificacao" && isFormatoValido)
             {
-                path = Path.Combine(_env.ContentRootPath, "Files", "Justificacoes", $"{Id + idAula + selectedFile.Name}");
+                path = Path.Combine(_env.ContentRootPath, "Files", "Justificacoes", $"{Id}_{idAula}_{selectedFile.Name}");
             }
             else
+            {
                 path = "";
+            }
             return path;
         }
 

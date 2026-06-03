@@ -54,7 +54,7 @@ namespace PortalUpskill.Data.DataAccessDapper
                         aula.Formador = formador;
                         return aula;
                     }
-                    ,new { TurmaId = TurmaId }).Distinct()
+                    , new { TurmaId = TurmaId }).Distinct()
                     .ToList();
             }
         }
