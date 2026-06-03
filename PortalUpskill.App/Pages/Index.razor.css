@@ -1,4 +1,4 @@
-﻿
+
 .calendartop {
     position: relative;
     top: 0;
@@ -9,9 +9,7 @@
 }
 
 .corbotao {
-    background: #0D28C2;
-    background: -webkit-linear-gradient(to left, #0D28C2, #050f3d);
-    background: linear-gradient(to left, #0D28C2, #050f3d);
+    background: var(--theme-button-gradient);
     border-radius: 4px;
     margin: 1rem;
     padding: 1rem;
@@ -47,7 +45,7 @@
     left: 0;
     right: 100%;
     bottom: 0;
-    background: #2098D1;
+    background: var(--theme-accent);
     height: 4px;
     -webkit-transition-property: right;
     transition-property: right;
@@ -79,7 +77,7 @@
     left: 51%;
     right: 51%;
     bottom: 0;
-    background: #2098D1;
+    background: var(--theme-accent);
     height: 4px;
     -webkit-transition-property: left, right;
     transition-property: left, right;
@@ -112,7 +110,7 @@
     left: 100%;
     right: 0;
     bottom: 0;
-    background: #2098D1;
+    background: var(--theme-accent);
     height: 4px;
     -webkit-transition-property: left;
     transition-property: left;

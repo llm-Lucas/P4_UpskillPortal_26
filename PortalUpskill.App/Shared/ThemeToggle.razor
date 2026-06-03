@@ -1,0 +1,33 @@
+@inject IJSRuntime JSRuntime
+
+<button type="button"
+        class="theme-toggle"
+        title="@ButtonTitle"
+        aria-label="@ButtonTitle"
+        @onclick="ToggleTheme">
+    <span class="material-icons theme-toggle__icon">@Icon</span>
+    <span class="theme-toggle__text">@Text</span>
+</button>
+
+@code {
+    private string currentTheme = "light";
+
+    private bool IsDark => currentTheme == "dark";
+    private string Icon => IsDark ? "dark_mode" : "light_mode";
+    private string Text => IsDark ? "Escuro" : "Claro";
+    private string ButtonTitle => IsDark ? "Mudar para tema claro" : "Mudar para tema escuro";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            currentTheme = await JSRuntime.InvokeAsync<string>("upskillTheme.getStoredTheme");
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        currentTheme = await JSRuntime.InvokeAsync<string>("upskillTheme.toggleTheme");
+    }
+}

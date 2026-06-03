@@ -1,17 +1,90 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+
+:root,
+html[data-theme="light"] {
+    color-scheme: light;
+    --theme-bg: #f5f7fb;
+    --theme-surface: #ffffff;
+    --theme-surface-muted: #f7f7f7;
+    --theme-surface-soft: #eef2ff;
+    --theme-border: #d6d5d5;
+    --theme-border-strong: #c8d1e6;
+    --theme-text: #1f2a44;
+    --theme-text-muted: #64748b;
+    --theme-link: #0366d6;
+    --theme-primary: #0D28C2;
+    --theme-primary-dark: #050f3d;
+    --theme-accent: #2098D1;
+    --theme-success: #26b050;
+    --theme-danger: #c0392b;
+    --theme-card-shadow: 0 0.46875rem 2.1875rem rgba(90,97,105,0.1), 0 0.9375rem 1.40625rem rgba(90,97,105,0.1), 0 0.25rem 0.53125rem rgba(90,97,105,0.12), 0 0.125rem 0.1875rem rgba(90,97,105,0.1);
+    --theme-sidebar-gradient: linear-gradient(to left, #0D28C2, #050f3d);
+    --theme-button-gradient: linear-gradient(to left, #0D28C2, #050f3d);
+    --theme-logo-filter: invert(1);
+    --theme-input-bg: #ffffff;
+    --theme-input-color: #1f2a44;
+    --theme-input-placeholder: #6c757d;
+    --theme-table-stripe: rgba(13, 40, 194, 0.045);
+    --theme-toggle-bg: #ffffff;
+    --theme-toggle-color: #0D28C2;
+    --theme-toggle-border: #d6def5;
+    --theme-toggle-hover-bg: #f0f4ff;
+    --theme-toggle-hover-color: #050f3d;
+    --theme-toggle-shadow: 0 4px 14px rgba(5, 15, 61, 0.08);
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --theme-bg: #070b1d;
+    --theme-surface: #101832;
+    --theme-surface-muted: #0c1328;
+    --theme-surface-soft: #172247;
+    --theme-border: #26345d;
+    --theme-border-strong: #35487b;
+    --theme-text: #e8eefc;
+    --theme-text-muted: #a9b7d5;
+    --theme-link: #7dc8f2;
+    --theme-primary: #6f86ff;
+    --theme-primary-dark: #050f3d;
+    --theme-accent: #35b6f0;
+    --theme-success: #57d58a;
+    --theme-danger: #ff8f82;
+    --theme-card-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.38), 0 0.25rem 0.75rem rgba(0, 0, 0, 0.28);
+    --theme-sidebar-gradient: linear-gradient(to left, #0b1d6f, #020716);
+    --theme-button-gradient: linear-gradient(to left, #1534d8, #061342);
+    --theme-logo-filter: none;
+    --theme-input-bg: #0b1228;
+    --theme-input-color: #e8eefc;
+    --theme-input-placeholder: #93a4c7;
+    --theme-table-stripe: rgba(53, 182, 240, 0.08);
+    --theme-toggle-bg: #0b1228;
+    --theme-toggle-color: #dbe8ff;
+    --theme-toggle-border: #2b3b68;
+    --theme-toggle-hover-bg: #172247;
+    --theme-toggle-hover-color: #ffffff;
+    --theme-toggle-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
 html, body {
+    min-height: 100%;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: var(--theme-bg);
+    color: var(--theme-text);
+}
+
+body {
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 a, .btn-link {
-    color: #0366d6;
+    color: var(--theme-link);
 }
 
 .btn-primary {
     color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    background-color: var(--theme-primary);
+    border-color: var(--theme-primary);
 }
 
 .content {
@@ -27,7 +100,7 @@ a, .btn-link {
 }
 
 .validation-message {
-    color: red;
+    color: var(--theme-danger);
 }
 
 #blazor-error-ui {
@@ -50,7 +123,7 @@ a, .btn-link {
     }
 
 .btn {
-    background-color: DodgerBlue; /* Blue background */
+    background-color: var(--theme-accent); /* Blue background */
     border: none; /* Remove borders */
     color: white; /* White text */
     padding: 12px 16px; /* Some padding */
@@ -60,23 +133,22 @@ a, .btn-link {
 
     /* Darker background on mouse-over */
     .btn:hover {
-        background-color: #0D28C2;
+        background-color: var(--theme-primary);
     }
 
 .btn-block {
-    background: #141E30;
-    background: -webkit-linear-gradient(to left, #243B55, #141E30);
-    background: linear-gradient(to left, #243B55, #141E30);
+    background: var(--theme-button-gradient);
 }
 
 .cardstyle {
-    background-color: #eee;
+    background-color: var(--theme-surface);
     border-radius: 10px;
     border: none;
     position: relative;
     margin-bottom: 25px;
     padding: 20px;
-    box-shadow: 0 0.46875rem 2.1875rem rgba(90,97,105,0.1), 0 0.9375rem 1.40625rem rgba(90,97,105,0.1), 0 0.25rem 0.53125rem rgba(90,97,105,0.12), 0 0.125rem 0.1875rem rgba(90,97,105,0.1);
+    color: var(--theme-text);
+    box-shadow: var(--theme-card-shadow);
 }
 
 
@@ -117,4 +189,87 @@ a, .btn-link {
 
 .no-title-fieldset .rz-fieldset {
     padding-top: 0.5rem; /* ou menos, conforme visual desejado */
+}
+
+.form-control,
+.rz-inputtext,
+.rz-dropdown,
+.rz-spinner,
+.rz-calendar,
+.e-input-group,
+.e-control-wrapper {
+    background-color: var(--theme-input-bg) !important;
+    border-color: var(--theme-border) !important;
+    color: var(--theme-input-color) !important;
+}
+
+.form-control::placeholder,
+input::placeholder,
+textarea::placeholder {
+    color: var(--theme-input-placeholder) !important;
+}
+
+.table,
+.rz-grid-table,
+.e-grid,
+.e-schedule {
+    color: var(--theme-text) !important;
+}
+
+.table td,
+.table th {
+    border-color: var(--theme-border) !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--theme-table-stripe) !important;
+}
+
+.modal-content,
+.rz-dialog,
+.rz-card,
+.rz-fieldset,
+.rz-panel,
+.rz-tabview,
+.e-popup,
+.e-dialog,
+.e-card {
+    background-color: var(--theme-surface) !important;
+    border-color: var(--theme-border) !important;
+    color: var(--theme-text) !important;
+}
+
+.rz-fieldset-legend,
+.rz-label,
+.rz-cell-data,
+.rz-column-title,
+.e-label,
+.e-headertext,
+.e-title-text,
+.e-subject,
+.text-dark {
+    color: var(--theme-text) !important;
+}
+
+.text-muted,
+.rz-secondary-text,
+.e-secondary,
+small {
+    color: var(--theme-text-muted) !important;
+}
+
+.rz-grid-table thead,
+.e-gridheader,
+.e-table thead,
+.e-schedule .e-date-header-wrap,
+.e-schedule .e-time-cells-wrap {
+    background-color: var(--theme-surface-muted) !important;
+    color: var(--theme-text) !important;
+}
+
+.rz-state-highlight,
+.rz-selectable tbody tr.rz-data-row:hover,
+.e-row:hover,
+.e-list-item.e-hover {
+    background-color: var(--theme-surface-soft) !important;
 }

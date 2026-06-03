@@ -1,13 +1,11 @@
-﻿/* Força o cursor para a mão de clique */
+/* Força o cursor para a mão de clique */
 .c-pointer {
     cursor: pointer !important;
 }
 
 /* Regras originais do teu Index.razor.css */
 .corbotao {
-    background: #e1e1e1ff;
-    background: -webkit-linear-gradient(to left, #b2b7d4, #e1e1e1ff);
-    background: linear-gradient(to left, #a1bacbff, #e1e1e1ff);
+    background: linear-gradient(to left, var(--theme-surface-soft), var(--theme-surface));
     border-radius: 4px;
     margin: 1rem auto; /* O 'auto' garante que fica centrado na coluna */
     padding: 1rem;
@@ -26,7 +24,7 @@
         line-height: 1rem;
         font-size: 1.1rem;
         font-weight: bold;
-        color: #0D28C2;
+        color: var(--theme-primary);
         text-align: center;
         margin-top: 15px; /* Espaço entre o ícone e o texto */
     }
@@ -34,7 +32,7 @@
     /* Evita que o ícone assuma as margens e letras do texto */
     .corbotao span.oi {
         display: inline-block;
-        color:#0D28C2;
+        color: var(--theme-primary);
     }
 
 /* Animações originais do teu Index */
@@ -53,7 +51,7 @@
         position: absolute;
         z-index: -1;
         bottom: 0;
-        background: #2098D1;
+        background: var(--theme-accent);
         height: 4px;
         -webkit-transition-property: right, left;
         transition-property: right, left;
@@ -89,7 +87,7 @@
         left: 100%;
         right: 0;
         bottom: 0;
-        background: #2098D1;
+        background: var(--theme-accent);
         height: 4px;
         -webkit-transition-property: left;
         transition-property: left;

@@ -1,10 +1,10 @@
-﻿/*Custom styles*/
+/*Custom styles*/
 .rz-panel-menu .rz-navigation-item .rz-navigation-item-wrapper{
     background-color: transparent !important;
 }
 
 .rz-custom-panel-menu:hover {
-    background-color: #7d188c42 !important;
+    background-color: color-mix(in srgb, var(--theme-accent) 22%, transparent) !important;
 }
 .sidebar {
     height: auto !important;
@@ -13,7 +13,7 @@
 
 
 /*Blazor Drag Drop*/
-﻿ /*add this to avoid flickering*/
+ /*add this to avoid flickering*/
 .plk-dd-inprogess > * {
     pointer-events: none;
 }
@@ -34,13 +34,13 @@
 }
 
 .plk-dd-dragged-over {
-    background-color: lightgray;
+    background-color: var(--theme-surface-soft);
     opacity: 0.6;
     animation: blinker 1s linear infinite;
 }
 
     .plk-dd-dragged-over > div {
-        background-color: lightgray;
+        background-color: var(--theme-surface-soft);
         opacity: 0.6;
         animation: blinker 1s linear infinite;
     }
@@ -77,13 +77,13 @@
 }
 
 .plk-flex .plk-dd-dragged-over {
-    background-color: lightgray;
+    background-color: var(--theme-surface-soft);
     opacity: 0.6;
     animation: blinker 1s linear infinite;
 }
 
     .plk-flex .plk-dd-dragged-over > div {
-        background-color: lightgray;
+        background-color: var(--theme-surface-soft);
         opacity: 0.9;
         animation: blinker 1s linear infinite;
     }
@@ -108,7 +108,7 @@
 
 /*Estilos para o Syncfusion Scheduler*/
 .quick-info-header {
-    background-color: white;
+    background-color: var(--theme-surface);
     padding: 8px 18px;
 }
 
@@ -147,7 +147,7 @@
 
 .meeting-type-wrap, .meeting-subject-wrap, .notes-wrap {
     font-size: 11px;
-    color: #666;
+    color: var(--theme-text-muted);
     letter-spacing: 0.33px;
     height: 24px;
     padding: 5px;
@@ -156,12 +156,12 @@
 .event-content div label {
     display: inline-block;
     min-width: 45px;
-    color: #666;
+    color: var(--theme-text-muted);
 }
 
 .event-content div span {
     font-size: 11px;
-    color: #151515;
+    color: var(--theme-text);
     letter-spacing: 0.33px;
     line-height: 14px;
     padding-left: 8px;
@@ -171,9 +171,9 @@
 }
 /*FooterStyles*/
 .cell-footer.e-btn {
-    background-color: #ffffff;
-    border-color: #878787;
-    color: #878787;
+    background-color: var(--theme-surface);
+    border-color: var(--theme-border-strong);
+    color: var(--theme-text-muted);
 }
 
 .cell-footer {
@@ -211,18 +211,18 @@
     right: 10px;
     font-size: 22px;
     line-height: 1;
-    color: #6c757d;
+    color: var(--theme-text-muted);
     cursor: pointer;
     z-index: 1000;
     font-family: Arial, sans-serif;
 }
 
     .quick-info-close:hover {
-        color: #343a40;
+        color: var(--theme-text);
     }
 .sumario-readonly textarea {
-    background-color: #e9ecef !important;
-    color: #6c757d !important;
+    background-color: var(--theme-surface-soft) !important;
+    color: var(--theme-text-muted) !important;
     cursor: not-allowed !important;
     opacity: 1 !important;
 }
