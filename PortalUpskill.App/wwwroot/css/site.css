@@ -3,52 +3,39 @@
 :root,
 html[data-theme="light"] {
     color-scheme: light;
-    --theme-bg: transparent;
-    --theme-surface: #ffffff;
+    --theme-bg: #ffffff;
+    --theme-content-bg: #f8fafc;
+    --theme-surface: #eee;
     --theme-surface-muted: #f7f7f7;
     --theme-surface-soft: #eef2ff;
     --theme-border: #d6d5d5;
-    --theme-border-strong: #c8d1e6;
-    --theme-text: inherit;
+    --theme-text: #212529;
     --theme-text-muted: #6c757d;
     --theme-link: #0366d6;
     --theme-primary: #0D28C2;
+    --theme-primary-dark: #050f3d;
     --theme-accent: #2098D1;
     --theme-sidebar-gradient: linear-gradient(to left, #0D28C2, #050f3d);
     --theme-button-gradient: linear-gradient(to left, #0D28C2, #050f3d);
-    --theme-logo-filter: invert(1);
-    --theme-toggle-bg: #ffffff;
-    --theme-toggle-color: #0D28C2;
-    --theme-toggle-border: #d6def5;
-    --theme-toggle-hover-bg: #f0f4ff;
-    --theme-toggle-hover-color: #050f3d;
-    --theme-toggle-shadow: 0 4px 14px rgba(5, 15, 61, 0.08);
 }
 
 html[data-theme="dark"] {
     color-scheme: dark;
     --theme-bg: #070b1d;
+    --theme-content-bg: #0b1023;
     --theme-surface: #101832;
     --theme-surface-muted: #0c1328;
     --theme-surface-soft: #172247;
     --theme-border: #26345d;
-    --theme-border-strong: #35487b;
     --theme-text: #e8eefc;
     --theme-text-muted: #a9b7d5;
     --theme-link: #7dc8f2;
     --theme-primary: #6f86ff;
+    --theme-primary-dark: #020716;
     --theme-accent: #35b6f0;
     --theme-sidebar-gradient: linear-gradient(to left, #0b1d6f, #020716);
-    --theme-button-gradient: linear-gradient(to left, #1534d8, #061342);
-    --theme-logo-filter: none;
-    --theme-toggle-bg: #0b1228;
-    --theme-toggle-color: #dbe8ff;
-    --theme-toggle-border: #2b3b68;
-    --theme-toggle-hover-bg: #172247;
-    --theme-toggle-hover-color: #ffffff;
-    --theme-toggle-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+    --theme-button-gradient: linear-gradient(to left, #1939dd, #061342);
 }
-
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -169,10 +156,14 @@ a, .btn-link {
     padding-top: 0.5rem; /* ou menos, conforme visual desejado */
 }
 
+/* Dark theme overrides. Light mode intentionally keeps the original CSS above. */
 html[data-theme="dark"],
-html[data-theme="dark"] body {
-    background: var(--theme-bg);
-    color: var(--theme-text);
+html[data-theme="dark"] body,
+html[data-theme="dark"] .page,
+html[data-theme="dark"] .main,
+html[data-theme="dark"] .content {
+    background: var(--theme-content-bg) !important;
+    color: var(--theme-text) !important;
 }
 
 html[data-theme="dark"] a,
@@ -180,28 +171,78 @@ html[data-theme="dark"] .btn-link {
     color: var(--theme-link);
 }
 
+html[data-theme="dark"] .top-row {
+    background-color: var(--theme-surface-muted) !important;
+    border-bottom-color: var(--theme-border) !important;
+    color: var(--theme-text) !important;
+}
+
+html[data-theme="dark"] .e-sidebar,
+html[data-theme="dark"] .dockSidebar,
+html[data-theme="dark"] .dock,
+html[data-theme="dark"] .sidebar {
+    background: var(--theme-sidebar-gradient) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .rz-panel-menu,
+html[data-theme="dark"] .rz-panel-menu .rz-navigation-item,
+html[data-theme="dark"] .rz-panel-menu .rz-navigation-item-wrapper {
+    background-color: transparent !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .rz-panel-menu .rz-navigation-item-text {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .rz-custom-panel-menu:hover,
+html[data-theme="dark"] .rz-panel-menu .rz-navigation-item-wrapper:hover {
+    background-color: rgba(53, 182, 240, 0.22) !important;
+}
+
+html[data-theme="dark"] .cardstyle,
+html[data-theme="dark"] .modal-content,
+html[data-theme="dark"] .rz-dialog,
+html[data-theme="dark"] .rz-card,
+html[data-theme="dark"] .rz-fieldset,
+html[data-theme="dark"] .rz-panel,
+html[data-theme="dark"] .rz-tabview,
+html[data-theme="dark"] .e-popup,
+html[data-theme="dark"] .e-dialog,
+html[data-theme="dark"] .e-card {
+    background-color: var(--theme-surface) !important;
+    border-color: var(--theme-border) !important;
+    color: var(--theme-text) !important;
+    box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.38), 0 0.25rem 0.75rem rgba(0, 0, 0, 0.28) !important;
+}
+
+html[data-theme="dark"] .corbotao,
+html[data-theme="dark"] .btn-block {
+    background: var(--theme-button-gradient) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .hvr-underline-from-left:before,
+html[data-theme="dark"] .hvr-underline-from-center:before,
+html[data-theme="dark"] .hvr-underline-from-right:before {
+    background: var(--theme-accent) !important;
+}
+
 html[data-theme="dark"] .btn-primary,
 html[data-theme="dark"] .btn:hover {
-    background-color: var(--theme-primary);
-    border-color: var(--theme-primary);
+    background-color: var(--theme-primary) !important;
+    border-color: var(--theme-primary) !important;
 }
 
 html[data-theme="dark"] .btn {
     background-color: var(--theme-accent);
 }
 
-html[data-theme="dark"] .btn-block,
-html[data-theme="dark"] .corbotao {
-    background: var(--theme-button-gradient);
-}
-
-html[data-theme="dark"] .cardstyle {
-    background-color: var(--theme-surface);
-    color: var(--theme-text);
-    box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.38), 0 0.25rem 0.75rem rgba(0, 0, 0, 0.28);
-}
-
 html[data-theme="dark"] .form-control,
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select,
 html[data-theme="dark"] .rz-inputtext,
 html[data-theme="dark"] .rz-dropdown,
 html[data-theme="dark"] .rz-spinner,
@@ -213,9 +254,9 @@ html[data-theme="dark"] .e-control-wrapper {
     color: var(--theme-text) !important;
 }
 
-html[data-theme="dark"] .form-control::placeholder,
 html[data-theme="dark"] input::placeholder,
-html[data-theme="dark"] textarea::placeholder {
+html[data-theme="dark"] textarea::placeholder,
+html[data-theme="dark"] .form-control::placeholder {
     color: #93a4c7 !important;
 }
 
@@ -233,20 +274,6 @@ html[data-theme="dark"] .table th {
 
 html[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
     background-color: rgba(53, 182, 240, 0.08) !important;
-}
-
-html[data-theme="dark"] .modal-content,
-html[data-theme="dark"] .rz-dialog,
-html[data-theme="dark"] .rz-card,
-html[data-theme="dark"] .rz-fieldset,
-html[data-theme="dark"] .rz-panel,
-html[data-theme="dark"] .rz-tabview,
-html[data-theme="dark"] .e-popup,
-html[data-theme="dark"] .e-dialog,
-html[data-theme="dark"] .e-card {
-    background-color: var(--theme-surface) !important;
-    border-color: var(--theme-border) !important;
-    color: var(--theme-text) !important;
 }
 
 html[data-theme="dark"] .rz-fieldset-legend,
@@ -281,5 +308,64 @@ html[data-theme="dark"] .rz-state-highlight,
 html[data-theme="dark"] .rz-selectable tbody tr.rz-data-row:hover,
 html[data-theme="dark"] .e-row:hover,
 html[data-theme="dark"] .e-list-item.e-hover {
+    background-color: var(--theme-surface-soft) !important;
+}
+
+html[data-theme="dark"] .profile-dropdown {
+    background-color: var(--theme-surface) !important;
+    border: 1px solid var(--theme-border) !important;
+    box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.38) !important;
+}
+
+html[data-theme="dark"] .dropdown-header {
+    background: var(--theme-sidebar-gradient) !important;
+}
+
+html[data-theme="dark"] .dropdown-divider {
+    background: var(--theme-border) !important;
+}
+
+html[data-theme="dark"] .dropdown-item {
+    color: var(--theme-text) !important;
+}
+
+html[data-theme="dark"] .dropdown-item:hover {
+    background-color: var(--theme-surface-soft) !important;
+    color: var(--theme-primary) !important;
+}
+
+html[data-theme="dark"] .dropdown-item .material-icons {
+    color: var(--theme-text-muted) !important;
+}
+
+html[data-theme="dark"] .dropdown-item:hover .material-icons {
+    color: var(--theme-primary) !important;
+}
+
+html[data-theme="dark"] .corbotao span.texto-card,
+html[data-theme="dark"] .corbotao span.oi {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .quick-info-header,
+html[data-theme="dark"] .cell-footer.e-btn {
+    background-color: var(--theme-surface) !important;
+}
+
+html[data-theme="dark"] .meeting-type-wrap,
+html[data-theme="dark"] .meeting-subject-wrap,
+html[data-theme="dark"] .notes-wrap,
+html[data-theme="dark"] .event-content div label,
+html[data-theme="dark"] .quick-info-close,
+html[data-theme="dark"] .sumario-readonly textarea {
+    color: var(--theme-text-muted) !important;
+}
+
+html[data-theme="dark"] .event-content div span,
+html[data-theme="dark"] .quick-info-close:hover {
+    color: var(--theme-text) !important;
+}
+
+html[data-theme="dark"] .sumario-readonly textarea {
     background-color: var(--theme-surface-soft) !important;
 }

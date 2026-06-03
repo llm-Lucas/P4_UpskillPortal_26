@@ -1,4 +1,4 @@
-/* Força o cursor para a mão de clique */
+﻿/* Força o cursor para a mão de clique */
 .c-pointer {
     cursor: pointer !important;
 }
@@ -142,19 +142,4 @@
         transform: scale(0.95);
         box-shadow: 0 0 0 0 rgba(229, 62, 62, 0);
     }
-}
-
-
-html[data-theme="dark"] .corbotao {
-    background: linear-gradient(to left, var(--theme-surface-soft), var(--theme-surface));
-}
-
-html[data-theme="dark"] .corbotao span.texto-card,
-html[data-theme="dark"] .corbotao span.oi {
-    color: var(--theme-primary);
-}
-
-html[data-theme="dark"] .hvr-underline-from-left:before,
-html[data-theme="dark"] .hvr-underline-from-right:before {
-    background: var(--theme-accent);
 }

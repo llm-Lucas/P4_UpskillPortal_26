@@ -1,4 +1,4 @@
-/*Custom styles*/
+﻿/*Custom styles*/
 .rz-panel-menu .rz-navigation-item .rz-navigation-item-wrapper{
     background-color: transparent !important;
 }
@@ -13,7 +13,7 @@
 
 
 /*Blazor Drag Drop*/
- /*add this to avoid flickering*/
+﻿ /*add this to avoid flickering*/
 .plk-dd-inprogess > * {
     pointer-events: none;
 }
@@ -225,38 +225,4 @@
     color: #6c757d !important;
     cursor: not-allowed !important;
     opacity: 1 !important;
-}
-
-html[data-theme="dark"] .rz-custom-panel-menu:hover {
-    background-color: rgba(53, 182, 240, 0.22) !important;
-}
-
-html[data-theme="dark"] .plk-dd-dragged-over,
-html[data-theme="dark"] .plk-dd-dragged-over > div,
-html[data-theme="dark"] .plk-flex .plk-dd-dragged-over,
-html[data-theme="dark"] .plk-flex .plk-dd-dragged-over > div {
-    background-color: var(--theme-surface-soft);
-}
-
-html[data-theme="dark"] .quick-info-header,
-html[data-theme="dark"] .cell-footer.e-btn {
-    background-color: var(--theme-surface);
-}
-
-html[data-theme="dark"] .meeting-type-wrap,
-html[data-theme="dark"] .meeting-subject-wrap,
-html[data-theme="dark"] .notes-wrap,
-html[data-theme="dark"] .event-content div label,
-html[data-theme="dark"] .quick-info-close,
-html[data-theme="dark"] .sumario-readonly textarea {
-    color: var(--theme-text-muted) !important;
-}
-
-html[data-theme="dark"] .event-content div span,
-html[data-theme="dark"] .quick-info-close:hover {
-    color: var(--theme-text) !important;
-}
-
-html[data-theme="dark"] .sumario-readonly textarea {
-    background-color: var(--theme-surface-soft) !important;
 }
