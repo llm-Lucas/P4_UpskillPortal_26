@@ -169,11 +169,20 @@
 
             <AuthorizeView Roles="Administrador, Coordenador">
                 <Authorized>
-                    <RadzenButton Text="Validar Justificações Pendentes"
-                                  Icon="pageview"
-                                  ButtonStyle="ButtonStyle.Primary"
-                                  Click="@(() => navManager.NavigateTo("/Admin/ValidarJustificacoes"))"
-                                  Style="margin-bottom: 20px; margin-right: 10px;" />
+                    <div style="position: relative; display: inline-block;">
+
+                        <RadzenButton Text="Validar Justificações"
+                                      ButtonStyle="ButtonStyle.Secondary"
+                                      Icon="assignment"
+                                      Click="@(() => navManager.NavigateTo("/Admin/ValidarJustificacoes"))" />
+
+                        @if (justificacoesPendentesCount > 0)
+                        {
+                            <span class="badge-pulse-notification">
+                                @justificacoesPendentesCount
+                            </span>
+                        }
+                    </div>
                 </Authorized>
             </AuthorizeView>
         }
@@ -257,6 +266,8 @@
     RadzenGrid<Aula> Grid;
     int pageSize = 10;
 
+    private int justificacoesPendentesCount = 0;
+
     List<Formando> formandos = new();
     List<Aula> tabelaSumrios = new();
     List<Modulo> modulos = new();
@@ -311,13 +322,15 @@
             SelectedTurma.Curso = cursoData.GetById(SelectedTurma.CursoId.Value);
             SelectedTurma.Modulos = moduloData.GetModulosComFormadorByTurma(SelectedTurmaId);
             modulos = moduloData.GetModulosComFormadorByTurma(SelectedTurmaId);
+            var todasPendentes = faltaData.GetFaltasPendentes();
 
             var result = moduloData.GetModuloFormadorByTurma(SelectedTurma);
             foreach (var moduloHora in SelectedTurma.Curso.Modulos)
             {
                 SelectedTurma.Curso.Modulos[moduloHora.Key] = result[moduloHora.Key.Id].Horas;
             }
-
+            
+            justificacoesPendentesCount = todasPendentes.Count(f => f.Aula?.TurmaId == SelectedTurmaId);
             SelectedTurma.Aulas = aulaData.GetByTurma(SelectedTurma);
         }
     }

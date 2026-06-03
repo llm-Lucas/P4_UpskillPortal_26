@@ -103,3 +103,43 @@
         left: 0;
     }
 
+.badge-pulse-notification {
+    position: absolute;
+    top: -8px; /* Ajusta a altura para pairar sobre o canto superior */
+    right: -8px; /* Ajusta para pairar sobre o canto direito */
+    background-color: #e53e3e; /* Vermelho vivo chamativo */
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 3px 7px;
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7);
+    /* Ativa a animação contínua infinitamente */
+    animation: pulse-effect 2s infinite ease-in-out;
+    z-index: 10;
+    pointer-events: none; /* Garante que o clique passa para o botão por baixo */
+}
+
+/* Definição da Animação do "Pulse" */
+@keyframes pulse-effect {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        /* Cria a onda expansiva de luz vermelha */
+        box-shadow: 0 0 0 8px rgba(229, 62, 62, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(229, 62, 62, 0);
+    }
+}
