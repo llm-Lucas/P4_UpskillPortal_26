@@ -3,24 +3,23 @@ window.upskillTheme = {
     validThemes: ['light', 'dark'],
 
     getStoredTheme: function () {
-        const storedTheme = localStorage.getItem(this.storageKey);
-        return this.validThemes.includes(storedTheme) ? storedTheme : 'light';
+        const storedTheme = localStorage.getItem(window.upskillTheme.storageKey);
+        return window.upskillTheme.validThemes.includes(storedTheme) ? storedTheme : 'light';
     },
 
     applyTheme: function (theme) {
-        const nextTheme = this.validThemes.includes(theme) ? theme : 'light';
+        const nextTheme = window.upskillTheme.validThemes.includes(theme) ? theme : 'light';
         document.documentElement.setAttribute('data-theme', nextTheme);
-        localStorage.setItem(this.storageKey, nextTheme);
+        localStorage.setItem(window.upskillTheme.storageKey, nextTheme);
         return nextTheme;
     },
 
     toggleTheme: function () {
-        const currentTheme = document.documentElement.getAttribute('data-theme') || this.getStoredTheme();
-        return this.applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        const currentTheme = document.documentElement.getAttribute('data-theme') || window.upskillTheme.getStoredTheme();
+        return window.upskillTheme.applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
     }
 };
 
 (function () {
-    const storedTheme = window.upskillTheme.getStoredTheme();
-    document.documentElement.setAttribute('data-theme', storedTheme);
+    window.upskillTheme.applyTheme(window.upskillTheme.getStoredTheme());
 })();

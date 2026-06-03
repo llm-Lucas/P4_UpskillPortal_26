@@ -4,7 +4,7 @@
 }
 
 .rz-custom-panel-menu:hover {
-    background-color: color-mix(in srgb, var(--theme-accent) 22%, transparent) !important;
+    background-color: #7d188c42 !important;
 }
 .sidebar {
     height: auto !important;
@@ -34,13 +34,13 @@
 }
 
 .plk-dd-dragged-over {
-    background-color: var(--theme-surface-soft);
+    background-color: lightgray;
     opacity: 0.6;
     animation: blinker 1s linear infinite;
 }
 
     .plk-dd-dragged-over > div {
-        background-color: var(--theme-surface-soft);
+        background-color: lightgray;
         opacity: 0.6;
         animation: blinker 1s linear infinite;
     }
@@ -77,13 +77,13 @@
 }
 
 .plk-flex .plk-dd-dragged-over {
-    background-color: var(--theme-surface-soft);
+    background-color: lightgray;
     opacity: 0.6;
     animation: blinker 1s linear infinite;
 }
 
     .plk-flex .plk-dd-dragged-over > div {
-        background-color: var(--theme-surface-soft);
+        background-color: lightgray;
         opacity: 0.9;
         animation: blinker 1s linear infinite;
     }
@@ -108,7 +108,7 @@
 
 /*Estilos para o Syncfusion Scheduler*/
 .quick-info-header {
-    background-color: var(--theme-surface);
+    background-color: white;
     padding: 8px 18px;
 }
 
@@ -147,7 +147,7 @@
 
 .meeting-type-wrap, .meeting-subject-wrap, .notes-wrap {
     font-size: 11px;
-    color: var(--theme-text-muted);
+    color: #666;
     letter-spacing: 0.33px;
     height: 24px;
     padding: 5px;
@@ -156,12 +156,12 @@
 .event-content div label {
     display: inline-block;
     min-width: 45px;
-    color: var(--theme-text-muted);
+    color: #666;
 }
 
 .event-content div span {
     font-size: 11px;
-    color: var(--theme-text);
+    color: #151515;
     letter-spacing: 0.33px;
     line-height: 14px;
     padding-left: 8px;
@@ -171,9 +171,9 @@
 }
 /*FooterStyles*/
 .cell-footer.e-btn {
-    background-color: var(--theme-surface);
-    border-color: var(--theme-border-strong);
-    color: var(--theme-text-muted);
+    background-color: #ffffff;
+    border-color: #878787;
+    color: #878787;
 }
 
 .cell-footer {
@@ -211,18 +211,52 @@
     right: 10px;
     font-size: 22px;
     line-height: 1;
-    color: var(--theme-text-muted);
+    color: #6c757d;
     cursor: pointer;
     z-index: 1000;
     font-family: Arial, sans-serif;
 }
 
     .quick-info-close:hover {
-        color: var(--theme-text);
+        color: #343a40;
     }
 .sumario-readonly textarea {
-    background-color: var(--theme-surface-soft) !important;
-    color: var(--theme-text-muted) !important;
+    background-color: #e9ecef !important;
+    color: #6c757d !important;
     cursor: not-allowed !important;
     opacity: 1 !important;
+}
+
+html[data-theme="dark"] .rz-custom-panel-menu:hover {
+    background-color: rgba(53, 182, 240, 0.22) !important;
+}
+
+html[data-theme="dark"] .plk-dd-dragged-over,
+html[data-theme="dark"] .plk-dd-dragged-over > div,
+html[data-theme="dark"] .plk-flex .plk-dd-dragged-over,
+html[data-theme="dark"] .plk-flex .plk-dd-dragged-over > div {
+    background-color: var(--theme-surface-soft);
+}
+
+html[data-theme="dark"] .quick-info-header,
+html[data-theme="dark"] .cell-footer.e-btn {
+    background-color: var(--theme-surface);
+}
+
+html[data-theme="dark"] .meeting-type-wrap,
+html[data-theme="dark"] .meeting-subject-wrap,
+html[data-theme="dark"] .notes-wrap,
+html[data-theme="dark"] .event-content div label,
+html[data-theme="dark"] .quick-info-close,
+html[data-theme="dark"] .sumario-readonly textarea {
+    color: var(--theme-text-muted) !important;
+}
+
+html[data-theme="dark"] .event-content div span,
+html[data-theme="dark"] .quick-info-close:hover {
+    color: var(--theme-text) !important;
+}
+
+html[data-theme="dark"] .sumario-readonly textarea {
+    background-color: var(--theme-surface-soft) !important;
 }
