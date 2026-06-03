@@ -218,6 +218,16 @@
                                 <span style="white-space: pre-line;">@aula.Sumario</span>
                             </Template>
                         </RadzenGridColumn>
+
+                        <RadzenGridColumn TItem="PortalUpskill.Data.Models.Aula" Title="Ações" Width="140px" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
+                            <Template Context="aula">
+                                <RadzenButton ButtonStyle="ButtonStyle.Primary"
+                                              Size="ButtonSize.Small"
+                                              Icon="info"
+                                              Text="Ver Detalhes"
+                                              Click="@(() => navManager.NavigateTo($"/DetalhesAula/{aula.Id}"))" />
+                            </Template>
+                        </RadzenGridColumn>
                     </Columns>
                 </RadzenGrid>
             </div>
