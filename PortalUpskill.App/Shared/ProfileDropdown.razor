@@ -96,6 +96,13 @@
                 await LoadFormandoDetails();
             }
 
+            else if (user.IsInRole("Candidato"))
+            {
+                userRole = "Candidato";
+                await LoadFormandoDetails();
+            }
+
+
             initials = BuildInitials(userName);
         }
     }

@@ -313,5 +313,33 @@ namespace PortalUpskill.App.Utils
                 );
             }
         }
+        public async Task<string> SaveFileCandidatura(IBrowserFile selectedFile, string tipo, int pessoaId)
+        {
+            string extensao = Path.GetExtension(selectedFile.Name).ToLower();
+            string pasta = tipo switch
+            {
+                "foto" => "Fotos",
+                "cv" => "CV",
+                "cert" => "Certificados",
+                "ccfrente" => "CC",
+                "ccverso" => "CC",
+                _ => "Outros"
+            };
+
+            string caminho = Path.Combine(_env.ContentRootPath, "Files", pasta, $"{pessoaId}_{tipo}{extensao}");
+
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(_env.ContentRootPath, "Files", pasta));
+            }
+            catch { }
+
+            long fileSize = 10485760; // 10MB
+            using Stream stream = selectedFile.OpenReadStream(fileSize);
+            using FileStream fs = File.Create(caminho);
+            await stream.CopyToAsync(fs);
+
+            return caminho;
+        }
     }
 }

@@ -17,5 +17,6 @@ namespace PortalUpskill.Data.Models
 
         public Dictionary<Modulo, double> Modulos { get; set; } = new Dictionary<Modulo, double>();
         public List<Formador> Coordenadores { get; set; } = new List<Formador>();
+        public bool CandidaturasAbertas { get; set; }
     }
 }

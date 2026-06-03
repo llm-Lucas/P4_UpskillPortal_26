@@ -12,5 +12,7 @@ namespace PortalUpskill.Data.DataAccessDapper
         Pessoa GetByEmail(string email);
 
         void UpdatePassword(Pessoa pessoa, string newPass);
+
+        int CreateReturnId(Pessoa pessoa);
     }
 }

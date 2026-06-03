@@ -1,0 +1,655 @@
+﻿@page "/Candidatura"
+
+@inject IPessoaData pessoaData
+@inject ICandidaturaData candidaturaData
+@inject ICursoData cursoData
+@inject IHabilitacoesData habilitacoesData
+@inject FileManagerService fileManager
+
+<div class="cardstyle" style="max-width: 800px; margin: 2rem auto;">
+
+    @if (modoVer)
+    {
+        <h2>A Minha Candidatura</h2>
+
+        @if (candidatura == null)
+        {
+            <p>Não foi encontrada nenhuma candidatura associada à sua conta.</p>
+        }
+        else
+        {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h4>Estado da Candidatura</h4>
+                    <span style="font-size: 1rem; padding: 0.5rem 1rem; background: @GetEstadoCor(candidatura.EstadoId); color: white; border-radius: 20px;">
+                        @candidatura.Estado.Nome
+                    </span>
+                    <p class="mt-2 text-muted">Primeira candidatura submetida em @candidatura.DataCriacao.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+            </div>
+
+            <h4>Dados Pessoais</h4>
+
+            @if (!modoEditar)
+            {
+                <table class="table table-borderless table-sm">
+                    <tr><td><b>Nome</b></td><td>@user.Nome</td></tr>
+                    <tr><td><b>Email</b></td><td>@user.Email</td></tr>
+                    <tr><td><b>NIF</b></td><td>@user.NIF</td></tr>
+                    <tr><td><b>CC</b></td><td>@user.CC</td></tr>
+                    <tr><td><b>Telemóvel</b></td><td>@user.ContactoTelemovel</td></tr>
+                    <tr><td><b>Data de Nascimento</b></td><td>@(user.DataNascimento?.ToString("dd/MM/yyyy") ?? "—")</td></tr>
+                    <tr><td><b>Género</b></td><td>@(user.Sexo ?? "—")</td></tr>
+                    <tr><td><b>Morada</b></td><td>@(user.Morada ?? "—")</td></tr>
+                    <tr><td><b>Código Postal</b></td><td>@(user.CP ?? "—")</td></tr>
+                    <tr><td><b>Naturalidade</b></td><td>@(user.Nacionalidade ?? "—")</td></tr>
+                    <tr><td><b>Situação Profissional</b></td><td>@(candidatura.SituacaoProfissional ?? "—")</td></tr>
+                </table>
+
+                <h4 class="mt-4">Opções de Curso</h4>
+                <table class="table table-borderless table-sm">
+                    <tr><td><b>1ª Opção</b></td><td>@candidatura.PrimeiraOpcao.Nome</td></tr>
+                    <tr><td><b>2ª Opção</b></td><td>@(candidatura.SegundaOpcao?.Nome ?? "—")</td></tr>
+                </table>
+
+                <h4 class="mt-4">Motivação</h4>
+                <p>@(candidatura.Observacoes ?? "—")</p>
+
+                <h4 class="mt-4">Documentos Submetidos</h4>
+                <table class="table table-borderless table-sm">
+                    <tr><td><b>Foto</b></td><td>@(candidatura.Foto != null ? "✓ Submetido" : "Não submetido")</td></tr>
+                    <tr><td><b>CV</b></td><td>@(candidatura.CV != null ? "✓ Submetido" : "Não submetido")</td></tr>
+                    <tr><td><b>Certificado de Habilitações</b></td><td>@(candidatura.CertificadoHabilitacoes != null ? "✓ Submetido" : "Não submetido")</td></tr>
+                    <tr><td><b>CC Frente</b></td><td>@(candidatura.CCFrente != null ? "✓ Submetido" : "Não submetido")</td></tr>
+                    <tr><td><b>CC Verso</b></td><td>@(candidatura.CCVerso != null ? "✓ Submetido" : "Não submetido")</td></tr>
+                </table>
+
+                @if (candidatura.EstadoId == 1 || candidatura.EstadoId == 2)
+                {
+                    <div class="mt-3" style="gap: 10px; display: flex;">
+                        <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Text="Editar"
+                                      Click="@(() => modoEditar = true)" />
+                        <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="send" Text="Submeter Candidatura"
+                                      Click="SubmeterCandidatura2"
+                                      Disabled="@(candidatura.EstadoId == 2)" />
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Nome" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vmDados.Nome" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="NIF" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vmDados.NIF" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Cartão de Cidadão" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vmDados.CC" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Telemóvel" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vmDados.Telemovel" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Data de Nascimento" /></div>
+                    <div class="col-md-8"><RadzenDatePicker class="w-100" DateFormat="dd/MM/yyyy" @bind-Value="vmDados.DataNascimento" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Género" /></div>
+                    <div class="col-md-8">
+                        <RadzenDropDown class="form-control w-100" @bind-Value="vmDados.Sexo"
+                                        Data="@(new List<string> { "Masculino", "Feminino", "Outro" })" TValue="string" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Morada" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vmDados.Morada" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Código Postal" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vmDados.CP" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Naturalidade" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vmDados.Nacionalidade" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Qualificações Académicas" /></div>
+                    <div class="col-md-8">
+                        <RadzenDropDown class="form-control w-100" @bind-Value="vmDados.HabilitacoesLiterarias"
+                                        Data="@habilitacoes" TValue="int?" ValueProperty="Codigo" TextProperty="HabilitacoesLiterarias" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Situação Profissional" /></div>
+                    <div class="col-md-8">
+                        <RadzenDropDown class="form-control w-100" @bind-Value="vmDados.SituacaoProfissional"
+                                        Data="@(new List<string> { "Desempregado", "Empregado", "Estudante", "Outro" })" TValue="string" />
+                    </div>
+                </div>
+
+                <h4 class="mt-4">Opções de Curso</h4>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="1ª Opção de Curso *" /></div>
+                    <div class="col-md-8">
+                        <RadzenDropDown class="form-control w-100" @bind-Value="vmEditar.PrimeiraOpcaoId"
+                                        Data="@cursosAbertos" TValue="int?" ValueProperty="Id" TextProperty="Nome" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="2ª Opção de Curso" /></div>
+                    <div class="col-md-8">
+                        <RadzenDropDown class="form-control w-100" @bind-Value="vmEditar.SegundaOpcaoId"
+                                        Data="@cursosAbertos" TValue="int?" ValueProperty="Id" TextProperty="Nome"
+                                        AllowClear="true" Placeholder="Opcional" />
+                    </div>
+                </div>
+
+                <h4 class="mt-4">Motivação</h4>
+                <div class="row form-group">
+                    <div class="col-md-12">
+                        <RadzenTextArea class="form-control w-100" Rows="5" @bind-Value="vmEditar.Observacoes" />
+                    </div>
+                </div>
+
+                <h4 class="mt-4">Actualizar Documentos</h4>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Foto" /></div>
+                    <div class="col-md-8"><InputFile OnChange="@(e => CarregarFicheiro(e, "foto"))" accept="image/*" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="CV" /></div>
+                    <div class="col-md-8"><InputFile OnChange="@(e => CarregarFicheiro(e, "cv"))" accept=".pdf,.doc,.docx" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Certificado de Habilitações" /></div>
+                    <div class="col-md-8"><InputFile OnChange="@(e => CarregarFicheiro(e, "cert"))" accept=".pdf,.jpg,.png" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="CC Frente" /></div>
+                    <div class="col-md-8"><InputFile OnChange="@(e => CarregarFicheiro(e, "ccfrente"))" accept="image/*,.pdf" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="CC Verso" /></div>
+                    <div class="col-md-8"><InputFile OnChange="@(e => CarregarFicheiro(e, "ccverso"))" accept="image/*,.pdf" /></div>
+                </div>
+
+                <div class="row justify-content-center mt-4" style="gap: 10px;">
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar Alterações"
+                                  Click="GuardarEdicao" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" Text="Cancelar"
+                                  Click="@(() => modoEditar = false)" />
+                </div>
+            }
+        }
+
+        <div class="row justify-content-center mt-4">
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="arrow_back" Text="Voltar"
+                          Click="@(() => navManager.NavigateTo("Index"))" />
+        </div>
+    }
+    else
+    {
+        <h2>Submeter Candidatura</h2>
+
+        @if (!cursosAbertos.Any())
+        {
+            <div class="alert alert-warning">
+                <p><b>Não existem cursos com candidaturas abertas de momento.</b></p>
+                <p>Por favor tente mais tarde.</p>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@vm" OnSubmit="SubmeterCandidatura">
+
+                <h4>Detalhes do Cidadão</h4>
+
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Nome Completo *" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vm.Nome" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Cartão de Cidadão *" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vm.CC" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="NIF *" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vm.NIF" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Telemóvel *" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vm.Telemovel" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Email *" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vm.Email" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Password *" /></div>
+                    <div class="col-md-8"><RadzenPassword class="form-control w-100" @bind-Value="vm.Password" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Data de Nascimento *" /></div>
+                    <div class="col-md-8"><RadzenDatePicker class="w-100" DateFormat="dd/MM/yyyy" @bind-Value="vm.DataNascimento" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Género" /></div>
+                    <div class="col-md-8">
+                        <RadzenDropDown class="form-control w-100" @bind-Value="vm.Sexo"
+                                        Data="@(new List<string> { "Masculino", "Feminino", "Outro" })" TValue="string" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Morada *" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vm.Morada" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Código Postal *" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vm.CP" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Naturalidade" /></div>
+                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vm.Nacionalidade" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Qualificações Académicas" /></div>
+                    <div class="col-md-8">
+                        <RadzenDropDown class="form-control w-100" @bind-Value="vm.HabilitacoesLiterarias"
+                                        Data="@habilitacoes" TValue="int?" ValueProperty="Codigo" TextProperty="HabilitacoesLiterarias" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Situação Profissional" /></div>
+                    <div class="col-md-8">
+                        <RadzenDropDown class="form-control w-100" @bind-Value="vm.SituacaoProfissional"
+                                        Data="@(new List<string> { "Desempregado", "Empregado", "Estudante", "Outro" })" TValue="string" />
+                    </div>
+                </div>
+
+                <h4 class="mt-4">Candidatura</h4>
+
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="1ª Opção de Curso *" /></div>
+                    <div class="col-md-8">
+                        <RadzenDropDown class="form-control w-100" @bind-Value="vm.PrimeiraOpcaoId"
+                                        Data="@cursosAbertos" TValue="int?" ValueProperty="Id" TextProperty="Nome"
+                                        Placeholder="Selecione o curso" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="2ª Opção de Curso" /></div>
+                    <div class="col-md-8">
+                        <RadzenDropDown class="form-control w-100" @bind-Value="vm.SegundaOpcaoId"
+                                        Data="@cursosAbertos" TValue="int?" ValueProperty="Id" TextProperty="Nome"
+                                        AllowClear="true" Placeholder="Opcional" />
+                    </div>
+                </div>
+
+                <h4 class="mt-4">Motivação</h4>
+                <div class="row form-group">
+                    <div class="col-md-12">
+                        <RadzenTextArea class="form-control w-100 mt-2" Rows="5" @bind-Value="vm.Observacoes" />
+                    </div>
+                </div>
+
+                <h4 class="mt-4">Documentos</h4>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Foto" /></div>
+                    <div class="col-md-8"><InputFile OnChange="@(e => CarregarFicheiro(e, "foto"))" accept="image/*" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="CV" /></div>
+                    <div class="col-md-8"><InputFile OnChange="@(e => CarregarFicheiro(e, "cv"))" accept=".pdf,.doc,.docx" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Certificado de Habilitações" /></div>
+                    <div class="col-md-8"><InputFile OnChange="@(e => CarregarFicheiro(e, "cert"))" accept=".pdf,.jpg,.png" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="CC Frente" /></div>
+                    <div class="col-md-8"><InputFile OnChange="@(e => CarregarFicheiro(e, "ccfrente"))" accept="image/*,.pdf" /></div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="CC Verso" /></div>
+                    <div class="col-md-8"><InputFile OnChange="@(e => CarregarFicheiro(e, "ccverso"))" accept="image/*,.pdf" /></div>
+                </div>
+
+                <h4 class="mt-4">Termos e Condições</h4>
+                <div class="row form-group">
+                    <div class="col-md-12 d-flex align-items-center" style="gap: 10px;">
+                        <RadzenCheckBox @bind-Value="vm.TermosAceites" TValue="bool" />
+                        <span>Concordo com os Termos e Condições e Política de Recolha e Tratamento de Dados Pessoais.</span>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center mt-4" style="gap: 10px;">
+                    <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="send" Text="Guardar" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="cancel" Text="Cancelar" Click="@(() => navManager.NavigateTo("/"))" />
+                </div>
+
+            </EditForm>
+        }
+    }
+</div>
+
+@code {
+    bool modoVer = false;
+    bool modoEditar = false;
+    int? perfilIdOriginal;
+    string funcaoOriginal;
+
+    Pessoa user;
+    Candidatura candidatura;
+    List<Curso> cursosAbertos = new List<Curso>();
+    List<Habilitacoes> habilitacoes = new List<Habilitacoes>();
+
+    string caminhoFoto, caminhoCv, caminhoCert, caminhoCCFrente, caminhoCCVerso;
+
+    CandidaturaViewModel vm = new CandidaturaViewModel();
+    CandidaturaEditarViewModel vmEditar = new CandidaturaEditarViewModel();
+
+    [CascadingParameter]
+    Task<AuthenticationState> authStateTask { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await authStateTask;
+
+        if (auth.User.Identity.IsAuthenticated)
+        {
+            user = pessoaData.GetByEmail(auth.User.Identity.Name);
+            user = pessoaData.GetByEmail(auth.User.Identity.Name);
+            perfilIdOriginal = user.PerfilId;
+            funcaoOriginal = user.Funcao;
+            var todas = candidaturaData.GetAll();
+            candidatura = todas.FirstOrDefault(c => c.PessoaId == user.Id);
+            modoVer = true;
+
+            cursosAbertos = cursoData.GetAll().Where(c => c.CandidaturasAbertas).ToList();
+
+            if (candidatura != null)
+            {
+                vmEditar.PrimeiraOpcaoId = candidatura.PrimeiraOpcaoId;
+                vmEditar.SegundaOpcaoId = candidatura.SegundaOpcaoId;
+                vmEditar.Observacoes = candidatura.Observacoes;
+            }
+        }
+        else
+        {
+            cursosAbertos = cursoData.GetAll().Where(c => c.CandidaturasAbertas).ToList();
+            habilitacoes = habilitacoesData.GetAll();
+        }
+
+        vmDados = new CandidaturaViewModel
+            {
+                Nome = user.Nome,
+                NIF = user.NIF,
+                CC = user.CC,
+                Telemovel = user.ContactoTelemovel,
+                Morada = user.Morada,
+                CP = user.CP,
+                Nacionalidade = user.Nacionalidade,
+                Sexo = user.Sexo,
+                DataNascimento = user.DataNascimento,
+                HabilitacoesLiterarias = user.HabilitacoesLiterarias,
+                SituacaoProfissional = candidatura?.SituacaoProfissional
+            };
+
+        if (candidatura != null)
+            vmDados.SituacaoProfissional = candidatura.SituacaoProfissional;
+    }
+
+    async Task CarregarFicheiro(InputFileChangeEventArgs e, string tipo)
+    {
+        var ficheiro = e.File;
+        if (ficheiro == null) return;
+        var caminho = await fileManager.SaveFileCandidatura(ficheiro, tipo, user?.Id ?? 0);
+        switch (tipo)
+        {
+            case "foto": caminhoFoto = caminho; break;
+            case "cv": caminhoCv = caminho; break;
+            case "cert": caminhoCert = caminho; break;
+            case "ccfrente": caminhoCCFrente = caminho; break;
+            case "ccverso": caminhoCCVerso = caminho; break;
+        }
+    }
+
+    async Task SubmeterCandidatura()
+    {
+        if (string.IsNullOrWhiteSpace(vm.Nome) ||
+            string.IsNullOrWhiteSpace(vm.Email) ||
+            string.IsNullOrWhiteSpace(vm.Password) ||
+            string.IsNullOrWhiteSpace(vm.NIF) ||
+            vm.PrimeiraOpcaoId == null)
+        {
+            notificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = "Por favor preencha todos os campos obrigatórios.",
+                    Duration = 3000
+                });
+            return;
+        }
+
+        if (!vm.TermosAceites)
+        {
+            notificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = "Deve aceitar os Termos e Condições.",
+                    Duration = 3000
+                });
+            return;
+        }
+
+        Pessoa novaPessoa = new Pessoa
+            {
+                Nome = vm.Nome,
+                Email = vm.Email,
+                Password = vm.Password,
+                NIF = vm.NIF,
+                CC = vm.CC,
+                ContactoTelemovel = vm.Telemovel,
+                DataNascimento = vm.DataNascimento,
+                Sexo = vm.Sexo,
+                Morada = vm.Morada,
+                CP = vm.CP,
+                Nacionalidade = vm.Nacionalidade,
+                HabilitacoesLiterarias = vm.HabilitacoesLiterarias ?? 0,
+                PerfilId = 5
+            };
+
+        int pessoaId = pessoaData.CreateReturnId(novaPessoa);
+
+        Candidatura candidatura = new Candidatura
+            {
+                PessoaId = pessoaId,
+                PrimeiraOpcaoId = vm.PrimeiraOpcaoId.Value,
+                SegundaOpcaoId = vm.SegundaOpcaoId,
+                Observacoes = vm.Observacoes,
+                EstadoId = 1,
+                Foto = caminhoFoto,
+                CV = caminhoCv,
+                CertificadoHabilitacoes = caminhoCert,
+                CCFrente = caminhoCCFrente,
+                CCVerso = caminhoCCVerso,
+                SituacaoProfissional = vm.SituacaoProfissional,
+                TermosAceites = vm.TermosAceites
+            };
+
+        candidaturaData.Create(candidatura);
+
+        notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Candidatura submetida com sucesso!",
+                Duration = 4000
+            });
+
+        navManager.NavigateTo("/");
+    }
+
+    void SubmeterCandidatura2()
+    {
+        candidaturaData.Submeter(candidatura.Id);
+        var todas = candidaturaData.GetAll();
+        candidatura = todas.FirstOrDefault(c => c.PessoaId == user.Id);
+        notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Candidatura submetida com sucesso!",
+                Duration = 3000
+            });
+        StateHasChanged();
+    }
+
+    async Task GuardarEdicao()
+    {
+        if (vmEditar.PrimeiraOpcaoId == null)
+        {
+            notificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = "A 1ª opção de curso é obrigatória.",
+                    Duration = 3000
+                });
+            return;
+        }
+
+        if (vmEditar.SegundaOpcaoId != null && vmEditar.SegundaOpcaoId == vmEditar.PrimeiraOpcaoId)
+        {
+            notificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = "A 1ª e 2ª opção não podem ser iguais.",
+                    Duration = 3000
+                });
+            return;
+        }
+        // Guardar dados pessoais — preservar PerfilId e Funcao
+        user.Nome = vmDados.Nome;
+        user.NIF = vmDados.NIF;
+        user.CC = vmDados.CC;
+        user.ContactoTelemovel = vmDados.Telemovel;
+        user.DataNascimento = vmDados.DataNascimento;
+        user.Sexo = vmDados.Sexo;
+        user.Morada = vmDados.Morada;
+        user.CP = vmDados.CP;
+        user.Nacionalidade = vmDados.Nacionalidade;
+        user.HabilitacoesLiterarias = vmDados.HabilitacoesLiterarias ?? 0;
+        // Preservar campos críticos que não são editáveis aqui
+        user.PerfilId = user.PerfilId;
+        user.Funcao = user.Funcao;
+        user.PerfilId = perfilIdOriginal;
+        user.Funcao = funcaoOriginal;
+        pessoaData.Update(user);
+
+
+        // Guardar situação profissional na candidatura
+        candidaturaData.UpdateSituacaoProfissional(candidatura.Id, vmDados.SituacaoProfissional);
+
+        candidaturaData.Update(candidatura.Id, vmEditar.PrimeiraOpcaoId.Value, vmEditar.SegundaOpcaoId, vmEditar.Observacoes,
+            caminhoFoto ?? candidatura.Foto,
+            caminhoCv ?? candidatura.CV,
+            caminhoCert ?? candidatura.CertificadoHabilitacoes,
+            caminhoCCFrente ?? candidatura.CCFrente,
+            caminhoCCVerso ?? candidatura.CCVerso);
+
+        // Volta ao estado Aguarda Submissão
+        candidaturaData.UpdateEstado(candidatura.Id, 1);
+
+        notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Candidatura actualizada. Não se esqueça de submeter novamente.",
+                Duration = 4000
+            });
+
+        var todas = candidaturaData.GetAll();
+        candidatura = todas.FirstOrDefault(c => c.PessoaId == user.Id);
+        // Recarregar user da BD para o modo de visualização reflectir as alterações
+        user = pessoaData.GetByEmail(user.Email);
+        perfilIdOriginal = user.PerfilId;
+        funcaoOriginal = user.Funcao;
+        modoEditar = false;
+        StateHasChanged();
+    }
+
+    string GetEstadoCor(int estadoId) => estadoId switch
+    {
+        1 => "#aaa",
+        2 => "#f0a500",
+        3 => "#28a745",
+        4 => "#dc3545",
+        _ => "#aaa"
+    };
+
+    public class CandidaturaViewModel
+    {
+        public string Nome { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public string NIF { get; set; }
+        public string CC { get; set; }
+        public string Telemovel { get; set; }
+        public DateTime? DataNascimento { get; set; }
+        public string Sexo { get; set; }
+        public string Morada { get; set; }
+        public string CP { get; set; }
+        public string Nacionalidade { get; set; }
+        public int? HabilitacoesLiterarias { get; set; }
+        public string SituacaoProfissional { get; set; }
+        public int? PrimeiraOpcaoId { get; set; }
+        public int? SegundaOpcaoId { get; set; }
+        public string Observacoes { get; set; }
+        public bool TermosAceites { get; set; }
+    }
+
+    public class CandidaturaEditarViewModel
+    {
+        public int? PrimeiraOpcaoId { get; set; }
+        public int? SegundaOpcaoId { get; set; }
+        public string Observacoes { get; set; }
+    }
+   
+
+    CandidaturaViewModel vmDados = new CandidaturaViewModel();
+
+    void GuardarDadosPessoais()
+    {
+        user.Nome = vmDados.Nome;
+        user.NIF = vmDados.NIF;
+        user.CC = vmDados.CC;
+        user.ContactoTelemovel = vmDados.Telemovel;
+        user.DataNascimento = vmDados.DataNascimento;
+        user.Sexo = vmDados.Sexo;
+        user.Morada = vmDados.Morada;
+        user.CP = vmDados.CP;
+        user.Nacionalidade = vmDados.Nacionalidade;
+        user.HabilitacoesLiterarias = vmDados.HabilitacoesLiterarias ?? 0;
+
+        pessoaData.Update(user);
+
+        // Actualizar situação profissional na candidatura
+        if (candidatura != null && vmDados.SituacaoProfissional != candidatura.SituacaoProfissional)
+        {
+            candidaturaData.UpdateSituacaoProfissional(candidatura.Id, vmDados.SituacaoProfissional);
+            candidatura.SituacaoProfissional = vmDados.SituacaoProfissional;
+        }
+
+        notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Dados pessoais actualizados com sucesso.",
+                Duration = 3000
+            });
+
+        modoEditar = false;
+        StateHasChanged();
+    }
+
+}
