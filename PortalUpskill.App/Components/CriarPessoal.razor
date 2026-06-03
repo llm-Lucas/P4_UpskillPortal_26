@@ -7,6 +7,7 @@
 @inject IPessoalData pessoalData
 @inject FileManagerService FileMngSrv
 @inject IFuncoesData funcoesData
+@inject IPessoaData pessoaData
 
 <div class="cardstyle">
     @if (Id == 0)
@@ -478,6 +479,19 @@
 
     async void CheckPessoal(EditContext editContext)
     {
+        bool jaExiste = pessoaData.ExisteDuplicado(Id, pessoalVM.Email, pessoalVM.NIF, pessoalVM.CC);
+        if (jaExiste)
+        {
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = "Dados Duplicados",
+                Detail = "Já existe um funcionário registado com este Email, NIF ou CC.",
+                Duration = 5000
+            });
+            return;
+        }
+
         //pedido de confirmação quando o utilizador está a editar um formando
         if (Id != 0 && editContext.Validate())
         {

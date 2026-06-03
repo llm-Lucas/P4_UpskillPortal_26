@@ -621,6 +621,19 @@
 
     void GuardarDadosPessoais()
     {
+        bool jaExiste = pessoaData.ExisteDuplicado(user.Id, user.Email, vmDados.NIF, vmDados.CC);
+    if (jaExiste)
+    {
+        notificationService.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Warning,
+            Summary = "Dados em uso",
+            Detail = "O NIF ou CC introduzido já se encontra registado noutra conta.",
+            Duration = 5000
+        });
+        return;
+    }
+
         user.Nome = vmDados.Nome;
         user.NIF = vmDados.NIF;
         user.CC = vmDados.CC;

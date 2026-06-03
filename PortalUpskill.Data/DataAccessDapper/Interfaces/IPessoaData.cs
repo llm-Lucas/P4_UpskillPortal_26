@@ -14,5 +14,7 @@ namespace PortalUpskill.Data.DataAccessDapper
         void UpdatePassword(Pessoa pessoa, string newPass);
 
         int CreateReturnId(Pessoa pessoa);
+
+        bool ExisteDuplicado(int id, string email, string nif, string cc);
     }
 }
