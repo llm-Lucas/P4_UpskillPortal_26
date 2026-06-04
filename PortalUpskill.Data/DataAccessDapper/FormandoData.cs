@@ -394,25 +394,28 @@ namespace PortalUpskill.Data.DataAccessDapper
 			}
 		}
 
-		public void CreateAvaliacaoFinal(List<Formando> formandos)
-		{
-			using (var connection = new SqlConnection(_connectionString))
-			{
-				string sql = @"INSERT INTO AvaliacaoFinal (FormandoId, CursoId, NotaFinal)
-								VALUES (@FormandoId, @CursoId, @NotaFinal);";
-				foreach (var formando in formandos)
-				{
-					connection.Execute(sql, new
-					{
-						FormandoId = formando.Id,
-						CursoId = formando.Turma.CursoId,
-						NotaFinal = formando.AvaliacaoFinal.NotaFinal
-					});
-				}
-			}
-		}
 
-		public void UpdateAvaliacaoFinal(List<Formando> formandos)
+        public void CreateAvaliacaoFinal(List<Formando> formandos)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string sql = @"INSERT INTO AvaliacaoFinal (FormandoId, CursoId, NotaFinal)
+                        VALUES (@FormandoId, @CursoId, @NotaFinal);";
+                foreach (var formando in formandos)
+                {
+                    connection.Execute(sql, new
+                    {
+                        FormandoId = formando.Id,
+                        CursoId = formando.Turma.CursoId,
+                        NotaFinal = formando.AvaliacaoFinal == null ? 0m :
+            (double.IsNaN(formando.AvaliacaoFinal.NotaFinal) || double.IsInfinity(formando.AvaliacaoFinal.NotaFinal)) ? 0m :
+            (decimal)formando.AvaliacaoFinal.NotaFinal
+                    });
+                }
+            }
+        }
+
+        public void UpdateAvaliacaoFinal(List<Formando> formandos)
 		{
 			using (var connection = new SqlConnection(_connectionString))
 			{

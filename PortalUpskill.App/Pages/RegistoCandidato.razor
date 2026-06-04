@@ -5,6 +5,7 @@
 @inject ICursoData cursoData
 @inject IHabilitacoesData habilitacoesData
 @inject FileManagerService fileManager
+@inject IPaisesData paisesData
 
 <div class="cardstyle" style="max-width: 800px; margin: 2rem auto;">
 
@@ -42,7 +43,7 @@
                     <tr><td><b>Género</b></td><td>@(user.Sexo ?? "—")</td></tr>
                     <tr><td><b>Morada</b></td><td>@(user.Morada ?? "—")</td></tr>
                     <tr><td><b>Código Postal</b></td><td>@(user.CP ?? "—")</td></tr>
-                    <tr><td><b>Naturalidade</b></td><td>@(user.Nacionalidade ?? "—")</td></tr>
+                    <tr><td><b>Nacionalidade</b></td><td>@(user.Nacionalidade ?? "—")</td></tr>
                     <tr><td><b>Qualificações Académicas</b></td><td>@(habilitacoes.FirstOrDefault(h => h.Codigo == user.HabilitacoesLiterarias)?.HabilitacoesLiterarias ?? "—")</td></tr>
                     <tr><td><b>Situação Profissional</b></td><td>@(candidatura.SituacaoProfissional ?? "—")</td></tr>
                 </table>
@@ -115,7 +116,15 @@
                 </div>
                 <div class="row form-group">
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Naturalidade" /></div>
-                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vmDados.Nacionalidade" /></div>
+                    <div class="col-md-8">
+                        <RadzenDropDown class="form-control" @bind-Value="vm.Nacionalidade" Data="@paises"
+                        TValue="string" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        ValueProperty="iso" TextProperty="nome" AllowClear="true">
+                            <Template Context="pais">
+                                <span>@pais.iso - @pais.nome</span>
+                            </Template>
+                        </RadzenDropDown>
+                    </div>
                 </div>
                 <div class="row form-group">
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Qualificações Académicas" /></div>
@@ -258,7 +267,15 @@
                 </div>
                 <div class="row form-group">
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Naturalidade" /></div>
-                    <div class="col-md-8"><RadzenTextBox class="form-control w-100" @bind-Value="vm.Nacionalidade" /></div>
+                    <div class="col-md-8">
+                        <RadzenDropDown class="form-control" @bind-Value="vmDados.Nacionalidade" Data="@paises"
+                        TValue="string" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        ValueProperty="iso" TextProperty="nome" AllowClear="true">
+                            <Template Context="pais">
+                                <span>@pais.iso - @pais.nome</span>
+                            </Template>
+                        </RadzenDropDown>
+                    </div>
                 </div>
                 <div class="row form-group">
                     <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Qualificações Académicas" /></div>
@@ -347,10 +364,12 @@
     int? perfilIdOriginal;
     string funcaoOriginal;
 
+
     Pessoa user;
     Candidatura candidatura;
     List<Curso> cursosAbertos = new List<Curso>();
     List<Habilitacoes> habilitacoes = new List<Habilitacoes>();
+    List<Paises> paises = new List<Paises>();
 
     string caminhoFoto, caminhoCv, caminhoCert, caminhoCCFrente, caminhoCCVerso;
 
@@ -368,6 +387,7 @@
         {
             user = pessoaData.GetByEmail(auth.User.Identity.Name);
             perfilIdOriginal = user.PerfilId;
+            paises = paisesData.GetAll();
             funcaoOriginal = user.Funcao;
             habilitacoes = habilitacoesData.GetAll();
             var todas = candidaturaData.GetAll();
@@ -402,6 +422,7 @@
         {
             cursosAbertos = cursoData.GetAll().Where(c => c.CandidaturasAbertas).ToList();
             habilitacoes = habilitacoesData.GetAll();
+            paises = paisesData.GetAll();
         }
     }
 
