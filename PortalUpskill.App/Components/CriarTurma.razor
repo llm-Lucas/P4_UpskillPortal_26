@@ -3,6 +3,11 @@
 @inject ICursoData cursoData
 @inject RefreshService refreshService
 @inject IAnoLetivoData anoLetivoData
+@inject FileManagerService fileManager
+@inject IFormandoData formandoData
+@inject IWebHostEnvironment env
+
+
 
 <div class="cardstyle">
     <EditForm Model="@turmaVM" OnValidSubmit="CheckTurma">
@@ -187,6 +192,8 @@
                 <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px; gap: 16px;">
                     <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Turmas"))" />
                     <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Gravar" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="upload" Text="Importar Candidatos"
+                                  Click="AbrirImportarCandidatos" />
                 </div>
             </div>
             <!-- FIM #004-->
@@ -263,6 +270,64 @@
         </div>
     </div>
     );
+
+    async Task AbrirImportarCandidatos()
+    {
+        if (Id == 0)
+        {
+            notificationService.Notify(new NotificationMessage
+                        {
+                            Severity = NotificationSeverity.Warning,
+                            Summary = "Guarde a turma primeiro antes de importar candidatos.",
+                            Duration = 3000
+                        });
+            return;
+        }
+
+        await dialogService.OpenAsync("Importar Candidatos", ds =>
+    @<div>
+        <p>Seleccione o ficheiro Excel com os candidatos aprovados:</p>
+        <InputFile OnChange="@(async e => await ImportarCandidatos(e, ds))" accept=".xlsx,.xlsm" />
+    </div>
+    , new DialogOptions { Width = "400px", Height = "auto" });
+    }
+
+    async Task ImportarCandidatos(InputFileChangeEventArgs e, DialogService ds)
+    {
+        var ficheiro = e.File;
+        if (ficheiro == null) return;
+
+        string caminho = Path.Combine(env.ContentRootPath, "Files", "Temp", ficheiro.Name);
+        Directory.CreateDirectory(Path.GetDirectoryName(caminho));
+
+        using (var stream = ficheiro.OpenReadStream(10485760))
+        using (var fs = File.Create(caminho))
+            await stream.CopyToAsync(fs);
+
+        int count = 0;
+        using (XLWorkbook workbook = new XLWorkbook(caminho))
+        {
+            var worksheet = workbook.Worksheet(1);
+            var row = worksheet.Row(5);
+            while (!row.Cell(1).IsEmpty())
+            {
+                int pessoaId = row.Cell(1).GetValue<int>();
+                formandoData.CreateAndAssociarTurma(pessoaId, Id);
+                count++;
+                row = row.RowBelow();
+            }
+        }
+
+        File.Delete(caminho);
+        ds.Close();
+
+        notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = $"{count} candidatos importados com sucesso.",
+                Duration = 3000
+            });
+    }
 
 }
 

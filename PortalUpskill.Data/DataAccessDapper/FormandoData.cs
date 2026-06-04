@@ -493,5 +493,43 @@ namespace PortalUpskill.Data.DataAccessDapper
 					}, new { Id = id }, splitOn: "Id").ToList();
 			}
 		}
-	}
+        public void CreateAndAssociarTurma(int pessoaId, int turmaId)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        // Mudar PerfilId de Candidato (5) para Formando (4)
+                        string sql = @"UPDATE Pessoa SET PerfilId = 4 WHERE Id = @Id";
+                        connection.Execute(sql, new { Id = pessoaId }, transaction: transaction);
+
+                        // Criar Formando
+                        sql = @"INSERT INTO Formando (PessoaId, EstadoId)
+                        VALUES (@PessoaId, 1)";
+                        connection.Execute(sql, new { PessoaId = pessoaId }, transaction: transaction);
+
+                        // Criar EstadoFormando
+                        sql = @"INSERT INTO EstadoFormando (PessoaId, ListaEstadoId, Data, Observacoes)
+                        VALUES (@PessoaId, 1, @Data, 'Importação de candidatos')";
+                        connection.Execute(sql, new { PessoaId = pessoaId, Data = DateTime.Now }, transaction: transaction);
+
+                        // Associar à Turma
+                        sql = @"INSERT INTO TurmaFormando (FormandoId, TurmaId)
+                        VALUES (@FormandoId, @TurmaId)";
+                        connection.Execute(sql, new { FormandoId = pessoaId, TurmaId = turmaId }, transaction: transaction);
+
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        connection.Close();
+                        throw;
+                    }
+                }
+            }
+        }
+    }
 }
