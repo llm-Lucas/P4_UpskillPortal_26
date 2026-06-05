@@ -4,6 +4,8 @@
 
 @inject IFormadorData formadorData
 @inject IModuloData moduloData
+@* Adicionado a injeção do teu serviço *@
+@inject PortalUpskill.App.Utils.FileManagerService FileManagerService
 
 <div class="cardstyle">
 	<h2>@Title</h2>
@@ -15,16 +17,18 @@
 		<AuthorizeView Roles="Administrador, Secretariado">
 			<Authorized>
 				<RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Formador" Icon="add" Click="@(() => dialogService.Open<CriarFormador>(
-																																	 "Criar Formador",
-																																	 new Dictionary<string, object>()
-																																	 {
-																														 { "RedirectAfterCreation", IsViewedAsChild ? false : true}
-																																	 },
-																																	 new DialogOptions()
-																																	 {
-																																		 Width = "90%",
-																																		 Height = "90%"
-																																	 }))" />
+																																								   "Criar Formador",
+																																								   new Dictionary<string, object>()
+																																								   {
+																																	   { "RedirectAfterCreation", IsViewedAsChild ? false : true}
+																																								   },
+																																								   new DialogOptions()
+																																								   {
+																																									   Width = "90%",
+																																									   Height = "90%"
+																																								   }))" />
+				@* Botão de exportação integrado mantendo o layout *@
+				<RadzenButton class="my-4 ms-2" ButtonStyle="ButtonStyle.Success" Text="Exportar para Excel" Icon="description" Click="@ExportarParaExcel" />
 			</Authorized>
 		</AuthorizeView>
 	}
@@ -76,8 +80,8 @@
 						<RadzenGridColumn Title="Opções" TItem="Formador" Sortable="false" Filterable="false" Width="300px">
 							<Template Context="Formador">
 								<RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesFormador>($"Detalhes",
-																																 new Dictionary<string, object>() { { "FormadorId", Formador.Id } },
-																																 new DialogOptions() { Width = "80%", Height = "90%" })) />
+																																											   new Dictionary<string, object>() { { "FormadorId", Formador.Id } },
+																																											   new DialogOptions() { Width = "80%", Height = "90%" })) />
 								<RadzenButton Title="Módulos"
 											  Size="ButtonSize.Medium"
 											  ButtonStyle="ButtonStyle.Info"
@@ -93,7 +97,6 @@
 			}
 		</Columns>
 	</RadzenGrid>
-
 </div>
 @if (Mode != "Add")
 {
@@ -225,11 +228,11 @@ else
 				<div class="row">
 					<div class="col-md-12 d-flex justify-content-center">
 						<RadzenButton class="w-150 mx-2" Text="Ok" Click='() =>
-																												{
-																													FileManagerService.RemoveFile(formador.Foto); FileManagerService.RemoveFile(formador.CV);
-																													formadorData.Remove(formador.Id); ds.Close(true); LoadFormadores();
-																													notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Formador apagado com sucesso", Duration = 4000 });
-																												}' />
+																																					  {
+																																						  FileManagerService.RemoveFile(formador.Foto); FileManagerService.RemoveFile(formador.CV);
+																																						  formadorData.Remove(formador.Id); ds.Close(true); LoadFormadores();
+																																						  notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Formador apagado com sucesso", Duration = 4000 });
+																																					  }' />
 						<RadzenButton class="w-150 mx-2" Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" />
 					</div>
 				</div>
@@ -258,5 +261,36 @@ else
 	void FiltrarPorEstado()
 	{
 		filteredFormadores = formadores.Where(f => filtroEstado != "Filtrar por estado" ? f.Estado.Nome == filtroEstado : true).OrderBy(f => f.Nome).ToList();
+	}
+
+	@* Método de exportação acoplado perfeitamente aos teus dados *@
+	private async Task ExportarParaExcel()
+	{
+		if (filteredFormadores != null && filteredFormadores.Count > 0)
+		{
+			using var workbook = new ClosedXML.Excel.XLWorkbook();
+			var worksheet = workbook.Worksheets.Add("Formadores");
+
+			worksheet.Cell(1, 1).Value = "Nome";
+			worksheet.Cell(1, 2).Value = "Email";
+			worksheet.Cell(1, 3).Value = "Telemóvel";
+			worksheet.Cell(1, 4).Value = "Telefone";
+			worksheet.Cell(1, 5).Value = "Estado";
+			worksheet.Row(1).Style.Font.Bold = true;
+
+			int row = 2;
+			foreach (var item in filteredFormadores)
+			{
+				worksheet.Cell(row, 1).Value = item.Nome;
+				worksheet.Cell(row, 2).Value = item.Email;
+				worksheet.Cell(row, 3).Value = item.ContactoTelemovel;
+				worksheet.Cell(row, 4).Value = item.ContactoTelefone;
+				worksheet.Cell(row, 5).Value = item.Estado?.Nome ?? "N/D";
+				row++;
+			}
+			worksheet.Columns().AdjustToContents();
+
+			await FileManagerService.DownloadWorkbook(workbook, ".xlsx", "Lista_Formadores");
+		}
 	}
 }

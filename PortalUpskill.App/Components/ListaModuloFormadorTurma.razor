@@ -2,98 +2,54 @@
 
 @inject IModuloData moduloData
 @inject ITurmaData turmaData
+@inject PortalUpskill.App.Utils.FileManagerService FileManagerService
 
-<h1>@Title @getTurmaAtual()</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>@Title @getTurmaAtual()</h1>
+    <RadzenButton Text="Exportar para Excel" Icon="description" ButtonStyle="ButtonStyle.Success" Click="@ExportarParaExcel" />
+</div>
 
-<RadzenGrid Data="@modulos"
-TItem="Modulo"
-AllowSorting="true"
-AllowFiltering="true"
-FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-AllowPaging="true"
-PageSize="10">
-    <Columns>
-        <RadzenGridColumn TItem="Modulo" Property="Nome" Title="Nome" />
-        <RadzenGridColumn TItem="Modulo" Property="Horas" Title="Duração em Horas" />
-        <!--INICIO #008-->
-        <!--Coluna para dizer se o Modulo ja teve inicio-->
-        <RadzenGridColumn TItem="Modulo" Property="" Title="Modulo Iniciado" />
-
-        <!--Coluna para dizer se o Modulo ja foi concluido-->
-        <RadzenGridColumn TItem="Modulo" Property="" Title="Modulo Concluido" />
-
-        <!--Coluna para ver detalhes do modulo-->
-        <RadzenGridColumn Title="Opções" TItem="Modulo" Sortable="false" Filterable="false">
-            <Template Context="Modulo">
-                <RadzenButton Title="Ver detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesModulo>($"Detalhes",
-                                                                                    new Dictionary<string, object>() { { "ModuloId", Modulo.Id } },
-                                                                                    new DialogOptions(){ Width = "80%", Height = "90%" })) />
-            </Template>
-        </RadzenGridColumn>
-        <!--FIM-->
-    </Columns>
+<RadzenGrid Data="@modulos" TItem="Modulo" AllowSorting="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="10">
 </RadzenGrid>
 
-<!-- INÍCIO #008 -->
-<div class="row justify-content-center">
-    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
-        <AuthorizeView Roles="Administrador, Secretariado">
-            <Authorized>
-                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Calendar/{aulaVM.TurmaId}"))" />
-            </Authorized>
-        </AuthorizeView>
-        <AuthorizeView Roles="Formador">
-            <Authorized>
-                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"TurmasPorFormador"))" />
-            </Authorized>
-        </AuthorizeView>
-    </div>
-</div>
-<!-- FIM -->
-
 @code {
-
-    // INÍCIO #008
-    // Instancia a ViewModel para a Aula
-    // É necessário para o botão de Voltar
-    AulaViewModel aulaVM = new AulaViewModel();
-
-    // Receber a Turma Atual que foi carregada
+    List<Modulo> modulos;
     string turmaAtual = "";
+    [Parameter] public string Title { get; set; } = "Módulos da Turma ";
+    [Parameter] public int Idf { get; set; }
+    [Parameter] public int Id { get; set; }
 
-    // Metodo para ir buscar a turma selecionada e guardar na string turmaAtual
+    protected override async Task OnInitializedAsync() { LoadModulos(); }
+    void LoadModulos() { modulos = moduloData.GetByIdFormadorIdTurma(Idf, Id); }
+
     public string getTurmaAtual()
     {
         var turma = turmaData.GetById(Id);
-        if (turma != null)
+        if (turma != null) { turmaAtual = turma.Nome; }
+        return turmaAtual;
+    }
+
+    private async Task ExportarParaExcel()
+    {
+        if (modulos != null && modulos.Count > 0)
         {
-            turmaAtual = turma.Nome;
+            using var workbook = new ClosedXML.Excel.XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Módulos");
+
+            worksheet.Cell(1, 1).Value = "Nome do Módulo";
+            worksheet.Cell(1, 2).Value = "Duração em Horas";
+            worksheet.Row(1).Style.Font.Bold = true;
+
+            int row = 2;
+            foreach (var item in modulos)
+            {
+                worksheet.Cell(row, 1).Value = item.Nome;
+                worksheet.Cell(row, 2).Value = item.Horas;
+                row++;
+            }
+            worksheet.Columns().AdjustToContents();
+
+            await FileManagerService.DownloadWorkbook(workbook, ".xlsx", $"Modulos_Turma_{turmaAtual.Replace(" ", "_")}");
         }
-
-		return turmaAtual;
     }
-
-    // FIM
-
-    List<Modulo> modulos;
-
-    [Parameter]
-    public string Title { get; set; } = "Módulos da Turma ";
-
-    [Parameter]
-    public int Idf { get; set; } //id formador
-    [Parameter]
-    public int Id { get; set; } // id do turma
-
-    protected override async Task OnInitializedAsync()
-    {
-        LoadModulos();
-    }
-
-    void LoadModulos()
-    {
-        modulos = moduloData.GetByIdFormadorIdTurma(Idf,Id);
-    }
-
 }

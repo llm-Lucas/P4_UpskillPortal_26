@@ -2,11 +2,22 @@
 
 @inject ICursoData cursoData
 @inject RefreshService refreshService
+@inject IJSRuntime JS
+@* Garantir que os serviços usados estão injetados (se já estiverem no _Imports.razor, podes apagar estas 3 linhas) *@
+@inject NavigationManager navManager
+@inject DialogService dialogService
+@inject NotificationService notificationService
+
+@using Radzen
+@using System.Text
 
 <div class="cardstyle">
     <h2>Cursos</h2>
 
     <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Curso" Icon="add" Click="@(() => navManager.NavigateTo("Curso"))" />
+
+    @* Botão de Exportar para Excel *@
+    <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Success" Text="Exportar para Excel" Icon="grid_on" Click="@ExportarExcel" style="margin-left: 10px;" />
 
     <RadzenGrid Data="@cursos"
                 TItem="Curso"
@@ -29,35 +40,30 @@
             }
             else
             {
-                <RadzenGridColumn TItem="Curso"  Title="Opções" Sortable="false" Filterable="false">
+                <RadzenGridColumn TItem="Curso" Title="Opções" Sortable="false" Filterable="false">
                     <Template Context="Curso">
                         <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesCurso>("Detalhes do curso",
-                                                                                       new Dictionary<string, object>() { { "CursoId", Curso.Id } },
-                                                                                       new DialogOptions(){ Width = "80%", Height = "90%" })) />
+                                                                                                                             new Dictionary<string, object>() { { "CursoId", Curso.Id } },
+                                                                                                                             new DialogOptions() { Width = "80%", Height = "90%" })) />
                         <RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Curso/{Curso.Id}"))" />
                         <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Curso))" />
                     </Template>
                 </RadzenGridColumn>
             }
-
-
         </Columns>
     </RadzenGrid>
 </div>
-<!-- INÍCIO #004 -->
-<!-- Botão de Voltar -->
+
 <div class="row justify-content-center">
     <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
         <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
     </div>
 </div>
 <br />
-<!-- FIM -->
 
 @code {
 
-    List<Curso> cursos;
+    List<Curso> cursos = new List<Curso>();
 
     [Parameter]
     public string Mode { get; set; }
@@ -72,7 +78,12 @@
 
     void LoadCursos()
     {
-        cursos = cursoData.GetAll().OrderBy(c => c.Nome).ToList();
+        // Proteção contra nulos caso a base de dados não retorne dados
+        var dbCursos = cursoData.GetAll();
+        if (dbCursos != null)
+        {
+            cursos = dbCursos.OrderBy(c => c.Nome).ToList();
+        }
     }
 
     private async Task SendCurso(int ToSendId)
@@ -95,11 +106,6 @@
         </div>);
     }
 
-    /// <summary>
-    /// Criada para encapsular a lógica condicional chamada dentro do modal em ConfirmDelete()
-    /// </summary>
-    /// <param name="curso">Curso que se está a apagar</param>
-    /// <param name="ds">DialogService(modal) para fechar</param>
     void DeleteCursoAction(Curso curso, DialogService ds)
     {
         if (cursoData.RemoveWithReturn(curso.Id))
@@ -112,5 +118,36 @@
         }
         ds.Close(true);
         LoadCursos();
+    }
+
+    // Método de Exportação Corrigido para Base64
+    private async Task ExportarExcel()
+    {
+        if (cursos == null || !cursos.Any())
+        {
+            notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Aviso", Detail = "Não existem dados para exportar.", Duration = 3000 });
+            return;
+        }
+
+        var csv = new StringBuilder();
+
+        // Adiciona o BOM diretamente na string (como fizemos nos Relatórios)
+        csv.AppendLine("\uFEFF");
+        csv.AppendLine("Nome;Duração em Horas");
+
+        foreach (var curso in cursos)
+        {
+            // Substitui pontos e vírgulas nos nomes para não quebrar colunas no Excel
+            string nomeTratado = curso.Nome?.Replace(";", ",") ?? "";
+            csv.AppendLine($"{nomeTratado};{curso.DuracaoHoras}");
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+
+        // Converter para Base64 antes de enviar para o JavaScript
+        var base64 = Convert.ToBase64String(bytes);
+
+        // Usar exatamente a mesma função JS que usamos nos Relatórios (já existe no teu _Host.cshtml)
+        await JS.InvokeVoidAsync("downloadFileFromBase64", "Lista_Cursos.csv", base64);
     }
 }

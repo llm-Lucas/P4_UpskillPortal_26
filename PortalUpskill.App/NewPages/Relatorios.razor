@@ -11,8 +11,10 @@
 @inject IModuloData moduloData
 @inject IPessoalData pessoalData
 @inject NavigationManager navManager
+@inject IJSRuntime JS
 
 @using Radzen
+@using System.Text
 
 <div class="cardstyle">
 
@@ -24,10 +26,11 @@
 
         <div class="mt-4 mb-4">
             <label class="fw-bold mb-2 d-block">Turma</label>
+            @* FIX: Alterado o Change para expressão lambda segura *@
             <RadzenDropDown class="w-50 d-block"
                             Data="@turmas"
                             @bind-Value="SelectedTurmaId"
-                            Change="OnTurmaSelected"
+                            Change="@(args => OnTurmaSelected())"
                             TValue="int"
                             ValueProperty="Id"
                             TextProperty="Nome"
@@ -68,8 +71,8 @@
             </div>
             <div class="col-md-4 text-center d-flex justify-content-center">
                 <a class="corbotao hvr-underline-from-center c-pointer"
-                       @onclick="@(() => navManager.NavigateTo($"/RelatorioInqueritos/{SelectedTurmaId}"))"
-                       role="button">
+                   @onclick="@(() => navManager.NavigateTo($"/RelatorioInqueritos/{SelectedTurmaId}"))"
+                   role="button">
                     <span class="oi oi-bar-chart" style="font-size: 48px; margin-top: 5px;"></span>
                     <span class="texto-card">INQUÉRITOS</span>
                 </a>
@@ -92,7 +95,12 @@
         @* SUBPÁGINA: FALTAS *@
         @if (SelectedRelatorio == 1)
         {
-            <RadzenGrid @ref="grid"
+            <div class="mb-3 text-end">
+                <RadzenButton Text="Exportar Faltas para Excel" Icon="grid_on" ButtonStyle="ButtonStyle.Success" Click="@ExportarFaltasParaExcel" />
+            </div>
+
+            @* FIX: Nome da referência alterada para gridFaltas *@
+            <RadzenGrid @ref="gridFaltas"
                         Data="@formandosDaTurma"
                         TItem="PortalUpskill.Data.Models.Formando"
                         AllowSorting="true"
@@ -164,7 +172,7 @@
                     </RadzenGridColumn>
                 </Columns>
             </RadzenGrid>
-            
+
             <br />
 
             <AuthorizeView Roles="Administrador, Coordenador">
@@ -195,13 +203,17 @@
 
                 <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
                     <span>Itens por página:</span>
+                    @* FIX: Verificação de nulo com o operador ?. antes de dar Reload *@
                     <RadzenDropDown @bind-Value="@pageSize"
                                     Data="@(new int[] { 10, 15, 20, 50 })"
-                                    Change="@(() => Grid.Reload())"
+                                    Change="@(() => gridSumarios?.Reload())"
                                     Style="width: 80px" />
-                </div>
 
-                <RadzenGrid @ref="Grid"
+                </div>
+                <RadzenButton Text="Exportar Sumários para Excel" Icon="grid_on" ButtonStyle="ButtonStyle.Success" Click="@ExportarSumariosParaExcel" />
+
+                @* FIX: Nome da referência alterada para gridSumarios *@
+                <RadzenGrid @ref="gridSumarios"
                             Data="@aulasDaTurma"
                             TItem="PortalUpskill.Data.Models.Aula"
                             AllowSorting="true"
@@ -262,8 +274,9 @@
     [Parameter] public Func<Pessoal, bool> Filter { get; set; }
     [Parameter] public int Tipo { get; set; }
 
-    RadzenGrid<Formando> grid;
-    RadzenGrid<Aula> Grid;
+    @* FIX: Renomeados para evitar conflitos de Letras *@
+    RadzenGrid<Formando> gridFaltas;
+    RadzenGrid<Aula> gridSumarios;
     int pageSize = 10;
 
     private int justificacoesPendentesCount = 0;
@@ -288,7 +301,7 @@
 
     int SelectedModuloId;
     int SelectedTurmaId;
-    int SelectedRelatorio; // 0 = ecrã inicial, 1 = Faltas, 2 = Sumários
+    int SelectedRelatorio;
     int SelectedMes;
     Turma SelectedTurma;
 
@@ -299,7 +312,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        turmas = turmaData.GetAll();
+        turmas = turmaData.GetAll() ?? new List<Turma>();
         if (Id != 0)
         {
             SelectedTurmaId = Id;
@@ -316,22 +329,43 @@
         SelectedMes = 0;
         SelectedModuloId = 0;
 
-        SelectedTurma = turmas.SingleOrDefault(t => t.Id == SelectedTurmaId);
+        SelectedTurma = turmas.FirstOrDefault(t => t.Id == SelectedTurmaId);
         if (SelectedTurma != null)
         {
-            SelectedTurma.Curso = cursoData.GetById(SelectedTurma.CursoId.Value);
-            SelectedTurma.Modulos = moduloData.GetModulosComFormadorByTurma(SelectedTurmaId);
-            modulos = moduloData.GetModulosComFormadorByTurma(SelectedTurmaId);
+            @* FIX: Código defensivo contra nulos nos relacionamentos da Turma *@
+            if (SelectedTurma.CursoId.HasValue)
+            {
+                SelectedTurma.Curso = cursoData.GetById(SelectedTurma.CursoId.Value);
+            }
+
+            SelectedTurma.Modulos = moduloData.GetModulosComFormadorByTurma(SelectedTurmaId) ?? new List<Modulo>();
+            modulos = moduloData.GetModulosComFormadorByTurma(SelectedTurmaId) ?? new List<Modulo>();
+
             var todasPendentes = faltaData.GetFaltasPendentes();
+            if (todasPendentes != null)
+            {
+                justificacoesPendentesCount = todasPendentes.Count(f => f?.Aula?.TurmaId == SelectedTurmaId);
+            }
+            else
+            {
+                justificacoesPendentesCount = 0;
+            }
 
             var result = moduloData.GetModuloFormadorByTurma(SelectedTurma);
-            foreach (var moduloHora in SelectedTurma.Curso.Modulos)
+
+            if (SelectedTurma.Curso?.Modulos != null && result != null)
             {
-                SelectedTurma.Curso.Modulos[moduloHora.Key] = result[moduloHora.Key.Id].Horas;
+                foreach (var moduloHora in SelectedTurma.Curso.Modulos.ToList())
+                {
+                    @* FIX: Validação se a chave existe no dicionário retornado antes de atribuir *@
+                    if (moduloHora.Key != null && result.ContainsKey(moduloHora.Key.Id) && result[moduloHora.Key.Id] != null)
+                    {
+                        SelectedTurma.Curso.Modulos[moduloHora.Key] = result[moduloHora.Key.Id].Horas;
+                    }
+                }
             }
-            
-            justificacoesPendentesCount = todasPendentes.Count(f => f.Aula?.TurmaId == SelectedTurmaId);
-            SelectedTurma.Aulas = aulaData.GetByTurma(SelectedTurma);
+
+            SelectedTurma.Aulas = aulaData.GetByTurma(SelectedTurma) ?? new List<Aula>();
         }
     }
 
@@ -341,21 +375,23 @@
 
         if (SelectedRelatorio == 1)
         {
-            // Toda a recolha de dados pesada foi movida para aqui!
-            formandosDaTurma = formandoData.GetAllByTurma(SelectedTurmaId);
+            formandosDaTurma = formandoData.GetAllByTurma(SelectedTurmaId) ?? new List<Formando>();
             resumoFaltas.Clear();
             faltasPorFormando.Clear();
 
             foreach (var f in formandosDaTurma)
             {
-                var historicoFaltas = faltaData.GetByFormandoId(f.Id);
+                if (f == null) continue;
+
+                var historicoFaltas = faltaData.GetByFormandoId(f.Id) ?? new List<Falta>();
 
                 resumoFaltas[f.Id] = (
-                    historicoFaltas.Count(x => x.Justificada == true),
-                    historicoFaltas.Count(x => x.Justificada == false)
+                    historicoFaltas.Count(x => x?.Justificada == true),
+                    historicoFaltas.Count(x => x?.Justificada == false)
                 );
 
                 faltasPorFormando[f.Id] = historicoFaltas
+                    .Where(x => x != null)
                     .OrderByDescending(x => x.HoraInicio)
                     .Select(x => new FaltaDisplay
                     {
@@ -367,7 +403,7 @@
         }
         else if (SelectedRelatorio == 2)
         {
-            aulasDaTurma = aulaData.GetByTurma(SelectedTurmaId);
+            aulasDaTurma = aulaData.GetByTurma(SelectedTurmaId) ?? new List<Aula>();
         }
 
         StateHasChanged();
@@ -399,5 +435,55 @@
         faltasPorFormando.Clear();
         SelectedMes = 0;
         SelectedModuloId = 0;
+    }
+
+    private async Task ExportarFaltasParaExcel()
+    {
+        if (formandosDaTurma == null || !formandosDaTurma.Any()) return;
+
+        var csv = new StringBuilder();
+        csv.AppendLine("\uFEFF");
+        csv.AppendLine("Nome do Formando;Faltas Justificadas;Faltas Injustificadas");
+
+        foreach (var formando in formandosDaTurma)
+        {
+            if (formando == null) continue;
+            var justificadas = ObterContagemFaltas(formando.Id, true);
+            var injustificadas = ObterContagemFaltas(formando.Id, false);
+
+            csv.AppendLine($"{formando.Nome};{justificadas};{injustificadas}");
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+        string nomeFicheiro = $"Relatorio_Faltas_{SelectedTurma?.Nome ?? "Turma"}.csv";
+
+        await TransferirFicheiro(nomeFicheiro, bytes);
+    }
+
+    private async Task ExportarSumariosParaExcel()
+    {
+        if (aulasDaTurma == null || !aulasDaTurma.Any()) return;
+
+        var csv = new StringBuilder();
+        csv.AppendLine("\uFEFF");
+        csv.AppendLine("Data / Hora;Duração;Sumário");
+
+        foreach (var aula in aulasDaTurma)
+        {
+            if (aula == null) continue;
+            var sumarioLimpo = aula.Sumario?.Replace("\r", " ").Replace("\n", " ") ?? "";
+            csv.AppendLine($"{aula.HoraInicio.ToString("dd/MM/yyyy HH:mm")};{aula.DuracaoHoras} h;{sumarioLimpo}");
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+        string nomeFicheiro = $"Relatorio_Sumarios_{SelectedTurma?.Nome ?? "Turma"}.csv";
+
+        await TransferirFicheiro(nomeFicheiro, bytes);
+    }
+
+    private async Task TransferirFicheiro(string nomeFicheiro, byte[] conteudo)
+    {
+        var base64 = Convert.ToBase64String(conteudo);
+        await JS.InvokeVoidAsync("downloadFileFromBase64", nomeFicheiro, base64);
     }
 }
