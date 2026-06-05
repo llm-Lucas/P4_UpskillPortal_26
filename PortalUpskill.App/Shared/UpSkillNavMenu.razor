@@ -1,16 +1,14 @@
-﻿@inject NavigationManager navManager
-
-<div @onclick="@(() => Toggle.InvokeAsync(true))" style="cursor:pointer; padding: 1rem; display:flex; justify-content: flex-start;">
+﻿<div @onclick="@(() => Toggle.InvokeAsync(true))" style="cursor:pointer; padding: 1rem; display:flex; justify-content: flex-start;">
     <img src="img/dashboard/outline_menu_black_48dp.png" style="height: 2.5rem; filter: invert(1);" />
 </div>
-
+<!-- INÍCIO #004 -->
 <RadzenPanelMenu Style="width:250px; background-color:transparent">
     <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/baseline_event_white_48dp.png" Text="Calendário" Path="/Calendar" />
     <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/outline_inventory_white_48dp.png" Text="Avaliações" Path="/Avaliacao" />
     <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/icons8-report-50.png" Text="Relatórios" Path="/Relatorios" />
     <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/baseline_groups_white_48dp.png" Text="Turmas" Path="/Turmas" />
-    <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/baseline_school_white_48dp.png" Text="Formandos" Path="/Formandos" />
     <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/user-add-white.png" Text="Candidatos" Path="/Candidatos" />
+    <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/baseline_school_white_48dp.png" Text="Formandos" Path="/Formandos" />
     <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/baseline_assignment_ind_white_48dp.png" Text="Formadores" Path="/Formadores" />
     <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/baseline_manage_accounts_white_48dp.png" Text="Coordenadores" Path="/Coordenadores" />
     <RadzenPanelMenuItem class="rz-custom-panel-menu" Image="img/dashboard/outline_engineering_white_48dp.png" Text="Admin" Path="/Admin" />
@@ -18,20 +16,10 @@
     <RadzenPanelMenuItem class="rz-custom-panel-menu" id="css" Image="img/dashboard/outline_grid_view_white_48dp.png" Text="Módulos" Path="/Modulos" />
     <RadzenPanelMenuItem class="rz-custom-panel-menu" Text="FAQ" Path="/DetalhesFaqAdmin" Image="img/dashboard/outline_help_outline_white_48dp.png" />
 </RadzenPanelMenu>
-
+<!-- FIM #004 -->
 @code {
-    [Parameter]
-    public EventCallback<bool> Toggle { get; set; }
+
+    [Parameter] public EventCallback<bool> Toggle { get; set; }
     [Parameter]
     public string LogoTransparency { get; set; }
-    [Parameter]
-    public bool SidebarAberta { get; set; }
-
-    void Navegar(string path)
-    {
-        if (SidebarAberta)
-            navManager.NavigateTo(path);
-        else
-            Toggle.InvokeAsync(true);
-    }
 }
