@@ -18,6 +18,28 @@
         <Columns>
             <RadzenGridColumn TItem="Curso" Property="Nome" Title="Nome" />
             <RadzenGridColumn TItem="Curso" Property="DuracaoHoras" Title="Duração em Horas" Sortable="false" Filterable="false" />
+            <RadzenGridColumn TItem="Curso" Title="Candidaturas Abertas" Sortable="false" Filterable="false">
+                <Template Context="Curso">
+                    @if (Curso.CandidaturasAbertas)
+                    {
+                        <span style="color: #28a745; font-weight: bold;">Sim</span>
+                    }
+                    else
+                    {
+                        <span style="color: #dc3545;">Não</span>
+                    }
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="Curso" Title="Início Candidatura" Sortable="false" Filterable="false">
+                <Template Context="Curso">
+                    @(Curso.CandidaturasAbertas ? Curso.DataInicioCandidatura?.ToString("dd/MM/yyyy") ?? "—" : "—")
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="Curso" Title="Fim Candidatura" Sortable="false" Filterable="false">
+                <Template Context="Curso">
+                    @(Curso.CandidaturasAbertas ? Curso.DataFimCandidatura?.ToString("dd/MM/yyyy") ?? "—" : "—")
+                </Template>
+            </RadzenGridColumn>
 
             @if (Mode == "Add")
             {

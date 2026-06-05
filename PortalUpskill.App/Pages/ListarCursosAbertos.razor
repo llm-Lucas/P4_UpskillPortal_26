@@ -15,8 +15,16 @@
             <Columns>
                 <RadzenGridColumn TItem="Curso" Property="Nome" Title="Nome" />
                 <RadzenGridColumn TItem="Curso" Property="DuracaoHoras" Title="Duração (horas)" />
-                <RadzenGridColumn TItem="Curso" Property="Inicio Candidatura" Title="Inicio Candidatura" />
-                <RadzenGridColumn TItem="Curso" Property="Fim Candidatura" Title="Fim Candidatura" />
+                <RadzenGridColumn TItem="Curso" Title="Início Candidatura" Sortable="false" Filterable="false">
+                    <Template Context="Curso">
+                        @(Curso.CandidaturasAbertas ? Curso.DataInicioCandidatura?.ToString("dd/MM/yyyy") ?? "—" : "—")
+                    </Template>
+                </RadzenGridColumn>
+                <RadzenGridColumn TItem="Curso" Title="Fim Candidatura" Sortable="false" Filterable="false">
+                    <Template Context="Curso">
+                        @(Curso.CandidaturasAbertas ? Curso.DataFimCandidatura?.ToString("dd/MM/yyyy") ?? "—" : "—")
+                    </Template>
+                </RadzenGridColumn>
                 <RadzenGridColumn TItem="Curso" Title="Detalhes">
                     <Template Context="Curso">
                         <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesCurso>("Detalhes do curso",

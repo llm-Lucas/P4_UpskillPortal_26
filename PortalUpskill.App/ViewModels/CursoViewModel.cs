@@ -21,6 +21,8 @@ namespace PortalUpskill.App.ViewModels
 		public double DuracaoHoras { get; set; }
 
         public string Objetivos { get; set; }
+        public DateTime? DataInicioCandidatura { get; set; }
+        public DateTime? DataFimCandidatura { get; set; }
 
         public Curso CreateModel()
 		{
@@ -29,8 +31,10 @@ namespace PortalUpskill.App.ViewModels
 				Id = this.Id,
 				Nome = this.Nome,
 				DuracaoHoras = this.DuracaoHoras,
-				Objetivos = this.Objetivos
-			};
+				Objetivos = this.Objetivos,
+                DataInicioCandidatura = this.DataInicioCandidatura,
+                DataFimCandidatura = this.DataFimCandidatura
+            };
 		}
 
 		public void FromModel(Curso curso)
@@ -39,6 +43,8 @@ namespace PortalUpskill.App.ViewModels
 			Nome = curso.Nome;
 			DuracaoHoras = curso.DuracaoHoras;
 			Objetivos = curso.Objetivos;
-		}
+            DataInicioCandidatura = curso.DataInicioCandidatura;
+            DataFimCandidatura = curso.DataFimCandidatura;
+        }
 	}
 }

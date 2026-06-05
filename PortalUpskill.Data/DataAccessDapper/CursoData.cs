@@ -170,8 +170,16 @@ namespace PortalUpskill.Data.DataAccessDapper
             using (var connection = new SqlConnection(_connectionString))
             {
                 string sql = @"UPDATE Curso 
-                               SET Nome = @Nome, DuracaoHoras = @DuracaoHoras, Objetivos = @Objetivos
-                               WHERE Id = @Id";
+                       SET Nome = @Nome, DuracaoHoras = @DuracaoHoras, Objetivos = @Objetivos,
+                           DataInicioCandidatura = @DataInicioCandidatura,
+                           DataFimCandidatura = @DataFimCandidatura,
+                           CandidaturasAbertas = CASE 
+                               WHEN @DataInicioCandidatura IS NOT NULL 
+                                AND @DataFimCandidatura IS NOT NULL
+                                AND GETDATE() >= @DataInicioCandidatura 
+                                AND GETDATE() <= @DataFimCandidatura 
+                               THEN 1 ELSE 0 END
+                       WHERE Id = @Id";
                 connection.Execute(sql, curso);
             }
         }
