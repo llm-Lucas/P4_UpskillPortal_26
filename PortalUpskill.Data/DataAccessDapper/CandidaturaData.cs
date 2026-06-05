@@ -21,17 +21,22 @@ namespace PortalUpskill.Data.DataAccessDapper
         {
             using (var connection = new SqlConnection(_connectionString))
             {
-                string sql = @"SELECT c.*, 
-                                      p.Id, p.Nome, p.Email, p.ContactoTelemovel,
-                                      c1.Id, c1.Nome,
-                                      c2.Id, c2.Nome,
-                                      ec.Id, ec.Nome
-                               FROM Candidatura c
-                               INNER JOIN Pessoa p ON p.Id = c.PessoaId
-                               INNER JOIN Curso c1 ON c1.Id = c.PrimeiraOpcaoId
-                               LEFT JOIN Curso c2 ON c2.Id = c.SegundaOpcaoId
-                               INNER JOIN EstadoCandidatura ec ON ec.Id = c.EstadoId
-                               ORDER BY c.DataCriacao DESC";
+                string sql = @"SELECT c.Id, c.PessoaId, c.PrimeiraOpcaoId, c.SegundaOpcaoId, c.Observacoes, 
+                      c.EstadoId, c.DataCriacao, c.Foto, c.CV, c.CertificadoHabilitacoes, 
+                      c.CCFrente, c.CCVerso, c.SituacaoProfissional, c.TermosAceites,
+                      p.Id, p.Nome, p.Email, p.ContactoTelemovel, p.ContactoTelefone,
+                      p.DataNascimento, p.Sexo, p.NIF, p.CC, p.Morada, p.CP,
+                      p.CodigoCNAEF, p.HabilitacoesLiterarias, p.Nacionalidade,
+                      c1.Id, c1.Nome,
+                      c2.Id, c2.Nome,
+                      ec.Id, ec.Nome
+               FROM Candidatura c
+               INNER JOIN Pessoa p ON p.Id = c.PessoaId
+               INNER JOIN Curso c1 ON c1.Id = c.PrimeiraOpcaoId
+               LEFT JOIN Curso c2 ON c2.Id = c.SegundaOpcaoId
+               INNER JOIN EstadoCandidatura ec ON ec.Id = c.EstadoId
+               WHERE p.PerfilId = 5
+               ORDER BY c.DataCriacao DESC";
 
                 return connection.Query<Candidatura, Pessoa, Curso, Curso, EstadoCandidatura, Candidatura>(
                     sql, (candidatura, pessoa, primeiraOpcao, segundaOpcao, estado) =>
@@ -50,16 +55,18 @@ namespace PortalUpskill.Data.DataAccessDapper
             using (var connection = new SqlConnection(_connectionString))
             {
                 string sql = @"SELECT c.*, 
-                                      p.Id, p.Nome, p.Email, p.ContactoTelemovel,
-                                      c1.Id, c1.Nome,
-                                      c2.Id, c2.Nome,
-                                      ec.Id, ec.Nome
-                               FROM Candidatura c
-                               INNER JOIN Pessoa p ON p.Id = c.PessoaId
-                               INNER JOIN Curso c1 ON c1.Id = c.PrimeiraOpcaoId
-                               LEFT JOIN Curso c2 ON c2.Id = c.SegundaOpcaoId
-                               INNER JOIN EstadoCandidatura ec ON ec.Id = c.EstadoId
-                               WHERE c.Id = @Id";
+                              p.Id, p.Nome, p.Email, p.ContactoTelemovel, p.ContactoTelefone,
+                              p.DataNascimento, p.Sexo, p.NIF, p.CC, p.Morada, p.CP,
+                              p.CodigoCNAEF, p.HabilitacoesLiterarias, p.Nacionalidade,
+                              c1.Id, c1.Nome,
+                              c2.Id, c2.Nome,
+                              ec.Id, ec.Nome
+                       FROM Candidatura c
+                       INNER JOIN Pessoa p ON p.Id = c.PessoaId
+                       INNER JOIN Curso c1 ON c1.Id = c.PrimeiraOpcaoId
+                       LEFT JOIN Curso c2 ON c2.Id = c.SegundaOpcaoId
+                       INNER JOIN EstadoCandidatura ec ON ec.Id = c.EstadoId
+                       WHERE c.Id = @Id";
 
                 return connection.Query<Candidatura, Pessoa, Curso, Curso, EstadoCandidatura, Candidatura>(
                     sql, (candidatura, pessoa, primeiraOpcao, segundaOpcao, estado) =>

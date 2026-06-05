@@ -1,0 +1,46 @@
+﻿@page "/CursosAbertos"
+@attribute [Authorize(Roles = "Candidato")]
+@inject ICursoData cursoData
+
+<div class="cardstyle">
+    <h2>Cursos com Candidaturas Abertas</h2>
+
+    @if (!cursos.Any())
+    {
+        <p>Não existem cursos com candidaturas abertas de momento.</p>
+    }
+    else
+    {
+        <RadzenGrid Data="@cursos" TItem="Curso">
+            <Columns>
+                <RadzenGridColumn TItem="Curso" Property="Nome" Title="Nome" />
+                <RadzenGridColumn TItem="Curso" Property="DuracaoHoras" Title="Duração (horas)" />
+                <RadzenGridColumn TItem="Curso" Property="Inicio Candidatura" Title="Inicio Candidatura" />
+                <RadzenGridColumn TItem="Curso" Property="Fim Candidatura" Title="Fim Candidatura" />
+                <RadzenGridColumn TItem="Curso" Title="Detalhes">
+                    <Template Context="Curso">
+                        <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesCurso>("Detalhes do curso",
+                                  new Dictionary<string, object>() { { "CursoId", Curso.Id } },
+                                  new DialogOptions(){ Width = "80%", Height = "90%" })) />
+                    </Template>
+                </RadzenGridColumn>
+            </Columns>
+        </RadzenGrid>
+    }
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="arrow_back" Text="Voltar"
+                      Click="@(() => navManager.NavigateTo("Index"))" />
+    </div>
+</div>
+
+@code {
+    List<Curso> cursos = new List<Curso>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        cursos = cursoData.GetAll().Where(c => c.CandidaturasAbertas).ToList();
+    }
+}

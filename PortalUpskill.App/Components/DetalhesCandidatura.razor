@@ -1,4 +1,5 @@
 ﻿@inject ICandidaturaData candidaturaData
+@inject FileManagerService fileManager
 
 <div class="cardstyle">
     @if (candidatura == null)
@@ -11,9 +12,15 @@
         <table class="table table-borderless table-sm">
             <tr><td><b>Nome</b></td><td>@candidatura.Pessoa.Nome</td></tr>
             <tr><td><b>Email</b></td><td>@candidatura.Pessoa.Email</td></tr>
-            <tr><td><b>Telemóvel</b></td><td>@candidatura.Pessoa.ContactoTelemovel</td></tr>
-            <tr><td><b>NIF</b></td><td>@candidatura.Pessoa.NIF</td></tr>
+            <tr><td><b>Telemóvel</b></td><td>@(candidatura.Pessoa.ContactoTelemovel ?? "—")</td></tr>
+            <tr><td><b>NIF</b></td><td>@(candidatura.Pessoa.NIF ?? "—")</td></tr>
+            <tr><td><b>Cartão de Cidadão</b></td><td>@(candidatura.Pessoa.CC ?? "—")</td></tr>
             <tr><td><b>Data de Nascimento</b></td><td>@(candidatura.Pessoa.DataNascimento?.ToString("dd/MM/yyyy") ?? "—")</td></tr>
+            <tr><td><b>Género</b></td><td>@(candidatura.Pessoa.Sexo ?? "—")</td></tr>
+            <tr><td><b>Morada</b></td><td>@(candidatura.Pessoa.Morada ?? "—")</td></tr>
+            <tr><td><b>Código Postal</b></td><td>@(candidatura.Pessoa.CP ?? "—")</td></tr>
+            <tr><td><b>Nacionalidade</b></td><td>@(candidatura.Pessoa.Nacionalidade ?? "—")</td></tr>
+            <tr><td><b>Situação Profissional</b></td><td>@(candidatura.SituacaoProfissional ?? "—")</td></tr>
         </table>
 
         <h4 class="mt-4">Candidatura</h4>
@@ -23,6 +30,85 @@
             <tr><td><b>Observações</b></td><td>@(candidatura.Observacoes ?? "—")</td></tr>
             <tr><td><b>Estado</b></td><td>@candidatura.Estado.Nome</td></tr>
             <tr><td><b>Data de Submissão</b></td><td>@candidatura.DataCriacao.ToString("dd/MM/yyyy HH:mm")</td></tr>
+        </table>
+
+        <h4 class="mt-4">Documentos</h4>
+        <table class="table table-borderless table-sm">
+            <tr>
+                <td><b>Foto</b></td>
+                <td>
+                    @if (candidatura.Foto != null)
+                    {
+                        <a href="@fileManager.PathToBase64String(candidatura.Foto)" download="Foto">
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
+                        </a>
+                    }
+                    else
+                    {
+                        <span>Não submetido</span>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td><b>CV</b></td>
+                <td>
+                    @if (candidatura.CV != null)
+                    {
+                        <a href="@fileManager.PathToBase64String(candidatura.CV)" download="CV">
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
+                        </a>
+                    }
+                    else
+                    {
+                        <span>Não submetido</span>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td><b>Certificado de Habilitações</b></td>
+                <td>
+                    @if (candidatura.CertificadoHabilitacoes != null)
+                    {
+                        <a href="@fileManager.PathToBase64String(candidatura.CertificadoHabilitacoes)" download="CertificadoHabilitacoes">
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
+                        </a>
+                    }
+                    else
+                    {
+                        <span>Não submetido</span>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td><b>CC Frente</b></td>
+                <td>
+                    @if (candidatura.CCFrente != null)
+                    {
+                        <a href="@fileManager.PathToBase64String(candidatura.CCFrente)" download="CCFrente">
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
+                        </a>
+                    }
+                    else
+                    {
+                        <span>Não submetido</span>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td><b>CC Verso</b></td>
+                <td>
+                    @if (candidatura.CCVerso != null)
+                    {
+                        <a href="@fileManager.PathToBase64String(candidatura.CCVerso)" download="CCVerso">
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
+                        </a>
+                    }
+                    else
+                    {
+                        <span>Não submetido</span>
+                    }
+                </td>
+            </tr>
         </table>
 
         <div class="row justify-content-center mt-4">
@@ -35,7 +121,8 @@
             }
             @if (candidatura.EstadoId == 1)
             {
-                
+                <RadzenButton ButtonStyle="ButtonStyle.Warning" Icon="search" Text="Marcar em Análise"
+                              Click="@(() => AlterarEstado(2))" style="margin-right: 10px;" />
             }
             <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="close" Text="Fechar"
                           Click="@(() => dialogService.Close())" />
@@ -59,17 +146,17 @@
         candidaturaData.UpdateEstado(CandidaturaId, novoEstadoId);
         candidatura = candidaturaData.GetById(CandidaturaId);
         notificationService.Notify(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = "Estado actualizado com sucesso.",
-                Duration = 3000
-            });
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Estado actualizado com sucesso.",
+                    Duration = 3000
+                });
         StateHasChanged();
     }
+
     async Task ConfirmarAlteracaoEstado(int novoEstadoId)
     {
         string acao = novoEstadoId == 3 ? "aprovar" : "reprovar";
-
         await dialogService.OpenAsync("Confirmar", render =>
     @<div>
         <p>Tem a certeza que quer @acao a candidatura de @candidatura.Pessoa.Nome?</p>
@@ -81,6 +168,6 @@
                           Click="@(() => dialogService.Close())" />
         </div>
     </div>
-    , new DialogOptions { Width = "400px", Height = "auto" });
+        , new DialogOptions { Width = "400px", Height = "auto" });
     }
 }
