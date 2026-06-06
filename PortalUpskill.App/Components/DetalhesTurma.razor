@@ -6,6 +6,9 @@
 @inject FileManagerService FileMngSrv
 @inject IJSRuntime JSRuntime
 
+<PageTitle>Detalhes Turma - ISCTE Meta Digital</PageTitle>
+
+
 <div class="cardstyle">
     <h2>@turma.Nome</h2>
     <br />
@@ -26,7 +29,7 @@
                 <Authorized>
                     <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="edit_calendar" Title="Calendarizar Aulas" Click="@(() => navManager.NavigateTo($"Calendar/{turma.Id}"))" />
                     <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="grading" Title="Download das Pautas de Avaliação" Click="@(() => navManager.NavigateTo($"TurmaAvaliacoes/{turma.Id}"))" />
-                    <RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
+                    <RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
                     <RadzenButton Text="Enviar Email" Icon="email" ButtonStyle="ButtonStyle.Success"
                                   Disabled="@(!selectedFormandos.Any())"
                                   Click="@(() => navManager.NavigateTo(BuildMailToLink(), true))" />

@@ -4,6 +4,9 @@
 @inject ICursoData cursoData
 @inject PortalUpskill.App.Utils.FileManagerService fileManager
 
+<PageTitle>Módulos - ISCTE Meta Digital</PageTitle>
+
+
 <div class="cardstyle">
     <h2>@Title</h2>
 
@@ -14,7 +17,7 @@
     else
     {
         <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Módulo" Icon="add" Click="@(() => navManager.NavigateTo("Modulo"))" />
-        <RadzenButton class="my-4 ms-2" ButtonStyle="ButtonStyle.Success" Text="Exportar para Excel" Icon="description" Click="@ExportarParaExcel" />
+        <RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@ExportarParaExcel" />
     }
 
     <div class="d-flex align-items-center mb-3" style="gap: 12px;">

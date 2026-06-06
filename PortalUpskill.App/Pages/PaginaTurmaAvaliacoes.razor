@@ -14,6 +14,9 @@
 @using Syncfusion.Blazor.Inputs
 @using System.Text @* ADICIONADO: Necessário para usar StringBuilder e Encoding *@
 
+<PageTitle>Avaliações Modulares - ISCTE Meta Digital</PageTitle>
+
+
 <style>
 	form .row {
 		margin-bottom: 16px;
@@ -56,7 +59,7 @@
 				<AuthorizeView Roles="Secretariado, Administrador, Coordenador">
 					<Authorized>
 						<div style="padding: 26px">
-							<RadzenButton Size="ButtonSize.Small" class="w-150 mx-2" Text="Download Tabela" ButtonStyle="ButtonStyle.Success" Click="DownloadTabela" />
+							 <RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="DownloadTabela" />
 						</div>
 					</Authorized>
 				</AuthorizeView>

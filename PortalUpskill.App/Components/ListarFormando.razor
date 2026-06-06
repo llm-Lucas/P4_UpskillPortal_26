@@ -10,6 +10,9 @@
 @inject RefreshService refreshService
 @inject PortalUpskill.App.Utils.FileManagerService fileManager
 
+<PageTitle>Formandos - ISCTE Meta Digital</PageTitle>
+
+
 <div class="cardstyle">
     <h2>@Title</h2>
 
@@ -35,7 +38,7 @@
                                                                                                                                                               Height = "90%"
                                                                                                                                                           }))" />
 
-        <RadzenButton Text="Excel" Icon="grid_on" ButtonStyle="ButtonStyle.Success" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
+        <RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
     }
 
     <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">

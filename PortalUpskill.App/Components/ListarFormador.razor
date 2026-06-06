@@ -7,6 +7,9 @@
 @* Adicionado a injeção do teu serviço *@
 @inject PortalUpskill.App.Utils.FileManagerService FileManagerService
 
+<PageTitle>Formadores - ISCTE Meta Digital</PageTitle>
+
+
 <div class="cardstyle">
 	<h2>@Title</h2>
 
@@ -28,7 +31,7 @@
 																																									   Height = "90%"
 																																								   }))" />
 				@* Botão de exportação integrado mantendo o layout *@
-				<RadzenButton class="my-4 ms-2" ButtonStyle="ButtonStyle.Success" Text="Exportar para Excel" Icon="description" Click="@ExportarParaExcel" />
+				<RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@ExportarParaExcel" />
 			</Authorized>
 		</AuthorizeView>
 	}

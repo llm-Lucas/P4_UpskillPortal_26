@@ -11,13 +11,16 @@
 @using Radzen
 @using System.Text
 
+<PageTitle>Cursos - ISCTE Meta Digital</PageTitle>
+
+
 <div class="cardstyle">
     <h2>Cursos</h2>
 
     <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Curso" Icon="add" Click="@(() => navManager.NavigateTo("Curso"))" />
 
     @* Botão de Exportar para Excel *@
-    <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Success" Text="Exportar para Excel" Icon="grid_on" Click="@ExportarExcel" style="margin-left: 10px;" />
+    <RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@ExportarExcel" style="margin-left: 10px;" />
 
     <RadzenGrid Data="@cursos"
                 TItem="Curso"

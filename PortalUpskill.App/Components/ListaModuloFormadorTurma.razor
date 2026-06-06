@@ -6,7 +6,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>@Title @getTurmaAtual()</h1>
-    <RadzenButton Text="Exportar para Excel" Icon="description" ButtonStyle="ButtonStyle.Success" Click="@ExportarParaExcel" />
+    <RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@ExportarParaExcel" />
 </div>
 
 <RadzenGrid Data="@modulos" TItem="Modulo" AllowSorting="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="10">
