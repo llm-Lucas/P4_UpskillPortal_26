@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage; // Mantém-se igual
 using Newtonsoft.Json;
 using PortalUpskill.Data.Models;
 using System;
@@ -12,24 +12,22 @@ namespace PortalUpskill.App.Data
 {
     public class UpskillAuthenticationStateProvider : AuthenticationStateProvider
     {
-        private readonly ProtectedSessionStorage _sessionStorage;
+        private readonly ProtectedLocalStorage _localStorage;
 
-        public UpskillAuthenticationStateProvider(ProtectedSessionStorage sessionStorage)
+        public UpskillAuthenticationStateProvider(ProtectedLocalStorage localStorage)
         {
-            _sessionStorage = sessionStorage;
+            _localStorage = localStorage;
         }
-        /// <summary>
-        /// Corre quando a aplicação é iniciada ou quando a página é refreshed
-        /// Significa que é preciso manter autenticação na sessão para evitar logout on refresh
-        /// </summary>
+
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            //confirmar se o user já logou esta sessão (váriavel de sessão userEmail)
             Pessoa user = null;
-            var readUserFromSession = await _sessionStorage.GetAsync<string>("user");
-            if( readUserFromSession.Success)
+
+            // 2. Alterado para ler do LocalStorage
+            var readUserFromLocal = await _localStorage.GetAsync<string>("user");
+            if (readUserFromLocal.Success)
             {
-                user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
+                user = JsonConvert.DeserializeObject<Pessoa>(readUserFromLocal.Value);
             }
 
             ClaimsIdentity identity;
@@ -46,11 +44,6 @@ namespace PortalUpskill.App.Data
             return await Task.FromResult(new AuthenticationState(userClaimsPrincipal));
         }
 
-        /// <summary>
-        /// Marca o utilizador como autorizado e atribui correctamente os 
-        /// Claim.Roles consoante o perfil na BD
-        /// </summary>
-        /// <param name="user">Objecto do tipo Pessoa de onde vão ser inferidos os roles</param>
         public void MarkUserAsAuthenticated(Pessoa pessoa)
         {
             ClaimsIdentity identity = GetIdentityClaims(pessoa);
@@ -58,13 +51,16 @@ namespace PortalUpskill.App.Data
             ClaimsPrincipal user = new ClaimsPrincipal(identity);
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
         }
+
         public void MarkUserAsLoggedOut()
         {
-            _sessionStorage.DeleteAsync("user");
+            // 3. Alterado para apagar do LocalStorage
+            _localStorage.DeleteAsync("user");
             var identity = new ClaimsIdentity();
             var user = new ClaimsPrincipal(identity);
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
         }
+
         private ClaimsIdentity GetIdentityClaims(Pessoa user)
         {
             return new ClaimsIdentity(new[]
