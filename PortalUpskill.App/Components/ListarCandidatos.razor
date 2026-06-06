@@ -48,17 +48,30 @@
                 <Template Context="c">
                     <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description"
                                   Click="@(() => dialogService.Open<DetalhesCandidatura>(
-                            "Detalhes da Candidatura",
-                            new Dictionary<string, object>() { { "CandidaturaId", c.Id } },
-                            new DialogOptions() { Width = "70%", Height = "80%" }))" />
+                "Detalhes da Candidatura",
+                new Dictionary<string, object>() { { "CandidaturaId", c.Id } },
+                new DialogOptions() { Width = "70%", Height = "80%" }))" />
+
                     @if (c.EstadoId == 2)
                     {
-                        <RadzenButton Title="Aprovar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="check"
-                                      Click="@(() => ConfirmarAlteracaoEstado(c, 3))" />
+                       @* <RadzenButton Title="Aceitar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="check"
+                                      Click="@(() => ConfirmarAlteracaoEstado(c, 5))" />
+                       <RadzenButton Title="Não Aceitar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Warning" Icon="block"
+                                      Click="@(() => ConfirmarAlteracaoEstado(c, 6))" />*@
                         <RadzenButton Title="Reprovar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="close"
                                       Click="@(() => ConfirmarAlteracaoEstado(c, 4))" />
                     }
-                 
+                    @if (c.EstadoId == 5)
+                    {
+                        <RadzenButton Title="Avaliação" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Info" Icon="assessment"
+                                      Click="@(() => dialogService.Open<AvaliacaoCandidato>(
+                    "Avaliação do Candidato",
+                    new Dictionary<string, object>() { { "CandidaturaId", c.Id } },
+                    new DialogOptions() { Width = "70%", Height = "85%" }))" />
+                        <RadzenButton Title="Reprovar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="close"
+                                      Click="@(() => ConfirmarAlteracaoEstado(c, 4))" />
+                    }
+              
                 </Template>
             </RadzenGridColumn>
         </Columns>
@@ -86,10 +99,12 @@
     {
         candidaturas = candidaturaData.GetAll();
     }
-
     void AlterarEstado(Candidatura candidatura, int novoEstadoId)
     {
         candidaturaData.UpdateEstado(candidatura.Id, novoEstadoId);
+
+        if (novoEstadoId == 6)
+            candidaturaData.UpdateEstado(candidatura.Id, 1);
         LoadCandidaturas();
         notificationService.Notify(new NotificationMessage
                 {
@@ -101,20 +116,27 @@
 
     async Task ConfirmarAlteracaoEstado(Candidatura candidatura, int novoEstadoId)
     {
-        string acao = novoEstadoId == 3 ? "aprovar" : "reprovar";
+        string acao = novoEstadoId switch
+        {
+            3 => "aprovar",
+            4 => "reprovar",
+            5 => "aceitar",
+            6 => "não aceitar",
+            _ => "alterar"
+        };
 
         await dialogService.OpenAsync("Confirmar", render =>
     @<div>
         <p>Tem a certeza que quer @acao a candidatura de @candidatura.Pessoa.Nome?</p>
         <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1rem;">
-            <RadzenButton ButtonStyle="@(novoEstadoId == 3 ? ButtonStyle.Success : ButtonStyle.Danger)"
-                          Text="@(novoEstadoId == 3 ? "Aprovar" : "Reprovar")"
+            <RadzenButton ButtonStyle="@(novoEstadoId == 3 || novoEstadoId == 5 ? ButtonStyle.Success : ButtonStyle.Danger)"
+                          Text="@(novoEstadoId switch { 3 => "Aprovar", 4 => "Reprovar", 5 => "Aceitar", 6 => "Não Aceitar", _ => "Confirmar" })"
                           Click="@(() => { AlterarEstado(candidatura, novoEstadoId); dialogService.Close(); })" />
             <RadzenButton ButtonStyle="ButtonStyle.Secondary" Text="Cancelar"
                           Click="@(() => dialogService.Close())" />
         </div>
     </div>
-        , new DialogOptions { Width = "400px", Height = "auto" });
+    , new DialogOptions { Width = "400px", Height = "auto" });
     }
     List<Curso> cursos = new List<Curso>();
     int? cursoSelecionadoId;

@@ -68,6 +68,8 @@ builder.Services.AddScoped<IAnoLetivoData, AnoLetivoData>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<ICursoCoordenadorData, CursoCoordenadorData>();
 builder.Services.AddScoped<ICandidaturaData, CandidaturaData>();
+builder.Services.AddScoped<IAvaliacaoCandidaturaData, AvaliacaoCandidaturaData>();
+builder.Services.AddHostedService<CandidaturaBackgroundService>();
 
 builder.Services.AddControllers();
 

@@ -38,14 +38,15 @@
                 <div style="color: #007bff; font-size: 0.8rem;">1ª Fase</div>
                 <div style="font-weight: bold; color: #333;">Candidatura</div>
                 <div style="margin-top: 1rem; text-align: left;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <span style="color: @(candidatura.EstadoId == 1 ? "#007bff" : "#aaa");">@(candidatura.EstadoId == 1 ? "✔" : "○")</span>
-                        <span style="font-size: 0.85rem; color: #333;">Aguarda Submissão</span>
-                    </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
                         <span style="color: @(candidatura.EstadoId >= 2 ? "#007bff" : "#aaa");">@(candidatura.EstadoId >= 2 ? "✔" : "○")</span>
                         <span style="font-size: 0.85rem; color: #333;">Submetida</span>
                     </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="color: @(candidatura.EstadoId == 1 ? "#007bff" : "#aaa");">@(candidatura.EstadoId == 1 ? "✔" : "○")</span>
+                        <span style="font-size: 0.85rem; color: #333;">Aguarda Submissão</span>
+                    </div>
+
                 </div>
             </div>
 
@@ -55,9 +56,10 @@
             <!-- Fase 2 — Análise -->
             <div style="text-align: center; flex: 1; min-width: 150px;">
                 <div style="width: 60px; height: 60px; border-radius: 8px; margin: 0 auto 0.5rem;
-                     background: @(candidatura.EstadoId >= 2 ? "#28a745" : "#e0e0e0");
-                     display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white;">
-                    @if (candidatura.EstadoId >= 2)
+     background: @(candidatura.EstadoId == 2 || candidatura.EstadoId == 5 || candidatura.EstadoId == 3 || candidatura.EstadoId == 4 ? "#28a745" : "#e0e0e0");
+     display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white;">
+                    
+                    @if (candidatura.EstadoId == 2 || candidatura.EstadoId == 5 || candidatura.EstadoId == 3 || candidatura.EstadoId == 4)
                     {
                         <span>✓</span>
                     }
@@ -70,7 +72,9 @@
                 <div style="font-weight: bold; color: #333;">Análise</div>
                 <div style="margin-top: 1rem; text-align: left;">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="color: @(candidatura.EstadoId == 2 ? "#007bff" : "#aaa");">@(candidatura.EstadoId == 2 ? "✔" : "○")</span>
+                        <span style="color: @(candidatura.EstadoId == 2 || candidatura.EstadoId == 5 || candidatura.EstadoId == 3 || candidatura.EstadoId == 4 ? "#007bff" : "#aaa");">
+                            @(candidatura.EstadoId == 2 || candidatura.EstadoId == 5 || candidatura.EstadoId == 3 || candidatura.EstadoId == 4 ? "✔" : "○")
+                        </span>
                         <span style="font-size: 0.85rem; color: #333;">Candidatura em Análise</span>
                     </div>
                 </div>
@@ -79,7 +83,47 @@
             <!-- Separador -->
             <div style="flex: 0; padding-top: 30px; color: #aaa;">▶</div>
 
-            <!-- Fase 3 — Decisão -->
+            <!-- Fase 3 — Decisão Inicial -->
+            <div style="text-align: center; flex: 1; min-width: 150px;">
+                <div style="width: 60px; height: 60px; border-radius: 8px; margin: 0 auto 0.5rem;
+    background: @(candidatura.EstadoId == 5 ? "#17a2b8" : candidatura.EstadoId == 3 || candidatura.EstadoId == 4 ? "#28a745" : candidatura.EstadoId == 6 ? "#dc3545" : "#e0e0e0");
+     display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white;">
+           
+                    @if (candidatura.EstadoId == 5 || candidatura.EstadoId == 3 || candidatura.EstadoId == 4)
+                    {
+                        <span>✓</span>
+                    }
+                    else if (candidatura.EstadoId == 6)
+                    {
+                        <span>✗</span>
+                    }
+                    else
+                    {
+                        <span>3</span>
+                    }
+                </div>
+                <div style="color: #007bff; font-size: 0.8rem;">3ª Fase</div>
+                <div style="font-weight: bold; color: #333;">Decisão Inicial</div>
+                <div style="margin-top: 1rem; text-align: left;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="color: @(candidatura.EstadoId == 5 || candidatura.EstadoId == 3 || candidatura.EstadoId == 4 ? "#17a2b8" : "#aaa");">
+                            @(candidatura.EstadoId == 5 || candidatura.EstadoId == 3 || candidatura.EstadoId == 4 ? "✔" : "○")
+                        </span>
+                        <span style="font-size: 0.85rem; color: #333;">Candidatura Aceite</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: @(candidatura.EstadoId == 6 ? "#dc3545" : "#aaa");">
+                            @(candidatura.EstadoId == 6 ? "✗" : "○")
+                        </span>
+                        <span style="font-size: 0.85rem; color: #333;">Candidatura Não Aceite</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Separador -->
+            <div style="flex: 0; padding-top: 30px; color: #aaa;">▶</div>
+
+            <!-- Fase 4 — Avaliação -->
             <div style="text-align: center; flex: 1; min-width: 150px;">
                 <div style="width: 60px; height: 60px; border-radius: 8px; margin: 0 auto 0.5rem;
                      background: @(candidatura.EstadoId == 3 ? "#28a745" : candidatura.EstadoId == 4 ? "#dc3545" : "#e0e0e0");
@@ -94,18 +138,18 @@
                     }
                     else
                     {
-                        <span>3</span>
+                        <span>4</span>
                     }
                 </div>
-                <div style="color: #007bff; font-size: 0.8rem;">3ª Fase</div>
-                <div style="font-weight: bold; color: #333;">Decisão</div>
+                <div style="color: #007bff; font-size: 0.8rem;">4ª Fase</div>
+                <div style="font-weight: bold; color: #333;">Avaliação</div>
                 <div style="margin-top: 1rem; text-align: left;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
                         <span style="color: @(candidatura.EstadoId == 3 ? "#28a745" : "#aaa");">@(candidatura.EstadoId == 3 ? "✔" : "○")</span>
                         <span style="font-size: 0.85rem; color: #333;">Aprovado</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="color: @(candidatura.EstadoId == 4 ? "#dc3545" : "#aaa");">@(candidatura.EstadoId == 4 ? "✔" : "○")</span>
+                        <span style="color: @(candidatura.EstadoId == 4 ? "#dc3545" : "#aaa");">@(candidatura.EstadoId == 4 ? "✗" : "○")</span>
                         <span style="font-size: 0.85rem; color: #333;">Reprovado</span>
                     </div>
                 </div>
@@ -114,7 +158,7 @@
             <!-- Separador -->
             <div style="flex: 0; padding-top: 30px; color: #aaa;">▶</div>
 
-            <!-- Fase 4 — Colocação -->
+            <!-- Fase 5 — Colocação -->
             <div style="text-align: center; flex: 1; min-width: 150px;">
                 <div style="width: 60px; height: 60px; border-radius: 8px; margin: 0 auto 0.5rem;
                      background: @(estaEmTurma ? "#28a745" : "#e0e0e0");
@@ -125,10 +169,10 @@
                     }
                     else
                     {
-                        <span>4</span>
+                        <span>5</span>
                     }
                 </div>
-                <div style="color: #007bff; font-size: 0.8rem;">4ª Fase</div>
+                <div style="color: #007bff; font-size: 0.8rem;">5ª Fase</div>
                 <div style="font-weight: bold; color: #333;">Colocação</div>
                 <div style="margin-top: 1rem; text-align: left;">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -175,8 +219,10 @@
     {
         1 => "Aguarda Submissão",
         2 => "Candidatura em Análise",
-        3 => estaEmTurma ? "Candidatura Aceite e Colocado(a) em Turma" : "Aprovado",
+        3 => estaEmTurma ? "Aprovado e Colocado em Turma" : "Aprovado",
         4 => "Reprovado",
+        5 => "Candidatura Aceite — Aguarda Avaliação",
+        6 => "Candidatura Não Aceite",
         _ => "Desconhecido"
     };
 }

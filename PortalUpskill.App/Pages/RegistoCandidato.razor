@@ -65,7 +65,7 @@
                 <tr><td><b>CC Verso</b></td><td>@(candidatura.CCVerso != null ? "✓ Submetido" : "Não submetido")</td></tr>
             </table>
 
-            @if (candidatura.EstadoId == 1 || candidatura.EstadoId == 2)
+            @if (candidatura.EstadoId == 1 || candidatura.EstadoId == 2 || candidatura.EstadoId == 6)
             {
                 <div class="mt-3" style="gap: 10px; display: flex;">
                     <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Text="Editar"
@@ -93,7 +93,10 @@
         @if (!modoVer && !cursosAbertos.Any())
         {
             <div class="alert alert-warning">
-                <p><b>Não existem cursos com candidaturas abertas de momento.</b></p>
+                <p><b>Não existem cursos com candidaturas abertas de momento.Consulte o site 
+                    <a href="https://upskill.pt" target="_blank">upskill.pt</a> para mais informações.</b>
+
+            </p>
                 <p>Por favor tente mais tarde.</p>
             </div>
         }
@@ -668,6 +671,8 @@
         2 => "#f0a500",
         3 => "#28a745",
         4 => "#dc3545",
+        5 => "#17a2b8",
+        6 => "#dc3545",
         _ => "#aaa"
     };
     #endregion
