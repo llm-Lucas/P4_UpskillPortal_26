@@ -299,15 +299,13 @@
     bool isFormando = false;
     protected override async Task OnInitializedAsync()
     {
-        int idCoor = 0;
-        var readUserFromSession = await sessionStorage.GetAsync<string>("user");
-        if (readUserFromSession.Success)
+        var auth = await authStateTask;
+        if (auth.User.Identity.IsAuthenticated)
         {
-            user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
-            idCoor = user.Id;
+            user = pessoaData.GetByEmail(auth.User.Identity.Name);
         }
 
-        if (user == null) return; // Adiciona esta linha
+        if (user == null) return;
 
         Formando formando = formandoData.GetById(user.Id);
         if (formando?.Turma != null)
@@ -323,6 +321,7 @@
             turmas = turmaData.GetAll();
             turmas = turmas.Where(t => t.Nome != "Sem turma associada").ToList();
         }
+
         if (Id != 0)
         {
             SelectedTurmaId = Id;
