@@ -15,5 +15,7 @@ namespace PortalUpskill.Data.DataAccessDapper.Interfaces
         void Submeter(int candidaturaId);
 
         void UpdateSituacaoProfissional(int candidaturaId, string situacao);
+
+        List<Candidatura> GetAprovadosByCurso(int cursoId);
     }
 }

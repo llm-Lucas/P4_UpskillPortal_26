@@ -1,5 +1,4 @@
-﻿
-@inject ICursoData cursoData
+﻿@inject ICursoData cursoData
 @inject RefreshService refreshService
 
 
@@ -9,16 +8,20 @@
 <div class="cardstyle">
     <EditForm Model="@cursoVM" OnValidSubmit="CheckCurso">
         <DataAnnotationsValidator />
+        
         <RadzenFieldset class="no-title-fieldset">
+            <h5>Detalhes do Curso</h5>
             <div class="row form-group">
                 <div class="col-md-4 align-items-center d-flex">
                     <RadzenLabel Text="Nome" />
                 </div>
                 <div class="col-md-8">
+                   
                     <RadzenTextBox class="form-control w-100" @bind-Value="@cursoVM.Nome" />
                 </div>
             </div>
             <div class="row form-group">
+               
                 <div class="col-md-4 align-items-center d-flex">
                     <RadzenLabel Text="Duração em Horas" />
                 </div>
@@ -34,17 +37,38 @@
                     <RadzenTextArea class="form-control w-100" @bind-Value="@cursoVM.Objetivos" Rows="3" />
                 </div>
             </div>
+
+            @if (Id != 0)
+            {
+                <h5 class="mt-4">Datas de Candidaturas</h5>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex">
+                        <RadzenLabel Text="Data de Início" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenDatePicker class="w-100" DateFormat="dd/MM/yyyy"
+                                          @bind-Value="cursoVM.DataInicioCandidatura" TValue="DateTime?" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-4 align-items-center d-flex">
+                        <RadzenLabel Text="Data de Fim" />
+                    </div>
+                    <div class="col-md-8">
+                        <RadzenDatePicker class="w-100" DateFormat="dd/MM/yyyy"
+                                          @bind-Value="cursoVM.DataFimCandidatura" TValue="DateTime?" />
+                    </div>
+                </div>
+            }
+
             <!-- INÍCIO #004 -->
-            <div class="row justify-content-center">
+            <div class="row justify-content-center mt-4">
                 <div class="col-md-12 d-flex align-items-end justify-content-center" style="gap: 16px;">
-                    <!-- Botão de Voltar -->
                     <RadzenButton ButtonStyle="ButtonStyle.Secondary"
                                   Icon="cancel"
                                   style="margin-left: 10px;"
                                   Text="Voltar"
                                   Click="@(() => navManager.NavigateTo($"Cursos"))" />
-
-                    <!-- Botão de Gravar -->
                     <RadzenButton ButtonType="ButtonType.Submit"
                                   ButtonStyle="ButtonStyle.Success"
                                   Icon="save"
@@ -55,7 +79,6 @@
         </RadzenFieldset>
     </EditForm>
 </div>
-
 
 @code {
     CursoViewModel cursoVM = new CursoViewModel();
@@ -82,12 +105,11 @@
 
     async void CheckCurso(EditContext editContext)
     {
-        //pedido de confirmação quando o utilizador está a editar um formando
         if (Id != 0 && editContext.Validate())
         {
             await ConfirmEdit();
         }
-        else//actua quando se insere um novo formando
+        else
         {
             ValidacaoCurso();
         }

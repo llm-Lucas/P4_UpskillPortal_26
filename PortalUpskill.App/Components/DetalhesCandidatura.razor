@@ -1,4 +1,5 @@
 ﻿@inject ICandidaturaData candidaturaData
+@inject FileManagerService fileManager
 
 <div class="cardstyle">
     @if (candidatura == null)
@@ -10,10 +11,25 @@
         <h4>Dados Pessoais</h4>
         <table class="table table-borderless table-sm">
             <tr><td><b>Nome</b></td><td>@candidatura.Pessoa.Nome</td></tr>
-            <tr><td><b>Email</b></td><td>@candidatura.Pessoa.Email</td></tr>
-            <tr><td><b>Telemóvel</b></td><td>@candidatura.Pessoa.ContactoTelemovel</td></tr>
-            <tr><td><b>NIF</b></td><td>@candidatura.Pessoa.NIF</td></tr>
+            <tr>
+                <td><b>Email</b></td>
+                <td>@candidatura.Pessoa.Email</td>
+                <td>
+               
+                    <a href="@GetMailtoLink()" style="margin-left: 10px; font-size: 0.85rem;">
+                        <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="email" Text="Enviar Email" />
+                    </a>
+                </td>
+            </tr>
+            <tr><td><b>Telemóvel</b></td><td>@(candidatura.Pessoa.ContactoTelemovel ?? "—")</td></tr>
+            <tr><td><b>NIF</b></td><td>@(candidatura.Pessoa.NIF ?? "—")</td></tr>
+            <tr><td><b>Cartão de Cidadão</b></td><td>@(candidatura.Pessoa.CC ?? "—")</td></tr>
             <tr><td><b>Data de Nascimento</b></td><td>@(candidatura.Pessoa.DataNascimento?.ToString("dd/MM/yyyy") ?? "—")</td></tr>
+            <tr><td><b>Género</b></td><td>@(candidatura.Pessoa.Sexo ?? "—")</td></tr>
+            <tr><td><b>Morada</b></td><td>@(candidatura.Pessoa.Morada ?? "—")</td></tr>
+            <tr><td><b>Código Postal</b></td><td>@(candidatura.Pessoa.CP ?? "—")</td></tr>
+            <tr><td><b>Nacionalidade</b></td><td>@(candidatura.Pessoa.Nacionalidade ?? "—")</td></tr>
+            <tr><td><b>Situação Profissional</b></td><td>@(candidatura.SituacaoProfissional ?? "—")</td></tr>
         </table>
 
         <h4 class="mt-4">Candidatura</h4>
@@ -21,29 +37,116 @@
             <tr><td><b>1ª Opção</b></td><td>@candidatura.PrimeiraOpcao.Nome</td></tr>
             <tr><td><b>2ª Opção</b></td><td>@(candidatura.SegundaOpcao?.Nome ?? "—")</td></tr>
             <tr><td><b>Observações</b></td><td>@(candidatura.Observacoes ?? "—")</td></tr>
+
             <tr><td><b>Estado</b></td><td>@candidatura.Estado.Nome</td></tr>
             <tr><td><b>Data de Submissão</b></td><td>@candidatura.DataCriacao.ToString("dd/MM/yyyy HH:mm")</td></tr>
         </table>
 
+        <h4 class="mt-4">Documentos</h4>
+        <table class="table table-borderless table-sm">
+            <tr>
+                <td><b>Foto</b></td>
+                <td>
+                    @if (candidatura.Foto != null)
+                    {
+                        <a href="@fileManager.PathToBase64String(candidatura.Foto)" download="Foto">
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
+                        </a>
+                    }
+                    else
+                    {
+                        <span>Não submetido</span>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td><b>CV</b></td>
+                <td>
+                    @if (candidatura.CV != null)
+                    {
+                        <a href="@fileManager.PathToBase64String(candidatura.CV)" download="CV">
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
+                        </a>
+                    }
+                    else
+                    {
+                        <span>Não submetido</span>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td><b>Certificado de Habilitações</b></td>
+                <td>
+                    @if (candidatura.CertificadoHabilitacoes != null)
+                    {
+                        <a href="@fileManager.PathToBase64String(candidatura.CertificadoHabilitacoes)" download="CertificadoHabilitacoes">
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
+                        </a>
+                    }
+                    else
+                    {
+                        <span>Não submetido</span>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td><b>CC Frente</b></td>
+                <td>
+                    @if (candidatura.CCFrente != null)
+                    {
+                        <a href="@fileManager.PathToBase64String(candidatura.CCFrente)" download="CCFrente">
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
+                        </a>
+                    }
+                    else
+                    {
+                        <span>Não submetido</span>
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td><b>CC Verso</b></td>
+                <td>
+                    @if (candidatura.CCVerso != null)
+                    {
+                        <a href="@fileManager.PathToBase64String(candidatura.CCVerso)" download="CCVerso">
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
+                        </a>
+                    }
+                    else
+                    {
+                        <span>Não submetido</span>
+                    }
+                </td>
+            </tr>
+        </table>
+
         <div class="row justify-content-center mt-4">
-            @if (candidatura.EstadoId == 1 || candidatura.EstadoId == 2)
+            @if (candidatura.EstadoId == 2)
             {
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="check" Text="Aprovar"
-                              Click="@(() => AlterarEstado(3))" style="margin-right: 10px;" />
-                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Reprovar"
-                              Click="@(() => AlterarEstado(4))" style="margin-right: 10px;" />
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="check" Text="Aceitar"
+                              Click="@(() => ConfirmarAlteracaoEstado(5))" style="margin-right: 10px;" />
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Não Aceitar"
+                              Click="@(() => ConfirmarAlteracaoEstado(6))" style="margin-right: 10px;" />
+             
             }
-            @if (candidatura.EstadoId == 1)
-            {
-                <RadzenButton ButtonStyle="ButtonStyle.Warning" Icon="search" Text="Marcar em Análise"
-                              Click="@(() => AlterarEstado(2))" style="margin-right: 10px;" />
-            }
-            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="close" Text="Fechar"
-                          Click="@(() => dialogService.Close())" />
+      
+     
         </div>
     }
+   
 </div>
 
+
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" Text="Voltar"
+                      Click="@(() => dialogService.Close())" /> <td>
+          
+
+        </td>
+    </div>
+</div>
 @code {
     [Parameter]
     public int CandidaturaId { get; set; }
@@ -60,11 +163,75 @@
         candidaturaData.UpdateEstado(CandidaturaId, novoEstadoId);
         candidatura = candidaturaData.GetById(CandidaturaId);
         notificationService.Notify(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = "Estado actualizado com sucesso.",
-                Duration = 3000
-            });
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Estado actualizado com sucesso.",
+                    Duration = 3000
+                });
         StateHasChanged();
+    }
+
+    async Task ConfirmarAlteracaoEstado(int novoEstadoId)
+    {
+        string acao = novoEstadoId switch
+        {
+            3 => "aprovar",
+            4 => "reprovar",
+            5 => "aceitar",
+            6 => "não aceitar",
+            2 => "marcar em análise",
+            _ => "alterar"
+        };
+
+        string textoBtn = novoEstadoId switch
+        {
+            3 => "Aprovar",
+            4 => "Reprovar",
+            5 => "Aceitar",
+            6 => "Não Aceitar",
+            2 => "Marcar em Análise",
+            _ => "Confirmar"
+        };
+
+        ButtonStyle estiloBtn = novoEstadoId == 3 || novoEstadoId == 5 || novoEstadoId == 2
+    ? ButtonStyle.Success
+    : ButtonStyle.Danger;
+
+        await dialogService.OpenAsync("Confirmar", render =>
+    @<div>
+        <p>Tem a certeza que quer @acao a candidatura de @candidatura.Pessoa.Nome?</p>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1rem;">
+            <RadzenButton ButtonStyle="@estiloBtn" Text="@textoBtn"
+                          Click="@(() => { AlterarEstado(novoEstadoId); dialogService.Close(); })" />
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Text="Cancelar"
+                          Click="@(() => dialogService.Close())" />
+        </div>
+    </div>
+    , new DialogOptions { Width = "400px", Height = "auto" });
+    }
+    string GetMailtoLink()
+    {
+        string assunto = candidatura.EstadoId switch
+        {
+            1 => "Candidatura - Aguarda Submissão",
+            2 => "A sua candidatura está em análise",
+            3 => "Parabéns - Foi aprovado!",
+            4 => "Resultado da sua candidatura",
+            5 => "A sua candidatura foi aceite",
+            6 => "Informação sobre a sua candidatura",
+            _ => "Portal Upskill"
+        };
+
+        string corpo = candidatura.EstadoId switch
+        {
+            2 => "Informamos que a sua candidatura está a ser analisada pela nossa equipa.",
+            3 => "Temos o prazer de informar que foi aprovado no processo de selecção.",
+            4 => "Lamentamos informar que a sua candidatura não foi aprovada.",
+            5 => "A sua candidatura foi aceite. Será contactado com informações sobre os próximos passos.",
+            6 => "A sua candidatura não foi aceite. Por favor corrija os documentos em falta e submeta novamente.",
+            _ => ""
+        };
+
+        return $"mailto:{candidatura.Pessoa.Email}?subject={Uri.EscapeDataString(assunto)}&body={Uri.EscapeDataString(corpo)}";
     }
 }

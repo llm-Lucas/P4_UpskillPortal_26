@@ -1,53 +1,53 @@
 ﻿@inherits LayoutComponentBase
 @inject AuthenticationStateProvider authStateProvider
 @inject IPessoaData pessoaData
-
 @using Syncfusion.Blazor.Navigations
 @using Syncfusion.Blazor.Buttons
 
+
 <RadzenDialog />
 <RadzenNotification />
-
 <div class="page">
+  <AuthorizeView Roles="Administrador, Secretariado, Coordenador, Formador, Formando" Context="authContext">
+  
+    <Authorized>
 
-
-    <SfSidebar Width="250px" DockSize="59.5px" EnableDock="true" Position="@Position" @ref="Sidebar" HtmlAttributes="@HtmlAttribute" @bind-IsOpen="SidebarToggle">
-        <ChildContent>
-            <div class="dock">
-
-
-                <AuthorizeView Roles="Administrador, Secretariado">
-                    <Authorized>
-                        <div class="sidebar">
-                            <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
-                        </div>
-                    </Authorized>
-                </AuthorizeView>
-                <AuthorizeView Roles="Coordenador">
-                    <div class="sidebar">
-                        <UpSkillCoordenadorNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
+       
+            <SfSidebar Width="250px" DockSize="59.5px" EnableDock="true" Type="SidebarType.Over" Position="@Position" @ref="Sidebar" HtmlAttributes="@HtmlAttribute" IsOpen="@SidebarToggle">
+                <ChildContent>
+                    <div class="dock">
+                        <AuthorizeView Roles="Administrador, Secretariado">
+                            <Authorized>
+                                <div class="sidebar">
+                                    <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle"  />
+                                </div>
+                            </Authorized>
+                        </AuthorizeView>
+                        <AuthorizeView Roles="Coordenador">
+                            <div class="sidebar">
+                                <UpSkillCoordenadorNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
+                            </div>
+                        </AuthorizeView>
+                        <AuthorizeView Roles="Formador">
+                            <div class="sidebar">
+                                <UpSkillFormadorNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
+                            </div>
+                        </AuthorizeView>
+                        <AuthorizeView Roles="Formando">
+                            <div class="sidebar">
+                                <UpSkillFormandoNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
+                            </div>
+                        </AuthorizeView>
                     </div>
-                </AuthorizeView>
-                <AuthorizeView Roles="Formador">
-                    <div class="sidebar">
-                        <UpSkillFormadorNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
-                    </div>
-                </AuthorizeView>
-                <AuthorizeView Roles="Formando">
-                    <div class="sidebar">
-                        <UpSkillFormandoNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
-                    </div>
-                </AuthorizeView>
-            </div>
-        </ChildContent>
-    </SfSidebar>
-
+                </ChildContent>
+            </SfSidebar>
+        </Authorized>
+    </AuthorizeView>
     <div class="main">
         <div class="top-row d-flex justify-content-between px-2">
             <div class="d-flex flex-row align-items-center">
                 <a href="/Index"><img src="/img/MetaDigital_sem_fundo_negativo.png" style="height: 5rem; filter: invert(1);" /></a>
             </div>
-            
             <div class="d-flex flex-row align-items-center">
                 <AuthorizeView>
                     <Authorized>
@@ -58,9 +58,7 @@
                     </NotAuthorized>
                 </AuthorizeView>
             </div>
-            
         </div>
-
         <div class="content px-4" @onclick="Togglefalse">
             @Body
         </div>
@@ -68,13 +66,16 @@
 </div>
 
 @code {
-
     List<Pessoa> pessoas;
+    public bool SidebarToggle = false;
 
     protected override async Task OnInitializedAsync()
     {
         LoadPessoas();
     }
+
+
+
 
     void LoadPessoas()
     {
@@ -83,14 +84,14 @@
 
     SfSidebar Sidebar;
     private SidebarPosition Position { get; set; }
-    public bool SidebarToggle = false;
+
     public void Toggle()
     {
         SidebarToggle = !SidebarToggle;
     }
 
     Dictionary<string, object> HtmlAttribute = new Dictionary<string, object>()
-{
+    {
         {"class", "dockSidebar" }
     };
 

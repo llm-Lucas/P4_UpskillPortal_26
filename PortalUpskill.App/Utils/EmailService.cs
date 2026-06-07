@@ -44,5 +44,33 @@ namespace PortalUpskill.App.Utils
             mensagem.To.Add(destinatario);
             await smtp.SendMailAsync(mensagem);
         }
+        public async Task EnviarEmailCandidatura(string destinatario, string nomeCandidato, string assunto, string corpo)
+        {
+            var host = _config["Email:Host"];
+            var port = int.Parse(_config["Email:Port"]);
+            var username = _config["Email:Username"];
+            var password = _config["Email:Password"];
+            var nomeRemetente = _config["Email:NomeRemetente"];
+
+            var smtp = new SmtpClient(host, port)
+            {
+                Credentials = new NetworkCredential(username, password),
+                EnableSsl = true
+            };
+
+            var mensagem = new MailMessage
+            {
+                From = new MailAddress(username, nomeRemetente),
+                Subject = assunto,
+                Body = $@"<p>Olá {nomeCandidato},</p>
+                  {corpo}
+                  <br/>
+                  <p>Portal Upskill — Meta Digital / ISCTE</p>",
+                IsBodyHtml = true
+            };
+
+            mensagem.To.Add(destinatario);
+            await smtp.SendMailAsync(mensagem);
+        }
     }
 }

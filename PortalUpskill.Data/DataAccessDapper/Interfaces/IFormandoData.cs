@@ -16,5 +16,7 @@ namespace PortalUpskill.Data.DataAccessDapper
 		List<Formando> GetAllByTurma(int id);
 		List<Formando> GetAllByTurmaComFaltas(int turmaId);
 		List<Formando> GetAllByTurmaWithAvaliacao(int turmaId);
-	}
+
+        void CreateAndAssociarTurma(int pessoaId, int turmaId);
+    }
 }

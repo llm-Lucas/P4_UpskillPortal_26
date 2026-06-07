@@ -341,5 +341,60 @@ namespace PortalUpskill.App.Utils
 
             return caminho;
         }
+        public async Task ExportarCandidatosAprovados(List<Candidatura> candidatos, string nomeCurso)
+        {
+            IXLWorkbook workbook = new XLWorkbook();
+            IXLWorksheet worksheet = workbook.Worksheets.Add("Candidatos");
+
+            // Cabeçalho
+            worksheet.Cell(1, 1).Value = "PessoaId";
+            worksheet.Cell(1, 2).Value = "Nome";
+            worksheet.Cell(1, 3).Value = "DataNascimento";
+            worksheet.Cell(1, 4).Value = "Email";
+            worksheet.Cell(1, 5).Value = "Sexo";
+            worksheet.Cell(1, 6).Value = "CC";
+            worksheet.Cell(1, 7).Value = "NIF";
+            worksheet.Cell(1, 8).Value = "ContactoTelemovel";
+            worksheet.Cell(1, 9).Value = "ContactoTelefone";
+            worksheet.Cell(1, 10).Value = "Morada";
+            worksheet.Cell(1, 11).Value = "CP";
+            worksheet.Cell(1, 12).Value = "IBAN";
+            worksheet.Cell(1, 13).Value = "CodigoCNAEF";
+            worksheet.Cell(1, 14).Value = "HabilitacoesLiterarias";
+            worksheet.Cell(1, 15).Value = "Nacionalidade";
+            worksheet.Cell(1, 16).Value = "Bolsa";
+
+            // Formatar cabeçalho
+            var headerRange = worksheet.Range(1, 1, 1, 16);
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.FromArgb(204, 255, 255);
+
+            // Dados — começa na linha 5 para ser compatível com ReadExcel
+            int row = 5;
+            foreach (var c in candidatos)
+            {
+                worksheet.Cell(row, 1).Value = c.Pessoa.Id;
+                worksheet.Cell(row, 2).Value = c.Pessoa.Nome;
+                worksheet.Cell(row, 3).Value = c.Pessoa.DataNascimento?.ToString("dd/MM/yyyy") ?? "";
+                worksheet.Cell(row, 4).Value = c.Pessoa.Email;
+                worksheet.Cell(row, 5).Value = c.Pessoa.Sexo ?? "";
+                worksheet.Cell(row, 6).Value = c.Pessoa.CC ?? "";
+                worksheet.Cell(row, 7).Value = c.Pessoa.NIF ?? "";
+                worksheet.Cell(row, 8).Value = c.Pessoa.ContactoTelemovel ?? "";
+                worksheet.Cell(row, 9).Value = c.Pessoa.ContactoTelefone ?? "";
+                worksheet.Cell(row, 10).Value = c.Pessoa.Morada ?? "";
+                worksheet.Cell(row, 11).Value = c.Pessoa.CP ?? "";
+                worksheet.Cell(row, 12).Value = ""; // IBAN
+                worksheet.Cell(row, 13).Value = c.Pessoa.CodigoCNAEF ?? "";
+                worksheet.Cell(row, 14).Value = c.Pessoa.HabilitacoesLiterarias;
+                worksheet.Cell(row, 15).Value = c.Pessoa.Nacionalidade ?? "";
+                worksheet.Cell(row, 16).Value = ""; // Bolsa
+                row++;
+            }
+
+            worksheet.Columns().AdjustToContents();
+
+            await DownloadWorkbook(workbook, ".xlsx", $"Candidatos_Aprovados_{nomeCurso}");
+        }
     }
 }

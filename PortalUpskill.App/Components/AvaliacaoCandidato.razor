@@ -1,0 +1,202 @@
+﻿@inject ICandidaturaData candidaturaData
+@inject IAvaliacaoCandidaturaData avaliacaoData
+@inject EmailService emailService
+
+<div class="cardstyle">
+    @if (candidatura == null)
+    {
+        <p>A carregar...</p>
+    }
+    else
+    {
+        <h4>Dados do Candidato</h4>
+        <table class="table table-borderless table-sm">
+            <tr><td><b>Nome</b></td><td>@candidatura.Pessoa.Nome</td></tr>
+            <tr><td><b>Email</b></td><td>@candidatura.Pessoa.Email</td></tr>
+            <tr><td><b>1ª Opção</b></td><td>@candidatura.PrimeiraOpcao.Nome</td></tr>
+            <tr><td><b>Estado</b></td><td>@candidatura.Estado.Nome</td></tr>
+        </table>
+
+        <h4 class="mt-4">Avaliação</h4>
+
+        @if (avaliacao != null && !modoEditar)
+        {
+            <table class="table table-borderless table-sm">
+                <tr><td><b>Nota Psicométrica</b></td><td>@(avaliacao.NotaPsicometrica?.ToString("0.00") ?? "—") %</td></tr>
+                <tr><td><b>Nota Inglês</b></td><td>@(avaliacao.NotaIngles ?? "—")</td></tr>
+                <tr><td><b>Passou Entrevista</b></td><td>@(avaliacao.PassouEntrevista == null ? "—" : avaliacao.PassouEntrevista == true ? "Sim" : "Não")</td></tr>
+                <tr><td><b>Observações</b></td><td>@(avaliacao.Observacoes ?? "—")</td></tr>
+
+            </table>
+            <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="edit" Text="Editar Avaliação"
+                          Click="@(() => modoEditar = true)" class="mb-3" />
+        }
+        else
+        {
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Nota Psicométrica (%)" /></div>
+                <div class="col-md-8">
+                    <RadzenNumeric class="w-100" TValue="decimal?" @bind-Value="vmAvaliacao.NotaPsicometrica" Min="0" Max="100" />
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Nota Inglês" /></div>
+                <div class="col-md-8">
+                    <RadzenDropDown class="form-control w-100" @bind-Value="vmAvaliacao.NotaIngles"
+                                    Data="@(new List<string> { "A1", "A2", "B1", "B2", "C1", "C2" })"
+                                    TValue="string" Placeholder="Seleccione o nível" />
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Passou Entrevista" /></div>
+                <div class="col-md-8">
+                    <RadzenDropDown class="form-control w-100" @bind-Value="vmAvaliacao.PassouEntrevista"
+                                    Data="@(new List<bool?> { true, false })"
+                                    TValue="bool?"
+                                    ValueProperty="Value"
+                                    TextProperty="Text">
+                        <Template Context="val">
+                            @(val == true ? "Sim" : "Não")
+                        </Template>
+                    </RadzenDropDown>
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-md-4 align-items-center d-flex"><RadzenLabel Text="Observações" /></div>
+                <div class="col-md-8">
+                    <RadzenTextArea class="form-control w-100" Rows="3" @bind-Value="vmAvaliacao.Observacoes" />
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(erroAvaliacao))
+            {
+                <div class="alert alert-warning mt-2">@erroAvaliacao</div>
+            }
+
+            <div style="display: flex; gap: 10px; margin-top: 1rem;">
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar Avaliação"
+                              Click="GuardarAvaliacao" />
+                @if (modoEditar)
+                {
+                    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" Text="Cancelar"
+                                  Click="@(() => modoEditar = false)" />
+                }
+            </div>
+        }
+
+        <h4 class="mt-4">Decisão Final</h4>
+        <div class="row justify-content-center mt-4">
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="check" Text="Aprovar"
+                          Click="@(() => ConfirmarDecisao(3))"
+                          Disabled="@(!PodeAprovar())" />
+            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Reprovar"
+                          Click="@(() => ConfirmarDecisao(4))" />
+        </div>
+        @if (!PodeAprovar() && avaliacao != null)
+        {
+            <p class="text-danger mt-2"><small>Não é possível aprovar — o candidato não cumpre os requisitos mínimos de avaliação.</small></p>
+        }
+
+       
+    }
+</div>
+
+<div class="row justify-content-center mt-3">
+    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="close" Text="Fechar"
+                  Click="@(() => dialogService.Close())" />
+</div>
+
+@code {
+    [Parameter]
+    public int CandidaturaId { get; set; }
+
+    Candidatura candidatura;
+    AvaliacaoCandidatura avaliacao;
+    AvaliacaoCandidatura vmAvaliacao = new AvaliacaoCandidatura();
+    bool modoEditar = false;
+    string erroAvaliacao = "";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        candidatura = candidaturaData.GetById(CandidaturaId);
+        avaliacao = avaliacaoData.GetByCandidatura(CandidaturaId);
+
+        if (avaliacao != null)
+        {
+            vmAvaliacao.NotaPsicometrica = avaliacao.NotaPsicometrica;
+            vmAvaliacao.NotaIngles = avaliacao.NotaIngles;
+            vmAvaliacao.PassouEntrevista = avaliacao.PassouEntrevista;
+            vmAvaliacao.Observacoes = avaliacao.Observacoes;
+        }
+    }
+
+    void GuardarAvaliacao()
+    {
+        erroAvaliacao = "";
+        vmAvaliacao.CandidaturaId = CandidaturaId;
+        vmAvaliacao.DataAvaliacao = DateTime.Now;
+
+        if (avaliacao == null)
+        {
+            avaliacaoData.Create(vmAvaliacao);
+        }
+        else
+        {
+            avaliacaoData.Update(vmAvaliacao);
+        }
+
+        avaliacao = avaliacaoData.GetByCandidatura(CandidaturaId);
+        modoEditar = false;
+
+        notificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Avaliação guardada com sucesso.",
+                    Duration = 3000
+                });
+        StateHasChanged();
+    }
+
+    bool PodeAprovar()
+    {
+        if (avaliacao == null) return false;
+        if (avaliacao.NotaPsicometrica < 50) return false;
+        var niveisInsuficientes = new List<string> { "A1", "A2", "B1" };
+        if (avaliacao.NotaIngles != null && niveisInsuficientes.Contains(avaliacao.NotaIngles)) return false;
+        if (avaliacao.PassouEntrevista == false) return false;
+        return true;
+    }
+
+    async Task ConfirmarDecisao(int novoEstadoId)
+    {
+        string acao = novoEstadoId == 3 ? "aprovar" : "reprovar";
+        await dialogService.OpenAsync("Confirmar", render =>
+    @<div>
+        <p>Tem a certeza que quer @acao a candidatura de @candidatura.Pessoa.Nome?</p>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1rem;">
+            <RadzenButton ButtonStyle="@(novoEstadoId == 3 ? ButtonStyle.Success : ButtonStyle.Danger)"
+                          Text="@(novoEstadoId == 3 ? "Aprovar" : "Reprovar")"
+                          Click="@(() => { AlterarEstado(novoEstadoId); dialogService.Close(); })" />
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Text="Cancelar"
+                          Click="@(() => dialogService.Close())" />
+        </div>
+    </div>
+        , new DialogOptions { Width = "400px", Height = "auto" });
+    }
+
+    void AlterarEstado(int novoEstadoId)
+    {
+        candidaturaData.UpdateEstado(CandidaturaId, novoEstadoId);
+        candidatura = candidaturaData.GetById(CandidaturaId);
+        notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Estado actualizado com sucesso.",
+                Duration = 3000
+            });
+        StateHasChanged();
+    }
+
+    
+}

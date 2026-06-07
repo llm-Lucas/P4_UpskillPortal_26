@@ -1,0 +1,166 @@
+﻿@page "/Candidatos"
+@attribute [Authorize(Roles = "Administrador, Secretariado, Coordenador")]
+@inject ICandidaturaData candidaturaData
+@inject FileManagerService fileManager
+@inject ICursoData cursoData
+
+<div class="cardstyle">
+    <h2>Candidatos</h2>
+    <div class="mb-3" style="display: flex; gap: 10px; align-items: center;">
+        <RadzenDropDown @bind-Value="cursoSelecionadoId"
+                        Data="@cursos"
+                        TValue="int?"
+                        ValueProperty="Id"
+                        TextProperty="Nome"
+                        Placeholder="Seleccione o curso para exportar"
+                        Style="width: 300px;" />
+        <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="download" Text="Exportar Aprovados"
+                      Click="ExportarAprovados"
+                      Disabled="@(cursoSelecionadoId == null)" />
+    </div>
+    <RadzenGrid Data="@candidaturas"
+                TItem="Candidatura"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowPaging="true"
+                PageSize="10">
+        <Columns>
+            <RadzenGridColumn TItem="Candidatura" Property="Pessoa.Nome" Title="Nome" />
+            <RadzenGridColumn TItem="Candidatura" Property="Pessoa.Email" Title="Email" />
+            <RadzenGridColumn TItem="Candidatura" Property="PrimeiraOpcao.Nome" Title="1ª Opção" />
+            <RadzenGridColumn TItem="Candidatura" Property="SegundaOpcao.Nome" Title="2ª Opção">
+                <Template Context="c">
+                    @(c.SegundaOpcao?.Nome ?? "—")
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="Candidatura" Property="Estado.Nome" Title="Estado">
+                <Template Context="c">
+                    <span>@c.Estado.Nome</span>
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="Candidatura" Property="DataCriacao" Title="Data">
+                <Template Context="c">
+                    @c.DataCriacao.ToString("dd/MM/yyyy")
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="Candidatura" Title="Acções" Sortable="false" Filterable="false">
+                <Template Context="c">
+                    <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description"
+                                  Click="@(() => dialogService.Open<DetalhesCandidatura>(
+                "Detalhes da Candidatura",
+                new Dictionary<string, object>() { { "CandidaturaId", c.Id } },
+                new DialogOptions() { Width = "70%", Height = "80%" }))" />
+
+                    @if (c.EstadoId == 2)
+                    {
+                       @* <RadzenButton Title="Aceitar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="check"
+                                      Click="@(() => ConfirmarAlteracaoEstado(c, 5))" />
+                       <RadzenButton Title="Não Aceitar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Warning" Icon="block"
+                                      Click="@(() => ConfirmarAlteracaoEstado(c, 6))" />*@
+                        <RadzenButton Title="Reprovar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="close"
+                                      Click="@(() => ConfirmarAlteracaoEstado(c, 4))" />
+                    }
+                    @if (c.EstadoId == 5)
+                    {
+                        <RadzenButton Title="Avaliação" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Info" Icon="assessment"
+                                      Click="@(() => dialogService.Open<AvaliacaoCandidato>(
+                    "Avaliação do Candidato",
+                    new Dictionary<string, object>() { { "CandidaturaId", c.Id } },
+                    new DialogOptions() { Width = "70%", Height = "85%" }))" />
+                        <RadzenButton Title="Reprovar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="close"
+                                      Click="@(() => ConfirmarAlteracaoEstado(c, 4))" />
+                    }
+              
+                </Template>
+            </RadzenGridColumn>
+        </Columns>
+    </RadzenGrid>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" Text="Voltar"
+                      Click="@(() => navManager.NavigateTo("Index"))" />
+    </div>
+</div>
+
+@code {
+    List<Candidatura> candidaturas = new List<Candidatura>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        LoadCandidaturas();
+        cursos = cursoData.GetAll();
+
+    }
+
+    void LoadCandidaturas()
+    {
+        candidaturas = candidaturaData.GetAll();
+    }
+    void AlterarEstado(Candidatura candidatura, int novoEstadoId)
+    {
+        candidaturaData.UpdateEstado(candidatura.Id, novoEstadoId);
+
+        if (novoEstadoId == 6)
+            candidaturaData.UpdateEstado(candidatura.Id, 1);
+        LoadCandidaturas();
+        notificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Estado actualizado com sucesso.",
+                    Duration = 3000
+                });
+    }
+
+    async Task ConfirmarAlteracaoEstado(Candidatura candidatura, int novoEstadoId)
+    {
+        string acao = novoEstadoId switch
+        {
+            3 => "aprovar",
+            4 => "reprovar",
+            5 => "aceitar",
+            6 => "não aceitar",
+            _ => "alterar"
+        };
+
+        await dialogService.OpenAsync("Confirmar", render =>
+    @<div>
+        <p>Tem a certeza que quer @acao a candidatura de @candidatura.Pessoa.Nome?</p>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1rem;">
+            <RadzenButton ButtonStyle="@(novoEstadoId == 3 || novoEstadoId == 5 ? ButtonStyle.Success : ButtonStyle.Danger)"
+                          Text="@(novoEstadoId switch { 3 => "Aprovar", 4 => "Reprovar", 5 => "Aceitar", 6 => "Não Aceitar", _ => "Confirmar" })"
+                          Click="@(() => { AlterarEstado(candidatura, novoEstadoId); dialogService.Close(); })" />
+            <RadzenButton ButtonStyle="ButtonStyle.Secondary" Text="Cancelar"
+                          Click="@(() => dialogService.Close())" />
+        </div>
+    </div>
+    , new DialogOptions { Width = "400px", Height = "auto" });
+    }
+    List<Curso> cursos = new List<Curso>();
+    int? cursoSelecionadoId;
+
+
+    
+    async Task ExportarAprovados()
+    {
+        if (cursoSelecionadoId == null) return;
+
+        var aprovados = candidaturaData.GetAprovadosByCurso(cursoSelecionadoId.Value);
+
+        if (!aprovados.Any())
+        {
+            notificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = "Não existem candidatos aprovados para o curso seleccionado.",
+                    Duration = 3000
+                });
+            return;
+        }
+
+        var nomeCurso = cursos.FirstOrDefault(c => c.Id == cursoSelecionadoId)?.Nome ?? "Curso";
+        await fileManager.ExportarCandidatosAprovados(aprovados, nomeCurso);
+    }
+}
