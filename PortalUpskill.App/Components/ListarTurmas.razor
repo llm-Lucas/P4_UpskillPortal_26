@@ -3,11 +3,14 @@
 @inject ITurmaData turmaData
 @inject FileManagerService fileManager
 
+<PageTitle>Turmas - ISCTE Meta Digital</PageTitle>
+
+
 <div class="cardstyle">
     <h2>@Title</h2>
 
     <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Turma" Icon="add" Click="@(() => navManager.NavigateTo("Turma"))" />
-    <RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
+    <RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
 
     <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
         <span>Itens por página:</span>

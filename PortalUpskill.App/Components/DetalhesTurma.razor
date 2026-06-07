@@ -6,6 +6,9 @@
 @inject FileManagerService FileMngSrv
 @inject IJSRuntime JSRuntime
 
+<PageTitle>Detalhes Turma - ISCTE Meta Digital</PageTitle>
+
+
 <div class="cardstyle">
     <h2>@turma.Nome</h2>
     <br />
@@ -26,7 +29,7 @@
                 <Authorized>
                     <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="edit_calendar" Title="Calendarizar Aulas" Click="@(() => navManager.NavigateTo($"Calendar/{turma.Id}"))" />
                     <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Primary" Icon="grading" Title="Download das Pautas de Avaliação" Click="@(() => navManager.NavigateTo($"TurmaAvaliacoes/{turma.Id}"))" />
-                    <RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
+                    <RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
                     <RadzenButton Text="Enviar Email" Icon="email" ButtonStyle="ButtonStyle.Success"
                                   Disabled="@(!selectedFormandos.Any())"
                                   Click="@(() => navManager.NavigateTo(BuildMailToLink(), true))" />
@@ -426,12 +429,29 @@
                 worksheet.Cell(currentRow, currentColumn++).Value = 0;
             }
 
+            // CORREÇÃO AQUI: Validação para evitar o erro KeyNotFoundException
             for (int i = 0; i < modulos.Count(); i++)
             {
-                worksheet.Cell(currentRow, currentColumn++).Value = formando.DictAvaliacaoModular[modulos[i].Id].NotaFinal;
+                int moduloId = modulos[i].Id;
+                if (formando.DictAvaliacaoModular != null && formando.DictAvaliacaoModular.ContainsKey(moduloId))
+                {
+                    worksheet.Cell(currentRow, currentColumn++).Value = formando.DictAvaliacaoModular[moduloId].NotaFinal;
+                }
+                else
+                {
+                    worksheet.Cell(currentRow, currentColumn++).Value = "Sem nota";
+                }
             }
 
-            worksheet.Cell(currentRow, currentColumn).Value = formando.AvaliacaoFinal.NotaFinal;
+            // CORREÇÃO AQUI: Validação para evitar NullReferenceException se a Nota Final for nula
+            if (formando.AvaliacaoFinal != null)
+            {
+                worksheet.Cell(currentRow, currentColumn).Value = formando.AvaliacaoFinal.NotaFinal;
+            }
+            else
+            {
+                worksheet.Cell(currentRow, currentColumn).Value = "Sem nota";
+            }
         }
 
         rngCorpo.Columns().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;

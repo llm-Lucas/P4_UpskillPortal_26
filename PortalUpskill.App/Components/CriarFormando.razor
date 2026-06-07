@@ -8,6 +8,10 @@
 @inject IListaEstadosFormandoData estadosFormandoData
 @inject IJSRuntime JSRuntime
 @inject FileManagerService FileMngSrv
+@inject IPessoaData pessoaData
+
+<PageTitle>Criar/Editar Formando - ISCTE Meta Digital</PageTitle>
+
 
 <div class="cardstyle">
 	@if (Id == 0)
@@ -487,6 +491,18 @@
 
 	async Task CheckFormando(EditContext editContext)
 	{
+		bool jaExiste = pessoaData.ExisteDuplicado(Id, formandoVM.Email, formandoVM.NIF, formandoVM.CC);
+		if (jaExiste)
+		{
+			notificationService.Notify(new NotificationMessage
+			{
+				Severity = NotificationSeverity.Warning,
+				Summary = "Dados Duplicados",
+				Detail = "Já existe um utilizador registado com este Email, NIF ou CC.",
+				Duration = 5000
+			});
+			return;
+		}
 		//pedido de confirmação quando o utilizador está a editar um formando
 		if (Id != 0 && editContext.Validate())
 		{

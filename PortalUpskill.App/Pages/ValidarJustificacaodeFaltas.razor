@@ -31,6 +31,19 @@
 
         <RadzenGridColumn TItem="Falta" Property="Duracao" Title="Duração (Min)" width="120px" />
 
+        <RadzenGridColumn TItem="Falta" Title="Motivo do Formando">
+            <Template Context="falta">
+                @if (!string.IsNullOrEmpty(falta.Observacoes))
+                {
+                    <span style="white-space: pre-wrap;">@falta.Observacoes</span>
+                }
+                else
+                {
+                    <span class="text-muted"><i>Sem motivo</i></span>
+                }
+            </Template>
+        </RadzenGridColumn>
+
         <RadzenGridColumn TItem="Falta" Title="Documento" Filterable="false" Sortable="false">
             <Template Context="falta">
                 @if (!string.IsNullOrEmpty(falta.Anexo))

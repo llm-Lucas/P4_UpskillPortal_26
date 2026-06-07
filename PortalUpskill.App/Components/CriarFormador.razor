@@ -7,6 +7,10 @@
 @inject IPaisesData paisesData
 @inject IListaEstadosFormadorData estadosFormadorData
 @inject FileManagerService FileMngSrv
+@inject IPessoaData pessoaData
+
+<PageTitle>Criar/Editar Formador - ISCTE Meta Digital</PageTitle>
+
 
 <div class="cardstyle">
     @if (Id == 0)
@@ -510,6 +514,19 @@
 
     async Task CheckFormador(EditContext editContext)
     {
+        bool jaExiste = pessoaData.ExisteDuplicado(Id, formadorVM.Email, formadorVM.NIF, formadorVM.CC);
+        if (jaExiste)
+        {
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = "Dados Duplicados",
+                Detail = "Já existe um formador registado com este Email, NIF ou CC.",
+                Duration = 5000
+            });
+            return;
+        }
+
         //pedido de confirmação quando o utilizador está a editar um formador
         if (Id != 0 && editContext.Validate())
         {

@@ -8,7 +8,10 @@
 @inject IListaEstadosFormandoData listaEstadosData
 @inject ITurmaData turmaData
 @inject RefreshService refreshService
-@inject FileManagerService fileManager
+@inject PortalUpskill.App.Utils.FileManagerService fileManager
+
+<PageTitle>Formandos - ISCTE Meta Digital</PageTitle>
+
 
 <div class="cardstyle">
     <h2>@Title</h2>
@@ -17,41 +20,25 @@
     {
         //@if (filteredFormandos.Count == 0)
         //{
-        <!-- INICIO #008 -->
-        <!-- Comentei o antigo link para enviar mails, para manter a coerencia entre as paginas-->
-
-        <!-- <span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="/Formandos">Enviar email aos Formandos</a> -->
-        <!-- <br /> -->
-        <!-- <span style="margin-left:5px; font-size:10px; color:darkgray">(Filtrar os formandos por estado)</span> -->
-
-        <!-- FIM -->
         //}
         //else
         //{
-        <!-- INICIO
-        Comentei o antigo link para enviar mails, para manter a coerencia entre as paginas
-
-        <span class="material-icons" style="vertical-align: middle; padding-top:-3px; color:blue;">email</span><a href="@email">Enviar email aos Formandos</a>
-        <br />
-        <span style="margin-left:5px; font-size:10px; color:darkgray">(Filtrar os formandos por estado)</span>
-
-        END -->
         //}
         <br />
 
         <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Formando" Icon="add" Click="@(() => dialogService.Open<CriarFormando>(
-                                                                                                               "Criar Formando",
-                                                                                                               new Dictionary<string, object>()
-																										       {
-																											       { "RedirectAfterCreation", IsViewedAsChild ? false : true}
-																										       },
-                                                                                                               new DialogOptions()
-                                                                                                               {
-																											       Width = "90%",
-																											       Height = "90%"
-                                                                                                               }))" />
+                                                                                                                                                          "Criar Formando",
+                                                                                                                                                          new Dictionary<string, object>()
+                                                                                                                                                          {
+                                                                                                                                                      { "RedirectAfterCreation", IsViewedAsChild ? false : true}
+                                                                                                                                                          },
+                                                                                                                                                          new DialogOptions()
+                                                                                                                                                          {
+                                                                                                                                                              Width = "90%",
+                                                                                                                                                              Height = "90%"
+                                                                                                                                                          }))" />
 
-        <RadzenButton Text="Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
+        <RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
     }
 
     <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
@@ -62,20 +49,19 @@
                         Style="width: 80px" />
     </div>
 
-    <RadzenGrid @ref="grid" 
-        Data="@filteredFormandos"
-    TItem="Formando"
-    AllowSorting="true"
-    AllowFiltering="true"
-    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-    AllowPaging="true"
-    PageSize="@pageSize">
+    <RadzenGrid @ref="grid"
+                Data="@filteredFormandos"
+                TItem="Formando"
+                AllowSorting="true"
+                AllowFiltering="true"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowPaging="true"
+                PageSize="@pageSize">
         <Columns>
-            
+
             <RadzenGridColumn TItem="Formando" Property="Nome" Title="Nome" />
             <RadzenGridColumn TItem="Formando" Property="Email" Title="Email" />
             <RadzenGridColumn TItem="Formando" Property="ContactoTelemovel" Title="Telemovel" />
-            <!--INÍCIO #004-->
             @if (Mode == "Add")
             {
                 <RadzenGridColumn TItem="Formando" Property="NIF" Title="NIF">
@@ -88,7 +74,7 @@
                 </RadzenGridColumn>
                 @if (!IsViewedAsChild)
                 {
-                    <RadzenGridColumn TItem="Formando" Title="Curso"> <!--Property="IntencaoCurso"-->
+                    <RadzenGridColumn TItem="Formando" Title="Curso">
                         <Template Context="Formando">
                             @if (Formando.Turma != null)
                             {
@@ -101,7 +87,6 @@
                 else
                 {
                     <RadzenGridColumn TItem="Formando" Title="Intenção curso">
-                        <!--Property="IntencaoCurso"-->
                         <Template Context="Formando">
                             @if (Formando.Turma != null)
                             {
@@ -111,19 +96,15 @@
                         </Template>
                     </RadzenGridColumn>
                 }
-                <!--FIM #004-->
             }
             else
             {
                 <RadzenGridColumn TItem="Formando" Property="Turma.Nome" Title="Turma">
-                    <!-- INICIO #008 -->
-                    <!-- Filtragem por Turma -->
                     <FilterTemplate>
                         <RadzenDropDown @bind-Value="@filtroTurma" TextProperty="Nome" ValueProperty="Id" Style="width:100%"
-                        Change="@(_ => ApplyFilters())"
-                        Data="@(turmas.Select(t => t.Nome))" />
+                                        Change="@(_ => ApplyFilters())"
+                                        Data="@(turmas.Select(t => t.Nome))" />
                     </FilterTemplate>
-                    <!-- FIM -->
                     <Template Context="Formando">
                         @if (Formando.Turma != null)
                         {
@@ -133,14 +114,11 @@
                 </RadzenGridColumn>
 
                 <RadzenGridColumn TItem="Formando" Property="Turma.Curso.Nome" Title="Curso">
-                    <!-- INICIO #008 -->
-                    <!-- Filtragem por Curso -->
                     <FilterTemplate>
                         <RadzenDropDown @bind-Value="@filtroCurso" TextProperty="Nome" ValueProperty="Id" Style="width:100%"
-                        Change="@(_ => ApplyFilters())"
-                        Data="@cursos.Select(c => c.Nome)" />
+                                        Change="@(_ => ApplyFilters())"
+                                        Data="@cursos.Select(c => c.Nome)" />
                     </FilterTemplate>
-                    <!-- FIM -->
                     <Template Context="Formando">
                         @if (Formando.Turma != null)
                         {
@@ -153,8 +131,8 @@
             <RadzenGridColumn TItem="Formando" Title="Estado" Sortable="false">
                 <FilterTemplate>
                     <RadzenDropDown @bind-Value="@filtroEstado" TextProperty="Nome" ValueProperty="Id" Style="width:100%"
-                    Change="@(_ => ApplyFilters())"
-                    Data="@(estados.Select(t => t.Nome))" />
+                                    Change="@(_ => ApplyFilters())"
+                                    Data="@(estados.Select(t => t.Nome))" />
                 </FilterTemplate>
                 <Template Context="Formando">
                     <span>@Formando.Estado.Nome</span>
@@ -173,8 +151,8 @@
                 <RadzenGridColumn Title="Opções" TItem="Formando" Sortable="false" Filterable="false">
                     <Template Context="Formando">
                         <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesFormando>("Detalhes do Formando",
-                                                                                                                             new Dictionary<string, object>() { { "FormandoId", Formando.Id } },
-                                                                                                                             new DialogOptions() { Width = "80%", Height = "90%" })) />
+                                                                                                                                                           new Dictionary<string, object>() { { "FormandoId", Formando.Id } },
+                                                                                                                                                           new DialogOptions() { Width = "80%", Height = "90%" })) />
                         <RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Formando/{Formando.Id}"))" />
                         <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Formando))" />
                         <RadzenButton Title="Enviar Email" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="email" Click="@(() => navManager.NavigateTo($"mailto:{Formando.Email}", true))" />
@@ -185,21 +163,15 @@
     </RadzenGrid>
 </div>
 
-<!-- INÍCIO #008 -->
-<!-- Botão de Voltar -->
 <div class="row justify-content-center">
     <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
         @if (!IsViewedAsChild)
         {
             <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Index"))" />
-
         }
     </div>
 </div>
 <br />
-<!-- FIM -->
-
 @code {
 
     int? role;
@@ -305,12 +277,6 @@
 
         string userEmail = (await authStateTask).User.Identity.Name;
         user = pessoaData.GetByEmail(userEmail);
-        // user.PerfilId
-        // 1 = Administrador
-        // 2 = Coordenador
-        // 3 = Formador
-        // 4 = Formando
-        // 5 = Secretariado
         role = user.Perfil.Id;
     }
 
@@ -330,7 +296,6 @@
         turmas = turmaData.GetAll();
         turmas.Insert(0, new Turma { Nome = "Todos" });
 
-        // Load cursos and add "Todos"
         // Load cursos and add "Todos" (ensure uniqueness by Id)
         cursos = turmas
         .Where(t => t.Curso != null)
@@ -350,20 +315,20 @@
         ApplyFilters();
         // FIM
 
-       // Apply initial filters
-if (Filter != null)
-{
-    formandos = formandos.Where(Filter).OrderBy(f => f.Nome).ToList();
-}
+        // Apply initial filters
+        if (Filter != null)
+        {
+            formandos = formandos.Where(Filter).OrderBy(f => f.Nome).ToList();
+        }
 
-ApplyFilters();
+        ApplyFilters();
 
-mail = "";
-foreach (var formando in filteredFormandos)
-{
-    mail = mail + formando.Email + ";";
-}
-email = $"mailto:{mail}";
+        mail = "";
+        foreach (var formando in filteredFormandos)
+        {
+            mail = mail + formando.Email + ";";
+        }
+        email = $"mailto:{mail}";
     }
 
     private async Task SendFormando(int ToSendId)
@@ -381,9 +346,12 @@ email = $"mailto:{mail}";
                 <p class="mb1 text-danger">Esta acção é irreversível.</p>
                 <div class="row">
                     <div class="col-md-12 d-flex justify-content-center">
-                        <RadzenButton class="w-150 mx-2" Text="Ok" Click='() => { FileManagerService.RemoveFile(formando.Foto); FileManagerService.RemoveFile(formando.CV);
-																					    formandoData.Remove(formando.Id); ds.Close(true); LoadFormandos();
-																					    notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Formando apagado com sucesso", Duration = 4000 });}' />
+                        <RadzenButton class="w-150 mx-2" Text="Ok" Click='() =>
+                                      {
+                                                                                FileManagerService.RemoveFile(formando.Foto); FileManagerService.RemoveFile(formando.CV);
+                                          formandoData.Remove(formando.Id); ds.Close(true); LoadFormandos();
+                                          notificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Formando apagado com sucesso", Duration = 4000 });
+                                      }' />
                         <RadzenButton class="w-150 mx-2" Text="Cancelar" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" />
                     </div>
                 </div>
@@ -401,35 +369,13 @@ email = $"mailto:{mail}";
     );
     }
 
-    /// <summary>
-    /// Opções disponíveis para o filtro da coluna de Estado
-    /// </summary>
-    //List<string> Estados = new List<string>
-    //{
-    //    "Todos",
-    //    "Inscrito",
-    //    "A frequentar",
-    //    "A frequentar - nova turma",
-    //    "A frequentar - novo curso",
-    //    "Concluído",
-    //    "Concluído - parcialmente",
-    //    "Desistiu",
-    //    "Rescisão de contrato"
-    //};
-
-    /// <summary>
-    /// Filtro da coluna Estado que está activo
-    /// </summary>
     string filtroEstado = "Filtrar por Estado";
 
-    /// <summary>
-    /// Corre quando o filtro da coluna Estado é alterado
-    /// </summary>
     void FiltrarPorEstado()
     {
         filteredFormandos = formandos
             .Where(f => filtroEstado != "Filtrar por Estado"
-                ? f.Estado.Nome == filtroEstado 
+                ? f.Estado.Nome == filtroEstado
                 : true)
             .OrderBy(f => f.Nome)
             .ToList();
@@ -467,7 +413,7 @@ email = $"mailto:{mail}";
 
     void CloseDialogOnFormandoCreation()
     {
-      dialogService.Close();
+        dialogService.Close();
     }
 
     /// <summary>
@@ -480,7 +426,6 @@ email = $"mailto:{mail}";
     {
         IXLWorkbook workbook = new XLWorkbook();
         IXLWorksheet worksheet = workbook.Worksheets.Add("formandos");
-
 
         #region Template Topo
         var currentRow = 1;
@@ -500,7 +445,6 @@ email = $"mailto:{mail}";
         currentRow += 5;
         currentColumn -= 6;
         #endregion
-
 
         #region Cabeçalho
         var rngCabeçalhoFirstColumn = currentColumn;
@@ -527,7 +471,6 @@ email = $"mailto:{mail}";
             worksheet.Cell(currentRow, currentColumn++).Value = "Bolsa";
         }
 
-
         var rngCabeçalho = worksheet.Range(currentRow, rngCabeçalhoFirstColumn, currentRow, currentColumn - 1);
         rngCabeçalho.Columns().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
         rngCabeçalho.Style.Font.FontName = "Century Gothic";
@@ -537,7 +480,6 @@ email = $"mailto:{mail}";
 
         currentColumn = rngCabeçalhoFirstColumn;
         #endregion
-
 
         #region Corpo
         List<Formando> exportFormandos = grid.View.ToList();
@@ -589,7 +531,7 @@ email = $"mailto:{mail}";
                 if (formando.CodigoCNAEF != null)
                 {
                     var CNAEFNome = from CNAEF in CNAEFs where CNAEF.CodigoCNAEF == formando.CodigoCNAEF select CNAEF.CodigoCNAEF;
-                    worksheet.Cell(currentRow, currentColumn).Value = string.Join(", ", CNAEFNome);  // changed from worksheet.Cell(currentRow, currentColumn).Value = CNAEFNome;
+                    worksheet.Cell(currentRow, currentColumn).Value = string.Join(", ", CNAEFNome);
                 }
                 currentColumn++;
 
@@ -604,27 +546,23 @@ email = $"mailto:{mail}";
                 worksheet.Cell(currentRow, currentColumn).Value = formando.Bolsa == true ? "Sim" : "Não";
             }
 
-
             rngCorpo = worksheet.Range(rngCorpoFirstRow, rngCorpoFirstColumn, currentRow, currentColumn);
-
             currentColumn = rngCorpoFirstColumn;
         }
 
-      rngCorpo.Columns().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-      rngCorpo.Cells().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
-      worksheet.Columns().AdjustToContents();
-      #endregion
+        rngCorpo.Columns().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+        rngCorpo.Cells().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+        worksheet.Columns().AdjustToContents();
+        #endregion
 
+        #region Template rodapé
+        currentRow += 3;
+        worksheet.AddPicture("wwwroot/img/pauta/gov.jpg")
+                  .MoveTo(worksheet.Cell(currentRow + 3, 4))
+                  .Scale(.74);
+        #endregion
 
-      #region Template rodapé
-      currentRow += 3;
-      worksheet.AddPicture("wwwroot/img/pauta/gov.jpg")
-                .MoveTo(worksheet.Cell(currentRow + 3, 4))
-                .Scale(.74);
-      #endregion
-
-      var timestamp = Convert.ToString(DateTime.Now);
-
-      await fileManager.DownloadWorkbook(workbook, extension, timestamp + "_Formandos");
+        var timestamp = Convert.ToString(DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+        await fileManager.DownloadWorkbook(workbook, extension, timestamp + "_Formandos");
     }
 }

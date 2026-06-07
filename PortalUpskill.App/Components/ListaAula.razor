@@ -4,31 +4,25 @@
 @inject ITurmaData TurmaData
 @inject IFormadorData FormadorData
 @inject IPessoaData PessoaData
+@* Injeção do teu serviço existente *@
+@inject PortalUpskill.App.Utils.FileManagerService FileManagerService
 
-@*INICIO #008*@
-@*Nome da Turma*@
-<h2>Turma @getTurmaAtual()</h2>
-@*FIM #008*@
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Turma @getTurmaAtual()</h2>
+    @* Botão que ativa a exportação *@
+    <RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@ExportarParaExcel" />
+</div>
 
 <div class="cardstyle">
-    <RadzenGrid Data="@aulas"
-                TItem="Aula"
-                AllowSorting="true"
-                AllowFiltering="true"
-                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                AllowPaging="true"
-                PageSize="10">
+    <RadzenGrid Data="@aulas" TItem="Aula" AllowSorting="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="10">
         <Columns>
-
             <RadzenGridColumn TItem="Aula" Property="Sumario" Title="Sumário" />
             <RadzenGridColumn TItem="Aula" Property="HoraInicio" Title="Data">
                 <Template Context="Aula">
                     <span>@Aula.HoraInicio.ToString("dd/MM/yyyy")</span>
                 </Template>
             </RadzenGridColumn>
-
             <RadzenGridColumn TItem="Aula" Property="DuracaoHoras" Title="Duração (Horas)" />
-
             <RadzenGridColumn TItem="Aula" Title="Detalhes" Sortable="false" Filterable="false">
                 <Template Context="Aula">
                     <RadzenButton Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Title="Ver/Editar detalhes" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"/DetalhesAula/{Aula.Id}/{Idf}/{Idt}/ListaAula"))" />
@@ -38,60 +32,52 @@
     </RadzenGrid>
 </div>
 
-<!-- INÍCIO #008 -->
-<div class="row justify-content-center">
-    <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
-        <!-- <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Icon="save" Text="Guardar" Click="@(() => MarcarFaltas())" /> -->
-        <AuthorizeView Roles="Administrador, Secretariado">
-            <Authorized>
-                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"Calendar/{aulaVM.TurmaId}"))" />
-            </Authorized>
-        </AuthorizeView>
-        <AuthorizeView Roles="Formador">
-            <Authorized>
-                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Voltar" Click="@(() => navManager.NavigateTo($"TurmasPorFormador"))" />
-            </Authorized>
-        </AuthorizeView>
-    </div>
-</div>
-<!-- FIM -->
-
 @code {
-
-    // INÍCIO #008
-    // Instancia a ViewModel para a Aula
-    // É necessário para o botão de Voltar
     AulaViewModel aulaVM = new AulaViewModel();
-    // FIM
-
     List<Aula> aulas = new List<Aula>();
-    Turma turma = new Turma();
-
-    [Parameter]
-    public int Idf { get; set; }//id do Formador
-
-    [Parameter]
-    public int Idt { get; set; }//id da Turma
+    string turmaAtual = "";
+    [Parameter] public int Idf { get; set; }
+    [Parameter] public int Idt { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         aulas = AulaData.GetByTurmaFormador(Idt, Idf);
     }
 
-	// INICIO #008
-    // Receber a Turma Atual que foi carregada
-    string turmaAtual = "";
-
-    // Metodo para ir buscar a turma selecionada e guardar na string turmaAtual
     public string getTurmaAtual()
     {
         var turma = TurmaData.GetById(Idt);
-        if (turma != null)
-        {
-            turmaAtual = turma.Nome;
-        }
-
+        if (turma != null) { turmaAtual = turma.Nome; }
         return turmaAtual;
     }
-    // FIM
+
+    // Cria o Excel e invoca o teu FileManagerService
+    private async Task ExportarParaExcel()
+    {
+        if (aulas != null && aulas.Count > 0)
+        {
+            using var workbook = new ClosedXML.Excel.XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Sumários");
+
+            // Cabeçalhos
+            worksheet.Cell(1, 1).Value = "Sumário";
+            worksheet.Cell(1, 2).Value = "Data";
+            worksheet.Cell(1, 3).Value = "Duração (Horas)";
+            worksheet.Row(1).Style.Font.Bold = true;
+
+            // Preenchimento das linhas
+            int row = 2;
+            foreach (var item in aulas)
+            {
+                worksheet.Cell(row, 1).Value = item.Sumario;
+                worksheet.Cell(row, 2).Value = item.HoraInicio.ToString("dd/MM/yyyy");
+                worksheet.Cell(row, 3).Value = item.DuracaoHoras;
+                row++;
+            }
+            worksheet.Columns().AdjustToContents();
+
+            // Utiliza o método nativo do teu ficheiro FileManagerService
+            await FileManagerService.DownloadWorkbook(workbook, ".xlsx", $"Sumarios_Turma_{turmaAtual.Replace(" ", "_")}");
+        }
+    }
 }

@@ -5,7 +5,7 @@
 @using BCrypt.Net
 
 @inject AuthenticationStateProvider authStateProvider
-@inject ProtectedSessionStorage sessionStorage
+@inject ProtectedLocalStorage localStorage
 @inject IPessoaData pessoaData
 
 <h2>Login</h2>
@@ -102,7 +102,7 @@
                 navManager.NavigateTo("Index");
 
                 string userJson = JsonConvert.SerializeObject(pessoa);
-                await sessionStorage.SetAsync("user", userJson);
+                await localStorage.SetAsync("user", userJson);
             }
             else
             {

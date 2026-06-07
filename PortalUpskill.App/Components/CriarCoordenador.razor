@@ -7,6 +7,10 @@
 @inject IPaisesData paisesData
 @inject IListaEstadosFormadorData estadosFormadorData
 @inject FileManagerService FileMngSrv
+@inject IPessoaData pessoaData
+
+<PageTitle>Criar/Editar Coordenador - ISCTE Meta Digital</PageTitle>
+
 
 <div class="cardstyle">
 
@@ -490,6 +494,19 @@
 
     async void CheckCoordenador(EditContext editContext)
     {
+        bool jaExiste = pessoaData.ExisteDuplicado(Id, formadorVM.Email, formadorVM.NIF, formadorVM.CC);
+        if (jaExiste)
+        {
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = "Dados Duplicados",
+                Detail = "Já existe um coordenador registado com este Email, NIF ou CC.",
+                Duration = 5000
+            });
+            return;
+        }
+
         //pedido de confirmação quando o utilizador está a editar um formando
         if (Id != 0 && editContext.Validate())
         {

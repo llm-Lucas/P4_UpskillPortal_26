@@ -2,6 +2,10 @@
 
 @inject IModuloData moduloData
 @inject ICursoData cursoData
+@inject PortalUpskill.App.Utils.FileManagerService fileManager
+
+<PageTitle>Módulos - ISCTE Meta Digital</PageTitle>
+
 
 <div class="cardstyle">
     <h2>@Title</h2>
@@ -13,6 +17,7 @@
     else
     {
         <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Módulo" Icon="add" Click="@(() => navManager.NavigateTo("Modulo"))" />
+        <RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@ExportarParaExcel" />
     }
 
     <div class="d-flex align-items-center mb-3" style="gap: 12px;">
@@ -65,8 +70,8 @@
                 <RadzenGridColumn Title="Opções" TItem="Modulo" Sortable="false" Filterable="false">
                     <Template Context="Modulo">
                         <RadzenButton Title="Ver detalhes" Size="ButtonSize.Medium" Icon="description" Click=@(args => dialogService.Open<DetalhesModulo>($"Detalhes",
-                                                                                                                                 new Dictionary<string, object>() { { "ModuloId", Modulo.Id } },
-                                                                                                                                 new DialogOptions() { Width = "80%", Height = "90%" })) />
+                                                                                                                                                                       new Dictionary<string, object>() { { "ModuloId", Modulo.Id } },
+                                                                                                                                                                       new DialogOptions() { Width = "80%", Height = "90%" })) />
                         <RadzenButton Title="Editar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Secondary" Icon="mode_edit" Click="@(() => navManager.NavigateTo($"Modulo/{Modulo.Id}"))" />
                         <RadzenButton Title="Remover" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="delete" Click="@(() => ConfirmDelete(Modulo))" />
                     </Template>
@@ -91,7 +96,6 @@
     List<Modulo> todosModulos;
     List<Modulo> modulosFiltrados;
     int? cursoFiltroSelecionado = null; // null = "Todos"
-
     RadzenGrid<Modulo> grid;
     int pageSize = 10;
 
@@ -177,5 +181,30 @@
                 </div>
             </div>
         </div>);
+    }
+
+    private async Task ExportarParaExcel()
+    {
+        if (modulosFiltrados != null && modulosFiltrados.Count > 0)
+        {
+            using var workbook = new ClosedXML.Excel.XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Modulos");
+
+            worksheet.Cell(1, 1).Value = "Nome do Módulo";
+            worksheet.Cell(1, 2).Value = "Duração em Horas";
+            worksheet.Row(1).Style.Font.Bold = true;
+
+            int row = 2;
+            foreach (var item in modulosFiltrados)
+            {
+                worksheet.Cell(row, 1).Value = item.Nome;
+                worksheet.Cell(row, 2).Value = item.Horas;
+                row++;
+            }
+            worksheet.Columns().AdjustToContents();
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            await fileManager.DownloadWorkbook(workbook, ".xlsx", timestamp + "_Modulos");
+        }
     }
 }

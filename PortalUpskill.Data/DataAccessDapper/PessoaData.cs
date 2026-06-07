@@ -109,5 +109,23 @@ namespace PortalUpskill.Data.DataAccessDapper
                 return connection.ExecuteScalar<int>(sql, pessoa);
             }
         }
+
+        public bool ExisteDuplicado(int id, string email, string nif, string cc)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                string sql = @"
+            SELECT COUNT(1) 
+            FROM [dbo].[Pessoa] 
+            WHERE Id <> @Id 
+              AND (
+                (Email = @Email AND @Email IS NOT NULL AND @Email <> '')
+                OR (NIF = @NIF AND @NIF IS NOT NULL AND @NIF <> '')
+                OR (CC = @CC AND @CC IS NOT NULL AND @CC <> '')
+              )";
+
+                return connection.ExecuteScalar<int>(sql, new { Id = id, Email = email, NIF = nif, CC = cc }) > 0;
+            }
+        }
     }
 }

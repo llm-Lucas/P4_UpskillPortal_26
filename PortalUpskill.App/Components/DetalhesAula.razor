@@ -90,17 +90,6 @@
 							<b>Hora de Fim</b>
 						</div>
 
-						// INÍCIO #008
-						// Condição para se for "Formador" não mostra as colunas de "Falta Justificada" e "Anexo"
-						@if (!authStateTask.Result.User.IsInRole("Formador"))
-						{
-							<div class="col-md-1">
-								<b>Falta Justificada</b>
-							</div>
-							<div class="col-md-3">
-								<b>Anexo</b>
-							</div>
-						}
 							// FIM
 
 							/*
@@ -133,30 +122,6 @@
                                 <div class="col-md-1 align-items-center d-flex">
                                     <RadzenDatePicker TValue="DateTime" ShowTime="true" TimeOnly="true" DateFormat="HH:mm" MinutesStep="30" @bind-Value="@faltasDictionary[formando.Id].HoraFim" /> @*Change=@(args => OnChange(args)) />*@
                                 </div>
-
-								// INÍCIO #008
-								// Adicionar condição para se for "Formador" ou não
-								@if (!authStateTask.Result.User.IsInRole("Formador"))
-								{
-									<div class="col-md-1 align-items-center d-flex">
-										<RadzenCheckBox @bind-Value="@faltasDictionary[formando.Id].Justificada" TValue="bool" />
-									</div>
-									<div class="col-md-3">
-										<InputFile OnChange="@(e => OnInputJustificacao(e, formando.Id))" />
-										@if (faltasDictionary[formando.Id].Anexo != null)
-										{
-							<p>@anexoMsg</p>
-										}
-									</div>
-									<div class="col-md-2 align-items-center d-flex">
-										@if (faltasDictionary[formando.Id].Anexo != null)
-										{
-							<RadzenButton class="w-150 mx-2" Text="Download Anexo" ButtonStyle="ButtonStyle.Primary" Click="@(() => DownloadAnexo(formando, faltasDictionary[formando.Id].HoraInicio))" />
-										}
-									</div>
-								}
-								// FIM
-
                             }
                         </div>
                     }
@@ -525,16 +490,16 @@
 		}
 	}
 
-	void OnInputJustificacao(InputFileChangeEventArgs e, int formandoId)
-	{
-		selectedFile = e.File;
-		selectedFiles.Add(formandoId, selectedFile);
-		this.StateHasChanged();
-	}
+	// void OnInputJustificacao(InputFileChangeEventArgs e, int formandoId)
+	// {
+	// 	selectedFile = e.File;
+	// 	selectedFiles.Add(formandoId, selectedFile);
+	// 	this.StateHasChanged();
+	// }
 
-	async void DownloadAnexo(Formando formando, DateTime date)
-	{
-		string data = FileMngSrv.PathToBase64String(faltasDictionary[formando.Id].Anexo);
-		await JSRuntime.InvokeAsync<object>("saveAsFile", $"Justificação_{formando.Nome}_{date.ToShortDateString()}", data);
-	}
+	// async void DownloadAnexo(Formando formando, DateTime date)
+	// {
+	// 	string data = FileMngSrv.PathToBase64String(faltasDictionary[formando.Id].Anexo);
+	// 	await JSRuntime.InvokeAsync<object>("saveAsFile", $"Justificação_{formando.Nome}_{date.ToShortDateString()}", data);
+	// }
 }
