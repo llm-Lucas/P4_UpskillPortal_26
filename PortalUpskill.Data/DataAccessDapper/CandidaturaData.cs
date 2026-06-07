@@ -151,10 +151,11 @@ namespace PortalUpskill.Data.DataAccessDapper
                        INNER JOIN Pessoa p ON p.Id = c.PessoaId
                        INNER JOIN Curso c1 ON c1.Id = c.PrimeiraOpcaoId
                        LEFT JOIN Curso c2 ON c2.Id = c.SegundaOpcaoId
-                       INNER JOIN EstadoCandidatura ec ON ec.Id = c.EstadoId
-                       WHERE c.EstadoId = 3
+                       INNER JOIN EstadoCandidatura ec ON ec.Id = c.EstadoId            
+                        WHERE c.EstadoId = 3
+                        AND p.PerfilId = 5
                         AND c.PrimeiraOpcaoId = @CursoId
-                       AND c.PrimeiraOpcaoId = @CursoId
+                 
                        ORDER BY p.Nome";
 
                 return connection.Query<Candidatura, Pessoa, Curso, Curso, EstadoCandidatura, Candidatura>(
