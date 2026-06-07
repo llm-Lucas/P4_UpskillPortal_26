@@ -4,20 +4,22 @@
 @using Syncfusion.Blazor.Navigations
 @using Syncfusion.Blazor.Buttons
 
-<RadzenTheme Theme="@temaActual" />
+
 <RadzenDialog />
 <RadzenNotification />
-
 <div class="page">
-    <AuthorizeView Roles="Administrador, Secretariado, Coordenador, Formador, Formando" Context="authContext">
-        <Authorized>
+  <AuthorizeView Roles="Administrador, Secretariado, Coordenador, Formador, Formando" Context="authContext">
+  
+    <Authorized>
+
+       
             <SfSidebar Width="250px" DockSize="59.5px" EnableDock="true" Type="SidebarType.Over" Position="@Position" @ref="Sidebar" HtmlAttributes="@HtmlAttribute" IsOpen="@SidebarToggle">
                 <ChildContent>
                     <div class="dock">
                         <AuthorizeView Roles="Administrador, Secretariado">
                             <Authorized>
                                 <div class="sidebar">
-                                    <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
+                                    <UpSkillNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle"  />
                                 </div>
                             </Authorized>
                         </AuthorizeView>
@@ -47,12 +49,6 @@
                 <a href="/Index"><img src="/img/MetaDigital_sem_fundo_negativo.png" style="height: 5rem; filter: invert(1);" /></a>
             </div>
             <div class="d-flex flex-row align-items-center">
-                <RadzenButton Icon="@(temaEscuro ? "light_mode" : "dark_mode")"
-                    ButtonStyle="ButtonStyle.Light"
-                    Size="ButtonSize.Small"
-                    Click="AlternarTema"
-                    Title="@(temaEscuro ? "Modo Claro" : "Modo Escuro")"
-                    class="me-2" />
                 <AuthorizeView>
                     <Authorized>
                         <ProfileDropdown />
@@ -72,22 +68,18 @@
 @code {
     List<Pessoa> pessoas;
     public bool SidebarToggle = false;
-    bool temaEscuro = false;
-    string temaActual => temaEscuro ? "dark" : "default";
 
     protected override async Task OnInitializedAsync()
     {
         LoadPessoas();
     }
 
+
+
+
     void LoadPessoas()
     {
         pessoas = pessoaData.GetAll();
-    }
-
-    void AlternarTema()
-    {
-        temaEscuro = !temaEscuro;
     }
 
     SfSidebar Sidebar;
