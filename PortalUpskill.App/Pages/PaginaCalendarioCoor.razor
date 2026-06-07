@@ -307,26 +307,22 @@
             idCoor = user.Id;
         }
 
-        Formando formando = formandoData.GetById(user.Id);
+        if (user == null) return; // Adiciona esta linha
 
+        Formando formando = formandoData.GetById(user.Id);
         if (formando?.Turma != null)
         {
             isFormando = true;
-
             turmas = new List<Turma> { formando.Turma };
-
             SelectedTurmaId = formando.Turma.Id;
-
             OnTurmaSelected();
         }
         else
         {
             isFormando = false;
-
             turmas = turmaData.GetAll();
             turmas = turmas.Where(t => t.Nome != "Sem turma associada").ToList();
         }
-
         if (Id != 0)
         {
             SelectedTurmaId = Id;
