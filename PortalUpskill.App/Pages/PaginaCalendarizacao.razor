@@ -12,7 +12,7 @@
 @inject IFormandoData formandoData
 @inject IPessoaData pessoaData
 @inject IModuloData moduloData
-@inject ProtectedSessionStorage sessionStorage
+@inject ProtectedLocalStorage localStorage
 @inject FileManagerService fileManager
 @inject IJSRuntime jsRuntime
 
@@ -655,7 +655,7 @@
 	}
 
 	/// <summary>
-	///Prepara um objecto aula guarda em SessionStorage e redireciona para a página de detalhes de
+	///Prepara um objecto aula guarda em localStorage e redireciona para a página de detalhes de
 	/// </summary
 	async Task CriarSumario(AppointmentData data)
 	{
@@ -670,7 +670,7 @@
 			ModuloId = data.ModuloId,
 			FormadorId = data.Formador.Id,
 		};
-		await sessionStorage.SetAsync("CriarAula", JsonConvert.SerializeObject(novaAula));
+		await localStorage.SetAsync("CriarAula", JsonConvert.SerializeObject(novaAula));
 		navManager.NavigateTo($"DetalhesAula/{novaAula.Id}/{novaAula.FormadorId}/{novaAula.TurmaId}/Calendar");
 	}
 
