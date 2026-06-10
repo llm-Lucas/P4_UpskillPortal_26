@@ -13,7 +13,7 @@
 @inject ITurmaData turmaData
 @inject IPessoaData pessoaData
 @inject IJSRuntime JSRuntime
-@inject ProtectedSessionStorage sessionStorage
+@inject ProtectedLocalStorage localStorage
 @inject FileManagerService FileMngSrv
 
 <div class="cardstyle">
@@ -299,7 +299,7 @@
     string userEmail = (await authStateTask).User.Identity.Name;
     user = pessoaData.GetByEmail(userEmail);
 
-    var jsonResult = await sessionStorage.GetAsync<string>("CriarAula");
+    var jsonResult = await localStorage.GetAsync<string>("CriarAula");
     string json = string.Empty;
 
     if (jsonResult.Success)
@@ -321,7 +321,7 @@
         formadorSelecionado = pessoaData.GetById(novaAula.FormadorId.Value);
     }
 
-    await sessionStorage.DeleteAsync("CriarAula");
+    await localStorage.DeleteAsync("CriarAula");
 }
 		else //caso seja para obter informações de uma aula já existente
 		{

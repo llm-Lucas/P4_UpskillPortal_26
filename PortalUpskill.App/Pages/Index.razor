@@ -1,6 +1,6 @@
 @page "/Index"
 @inject IFormandoData formandoData
-@inject ProtectedSessionStorage sessionStorage
+@inject ProtectedLocalStorage localStorage
 
 @using Newtonsoft.Json
 
@@ -266,7 +266,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var readUserFromSession = await sessionStorage.GetAsync<string>("user");
+        var readUserFromSession = await localStorage.GetAsync<string>("user");
 
         if (readUserFromSession.Success)
         {

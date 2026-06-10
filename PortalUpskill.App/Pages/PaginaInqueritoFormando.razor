@@ -2,7 +2,7 @@
 
 @inject IFormandoData formandoData
 @inject IModuloData moduloData
-@inject ProtectedSessionStorage sessionStorage
+@inject ProtectedLocalStorage localStorage
 @inject IInqueritoData inqueritoData
 
 @using Newtonsoft.Json
@@ -191,10 +191,10 @@
 
     async Task GravarRascunho()
     {
-        await sessionStorage.SetAsync("rascunhoInqueritoModulos", JsonConvert.SerializeObject(respostasModulos));
-        await sessionStorage.SetAsync("rascunhoInqueritoFormadores", JsonConvert.SerializeObject(respostasFormadores));
-        await sessionStorage.SetAsync("rascunhoAvaliacaoGeral", avaliacaoGeral);
-        await sessionStorage.SetAsync("rascunhoComentarioGeral", comentarioGeral);
+        await localStorage.SetAsync("rascunhoInqueritoModulos", JsonConvert.SerializeObject(respostasModulos));
+        await localStorage.SetAsync("rascunhoInqueritoFormadores", JsonConvert.SerializeObject(respostasFormadores));
+        await localStorage.SetAsync("rascunhoAvaliacaoGeral", avaliacaoGeral);
+        await localStorage.SetAsync("rascunhoComentarioGeral", comentarioGeral);
 
         notificationService.Notify(new NotificationMessage
         {
@@ -230,10 +230,10 @@
         avaliacaoGeral = 0;
         comentarioGeral = "";
 
-        await sessionStorage.DeleteAsync("rascunhoInqueritoModulos");
-        await sessionStorage.DeleteAsync("rascunhoInqueritoFormadores");
-        await sessionStorage.DeleteAsync("rascunhoAvaliacaoGeral");
-        await sessionStorage.DeleteAsync("rascunhoComentarioGeral");
+        await localStorage.DeleteAsync("rascunhoInqueritoModulos");
+        await localStorage.DeleteAsync("rascunhoInqueritoFormadores");
+        await localStorage.DeleteAsync("rascunhoAvaliacaoGeral");
+        await localStorage.DeleteAsync("rascunhoComentarioGeral");
 
         notificationService.Notify(new NotificationMessage
         {
@@ -319,10 +319,10 @@
 
         inqueritoData.MarcarFormandoComoSubmetido(submetido);
 
-        await sessionStorage.DeleteAsync("rascunhoInqueritoModulos");
-        await sessionStorage.DeleteAsync("rascunhoInqueritoFormadores");
-        await sessionStorage.DeleteAsync("rascunhoAvaliacaoGeral");
-        await sessionStorage.DeleteAsync("rascunhoComentarioGeral");
+        await localStorage.DeleteAsync("rascunhoInqueritoModulos");
+        await localStorage.DeleteAsync("rascunhoInqueritoFormadores");
+        await localStorage.DeleteAsync("rascunhoAvaliacaoGeral");
+        await localStorage.DeleteAsync("rascunhoComentarioGeral");
 
         jaSubmeteu = true;
 
@@ -336,7 +336,7 @@
     }
     protected override async Task OnInitializedAsync()
     {
-        var readUserFromSession = await sessionStorage.GetAsync<string>("user");
+        var readUserFromSession = await localStorage.GetAsync<string>("user");
 
         if (readUserFromSession.Success)
         {
@@ -372,25 +372,25 @@
         Comentario = ""
     })
     .ToList();
-                var rascunhoModulos = await sessionStorage.GetAsync<string>("rascunhoInqueritoModulos");
+                var rascunhoModulos = await localStorage.GetAsync<string>("rascunhoInqueritoModulos");
                 if (rascunhoModulos.Success && !string.IsNullOrEmpty(rascunhoModulos.Value))
                 {
                     respostasModulos = JsonConvert.DeserializeObject<List<RespostaModuloInquerito>>(rascunhoModulos.Value);
                 }
 
-                var rascunhoFormadores = await sessionStorage.GetAsync<string>("rascunhoInqueritoFormadores");
+                var rascunhoFormadores = await localStorage.GetAsync<string>("rascunhoInqueritoFormadores");
                 if (rascunhoFormadores.Success && !string.IsNullOrEmpty(rascunhoFormadores.Value))
                 {
                     respostasFormadores = JsonConvert.DeserializeObject<List<RespostaFormadorInquerito>>(rascunhoFormadores.Value);
                 }
 
-                var rascunhoAvaliacaoGeral = await sessionStorage.GetAsync<int>("rascunhoAvaliacaoGeral");
+                var rascunhoAvaliacaoGeral = await localStorage.GetAsync<int>("rascunhoAvaliacaoGeral");
                 if (rascunhoAvaliacaoGeral.Success)
                 {
                     avaliacaoGeral = rascunhoAvaliacaoGeral.Value;
                 }
 
-                var rascunhoComentarioGeral = await sessionStorage.GetAsync<string>("rascunhoComentarioGeral");
+                var rascunhoComentarioGeral = await localStorage.GetAsync<string>("rascunhoComentarioGeral");
                 if (rascunhoComentarioGeral.Success)
                 {
                     comentarioGeral = rascunhoComentarioGeral.Value;

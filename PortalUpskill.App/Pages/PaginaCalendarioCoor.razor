@@ -10,7 +10,7 @@
 @inject IFormadorData formadorData
 @inject IFormandoData formandoData
 @inject IModuloData moduloData
-@inject ProtectedSessionStorage sessionStorage
+@inject ProtectedLocalStorage localStorage
 @inject FileManagerService fileManager
 @using System.Globalization
 
@@ -560,13 +560,13 @@
     async Task CriarSumario(AppointmentData data)
     {
         Aula novaAula = new Aula
-        {
-            HoraInicio = data.StartTime,
-            HoraFim = data.EndTime,
-            TurmaId = SelectedTurmaId,
-            ModuloId = data.ModuloId
-        };
-        await sessionStorage.SetAsync("CriarAula", JsonConvert.SerializeObject(novaAula));
+            {
+                HoraInicio = data.StartTime,
+                HoraFim = data.EndTime,
+                TurmaId = SelectedTurmaId,
+                ModuloId = data.ModuloId
+            };
+        await localStorage.SetAsync("CriarAula", JsonConvert.SerializeObject(novaAula));
         navManager.NavigateTo($"DetalhesAula/");
     }
 
