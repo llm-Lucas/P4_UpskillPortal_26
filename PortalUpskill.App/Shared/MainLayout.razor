@@ -8,7 +8,7 @@
 <RadzenDialog />
 <RadzenNotification />
 <div class="page">
-  <AuthorizeView Roles="Administrador, Secretariado, Coordenador, Formador, Formando" Context="authContext">
+  <AuthorizeView Roles="Administrador, Secretariado, Coordenador, Formador, Formando, Candidato" Context="authContext">
   
     <Authorized>
 
@@ -38,6 +38,11 @@
                                 <UpSkillFormandoNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
                             </div>
                         </AuthorizeView>
+                        <AuthorizeView Roles="Candidato">
+                            <div class="sidebar">
+                                <UpSkillCandidatoNavMenu LogoTransparency="@(SidebarToggle ? "fade-in" : "transparent")" Toggle="Toggle" />
+                            </div>
+                        </AuthorizeView>
                     </div>
                 </ChildContent>
             </SfSidebar>
@@ -46,7 +51,7 @@
     <div class="main">
         <div class="top-row d-flex justify-content-between px-2">
             <div class="d-flex flex-row align-items-center">
-                <a href="/Index"><img src="/img/rgb_meta_digital_regular_main.png" style="height: 3rem;" /></a>
+                <a href="/Index"><img src="/img/rgb_meta_digital_regular_main.png" style="height: 2rem;" /></a>
             </div>
             <div class="d-flex flex-row align-items-center">
                 <AuthorizeView>
