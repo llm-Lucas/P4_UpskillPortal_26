@@ -10,7 +10,7 @@
 @inject IPessoaData pessoaData
 @inject IFormadorData formadorData
 @inject IModuloData moduloData
-@inject ProtectedSessionStorage sessionStorage
+@inject ProtectedLocalStorage localStorage
 @inject FileManagerService fileManager
 @using System.Globalization
 
@@ -328,7 +328,7 @@
                     TurmaId = SelectedTurmaId,
                     ModuloId = data.ModuloId
                 };
-        await sessionStorage.SetAsync("CriarAula", JsonConvert.SerializeObject(novaAula));
+        await localStorage.SetAsync("CriarAula", JsonConvert.SerializeObject(novaAula));
         navManager.NavigateTo($"DetalhesAula/");
     }
 

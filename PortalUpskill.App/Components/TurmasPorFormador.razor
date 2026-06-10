@@ -7,7 +7,7 @@
 @inject DialogService dialogService
 @inject RefreshService refreshService
 @inject NavigationManager navManager
-@inject ProtectedSessionStorage _sessionStorage
+@inject ProtectedLocalStorage _localStorage
 @inject FileManagerService fileManager
 
 <div class="cardstyle">
@@ -129,9 +129,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //Vai recolher o id da Pessoa(Formador) recorrendo à SessionStorage
+        //Vai recolher o id da Pessoa(Formador) recorrendo à localStorage
         Pessoa user = null;
-        var readUserFromSession = await _sessionStorage.GetAsync<string>("user");
+        var readUserFromSession = await _localStorage.GetAsync<string>("user");
         if (readUserFromSession.Success)
         {
             user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
