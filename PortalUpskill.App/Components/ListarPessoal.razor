@@ -12,17 +12,7 @@
     <!-- INÍCIO #004 -->
     <AuthorizeView Roles="Administrador">
         <Authorized>
-            <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Admin" Icon="add" Click="@(() => dialogService.Open<CriarPessoal>(
-                                                                                                                                     "Criar Admin",
-                                                                                                                                     new Dictionary<string, object>()
-                                                                                                                                     {
-                                                                                                                             { "RedirectAfterCreation", IsViewedAsChild ? false : true}
-                                                                                                                                     },
-                                                                                                                                     new DialogOptions()
-                                                                                                                                     {
-                                                                                                                                         Width = "90%",
-                                                                                                                                         Height = "90%"
-                                                                                                                                     }))" />
+            <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Admin" Icon="add" Click="@AbrirCriarAdmin" />
         </Authorized>
     </AuthorizeView>
     <RadzenGrid Data="@filteredPessoal"
@@ -119,7 +109,24 @@
         LoadPessoal();
         funcoes = funcoesData.GetAll().Where(f => f.Nome != "Formador e Coordenador" && f.Nome != "Formador" && f.Nome != "Coordenador").ToList();
     }
+    async Task AbrirCriarAdmin()
+    {
+        var result = await dialogService.OpenAsync<CriarPessoal>(
+            "Criar Admin",
+            new Dictionary<string, object>()
+            {
+            { "RedirectAfterCreation", IsViewedAsChild ? false : true }
+            },
+            new DialogOptions()
+            {
+                Width = "90%",
+                Height = "90%"
+            });
 
+        LoadPessoal();
+
+        await InvokeAsync(StateHasChanged);
+    }
     void LoadPessoal()
     {
         staff = pessoalData.GetAll().Where(p => p.PerfilId == 1).OrderBy(p => p.Nome).ToList();

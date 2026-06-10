@@ -87,7 +87,7 @@
                 </div>
             </div>
 
-            <div class="row" style="margin-top:1em;">
+            @* <div class="row" style="margin-top:1em;">
                 <div class="col-md-12">
                     <h3>Situação Académica</h3>
                     @if (formando.Turma != null)
@@ -204,12 +204,12 @@
                         <h5>O formando ainda não está associado a uma Turma.</h5>
                     }
                 </div>
-            </div>
+            </div> *@
 
             @*INICIO #008*@
             @*Adicionar uma tabela com duas colunas*@
             @*Uma coluna que mostra as datas das Faltas Justificadas, e outra que mostra a data das Faltas Injustificadas*@
-            <div class="row" style="margin-top:1em;">
+            @* <div class="row" style="margin-top:1em;">
                 <div class="col-md-12">
                     <h3>Faltas</h3>
                     <RadzenGrid Data="@GetFaltasList()" TItem="FaltaDisplay" AllowPaging="true" PageSize="10">
@@ -230,7 +230,7 @@
                         </Columns>
                     </RadzenGrid>
                 </div>
-            </div>
+            </div> *@
             @*FIM*@
 
             <div class="row" style="margin-top:1em;">

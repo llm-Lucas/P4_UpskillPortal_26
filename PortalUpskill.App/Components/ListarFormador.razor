@@ -19,17 +19,7 @@
 
 		<AuthorizeView Roles="Administrador, Secretariado">
 			<Authorized>
-				<RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Formador" Icon="add" Click="@(() => dialogService.Open<CriarFormador>(
-																																								   "Criar Formador",
-																																								   new Dictionary<string, object>()
-																																								   {
-																																	   { "RedirectAfterCreation", IsViewedAsChild ? false : true}
-																																								   },
-																																								   new DialogOptions()
-																																								   {
-																																									   Width = "90%",
-																																									   Height = "90%"
-																																								   }))" />
+				<RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Formador" Icon="add" Click="@AbrirCriarFormador" />
 				@* Botão de exportação integrado mantendo o layout *@
 				<RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@ExportarParaExcel" />
 			</Authorized>
@@ -208,7 +198,24 @@ else
 		}
 		LoadFormadores();
 	}
+	async Task AbrirCriarFormador()
+	{
+		var result = await dialogService.OpenAsync<CriarFormador>(
+			"Criar Formador",
+			new Dictionary<string, object>()
+			{
+			{ "RedirectAfterCreation", IsViewedAsChild ? false : true }
+			},
+			new DialogOptions()
+			{
+				Width = "90%",
+				Height = "90%"
+			});
 
+		LoadFormadores();
+
+		await InvokeAsync(StateHasChanged);
+	}
 	void LoadFormadores()
 	{
 		formadores = formadorData.GetAll().Where(f => f.PerfilId == 3 || f.PerfilId == 5).ToList();

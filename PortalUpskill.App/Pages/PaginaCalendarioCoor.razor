@@ -119,7 +119,7 @@
                       ButtonStyle="ButtonStyle.Primary"
                       Icon="expand" />
 
-       @*  <RadzenButton class="mt-4"
+        @*  <RadzenButton class="mt-4"
                       Text="Download"
                       ButtonStyle="ButtonStyle.Primary"
                       Icon="file_download"
@@ -333,7 +333,7 @@
     {
         DataSource.Clear();
 
-        SelectedTurma = turmaData.GetById(SelectedTurmaId); 
+        SelectedTurma = turmaData.GetById(SelectedTurmaId);
         SelectedTurma.Curso = cursoData.GetById(SelectedTurma.CursoId.Value);
         SelectedTurma.Aulas = aulaData.GetByTurma(SelectedTurma);
 
@@ -560,12 +560,12 @@
     async Task CriarSumario(AppointmentData data)
     {
         Aula novaAula = new Aula
-            {
-                HoraInicio = data.StartTime,
-                HoraFim = data.EndTime,
-                TurmaId = SelectedTurmaId,
-                ModuloId = data.ModuloId
-            };
+        {
+            HoraInicio = data.StartTime,
+            HoraFim = data.EndTime,
+            TurmaId = SelectedTurmaId,
+            ModuloId = data.ModuloId
+        };
         await sessionStorage.SetAsync("CriarAula", JsonConvert.SerializeObject(novaAula));
         navManager.NavigateTo($"DetalhesAula/");
     }

@@ -2,7 +2,7 @@
 
 @inject IFormandoData formandoData
 @inject IModuloData moduloData
-@inject ProtectedSessionStorage sessionStorage
+@inject ProtectedLocalStorage localStorage
 @inject FileManagerService FileMngSrv
 @inject IJSRuntime JSRuntime
 
@@ -265,7 +265,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var readUserFromSession = await sessionStorage.GetAsync<string>("user");
+        var readUserFromSession = await localStorage.GetAsync<string>("user");
 
         if (readUserFromSession.Success)
         {

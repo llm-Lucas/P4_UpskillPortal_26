@@ -26,17 +26,11 @@
         //}
         <br />
 
-        <RadzenButton class="my-4" ButtonStyle="ButtonStyle.Primary" Text="Criar Formando" Icon="add" Click="@(() => dialogService.Open<CriarFormando>(
-                                                                                                                                                          "Criar Formando",
-                                                                                                                                                          new Dictionary<string, object>()
-                                                                                                                                                          {
-                                                                                                                                                      { "RedirectAfterCreation", IsViewedAsChild ? false : true}
-                                                                                                                                                          },
-                                                                                                                                                          new DialogOptions()
-                                                                                                                                                          {
-                                                                                                                                                              Width = "90%",
-                                                                                                                                                              Height = "90%"
-                                                                                                                                                          }))" />
+        <RadzenButton class="my-4"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Text="Criar Formando"
+                      Icon="add"
+                      Click="@AbrirCriarFormando" />
 
         <RadzenButton Text="Exportar para Excel" Icon="grid_on" Click="@(args => Exportar(".xlsx"))" Style="margin-bottom:20px" />
     }
@@ -279,7 +273,24 @@
         user = pessoaData.GetByEmail(userEmail);
         role = user.Perfil.Id;
     }
+    async Task AbrirCriarFormando()
+    {
+        var result = await dialogService.OpenAsync<CriarFormando>(
+            "Criar Formando",
+            new Dictionary<string, object>()
+            {
+            { "RedirectAfterCreation", IsViewedAsChild ? false : true }
+            },
+            new DialogOptions()
+            {
+                Width = "90%",
+                Height = "90%"
+            });
 
+        LoadFormandos();
+
+        await InvokeAsync(StateHasChanged);
+    }
     void LoadFormandos()
     {
         paises = paisesData.GetAll();
