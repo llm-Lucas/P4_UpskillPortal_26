@@ -1,8 +1,4 @@
-﻿@*@inject IFormandoData formandoData
-@inject ProtectedLocalStorage localStorage
-
-@using Newtonsoft.Json*@
-
+﻿
 <div @onclick="@(() => Toggle.InvokeAsync(true))" style="cursor:pointer; padding: 1rem; display:flex; justify-content: flex-start;">
     <img src="img/dashboard/outline_menu_black_48dp.png" style="height: 2.5rem; filter: invert(1);" />
 </div>
@@ -45,24 +41,5 @@
     [Parameter]
     public string LogoTransparency { get; set; }
 
-@*
-    Pessoa user;
-    int turmaFormandoId;
 
-    protected override async Task OnInitializedAsync()
-    {
-        var readUserFromSession = await localStorage.GetAsync<string>("user");
-
-        if (readUserFromSession.Success)
-        {
-            user = JsonConvert.DeserializeObject<Pessoa>(readUserFromSession.Value);
-
-            Formando formando = formandoData.GetById(user.Id);
-
-            if (formando?.Turma != null)
-            {
-                turmaFormandoId = formando.Turma.Id;
-            }
-        }
-    }*@
 }
