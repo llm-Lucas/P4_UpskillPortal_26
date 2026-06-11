@@ -212,6 +212,21 @@
 							<RadzenDropDown class="form-control" @bind-Value="@formandoVM.Sexo" Data="@genero" TValue="string" />
 						</div>
 					</div>
+					<div class="row form-group">
+						<div class="col-md-4 align-items-center d-flex">
+							<RadzenLabel Text="Estado" />
+						</div>
+						<div class="col-md-8">
+							<RadzenDropDown class="form-control"
+											@bind-Value="@formandoVM.EstadoId"
+											Data="@estadosFormando"
+											TValue="int"
+											ValueProperty="Id"
+											TextProperty="Nome"
+											AllowFiltering="true"
+											FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" />
+						</div>
+					</div>
 					                    </RadzenFieldset>
                     <br />
 

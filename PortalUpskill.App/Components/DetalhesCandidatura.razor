@@ -47,75 +47,95 @@
             <tr>
                 <td><b>Foto</b></td>
                 <td>
-                    @if (candidatura.Foto != null)
+                    @{
+                        var fotoBase64 = GetDocumentoBase64(candidatura.Foto);
+                    }
+
+                    @if (fotoBase64 != null)
                     {
-                        <a href="@fileManager.PathToBase64String(candidatura.Foto)" download="Foto">
+                        <a href="@fotoBase64" download="Foto">
                             <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
                         </a>
                     }
                     else
                     {
-                        <span>Não submetido</span>
+                        <span>Não disponível</span>
                     }
                 </td>
             </tr>
             <tr>
                 <td><b>CV</b></td>
                 <td>
-                    @if (candidatura.CV != null)
+                    @{
+                        var cvBase64 = GetDocumentoBase64(candidatura.CV);
+                    }
+
+                    @if (cvBase64 != null)
                     {
-                        <a href="@fileManager.PathToBase64String(candidatura.CV)" download="CV">
+                        <a href="@cvBase64" download="CV">
                             <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
                         </a>
                     }
                     else
                     {
-                        <span>Não submetido</span>
+                        <span>Não disponível</span>
                     }
                 </td>
             </tr>
             <tr>
                 <td><b>Certificado de Habilitações</b></td>
                 <td>
-                    @if (candidatura.CertificadoHabilitacoes != null)
+                    @{
+                        var certificadohabilitacoesBase64 = GetDocumentoBase64(candidatura.CertificadoHabilitacoes);
+                    }
+
+                    @if (certificadohabilitacoesBase64 != null)
                     {
-                        <a href="@fileManager.PathToBase64String(candidatura.CertificadoHabilitacoes)" download="CertificadoHabilitacoes">
+                        <a href="@certificadohabilitacoesBase64" download="CertificadoHabilitacoes">
                             <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
                         </a>
                     }
                     else
                     {
-                        <span>Não submetido</span>
+                        <span>Não disponível</span>
                     }
                 </td>
             </tr>
             <tr>
                 <td><b>CC Frente</b></td>
                 <td>
-                    @if (candidatura.CCFrente != null)
+                    @{
+                        var ccfrenteBase64 = GetDocumentoBase64(candidatura.CCFrente);
+                    }
+
+                    @if (ccfrenteBase64 != null)
                     {
-                        <a href="@fileManager.PathToBase64String(candidatura.CCFrente)" download="CCFrente">
+                        <a href="@ccfrenteBase64" download="CCFrente">
                             <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
                         </a>
                     }
                     else
                     {
-                        <span>Não submetido</span>
+                        <span>Não disponível</span>
                     }
                 </td>
             </tr>
             <tr>
                 <td><b>CC Verso</b></td>
                 <td>
-                    @if (candidatura.CCVerso != null)
+                    @{
+                        var ccversoBase64 = GetDocumentoBase64(candidatura.CCVerso);
+                    }
+
+                    @if (ccversoBase64 != null)
                     {
-                        <a href="@fileManager.PathToBase64String(candidatura.CCVerso)" download="CCVerso">
+                        <a href="@ccversoBase64" download="CCVerso">
                             <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Icon="download" Text="Download" />
                         </a>
                     }
                     else
                     {
-                        <span>Não submetido</span>
+                        <span>Não disponível</span>
                     }
                 </td>
             </tr>
@@ -233,5 +253,19 @@
         };
 
         return $"mailto:{candidatura.Pessoa.Email}?subject={Uri.EscapeDataString(assunto)}&body={Uri.EscapeDataString(corpo)}";
+    }
+    string GetDocumentoBase64(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return null;
+
+        try
+        {
+            return fileManager.PathToBase64String(path);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

@@ -85,16 +85,34 @@
         }
 
         <h4 class="mt-4">Decisão Final</h4>
-        <div class="row justify-content-center mt-4">
-            <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="check" Text="Aprovar"
-                          Click="@(() => ConfirmarDecisao(3))"
-                          Disabled="@(!PodeAprovar())" />
-            <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Text="Reprovar"
-                          Click="@(() => ConfirmarDecisao(4))" />
-        </div>
-        @if (!PodeAprovar() && avaliacao != null)
+
+        @if (candidatura.EstadoId == 5)
         {
-            <p class="text-danger mt-2"><small>Não é possível aprovar — o candidato não cumpre os requisitos mínimos de avaliação.</small></p>
+            <div class="row justify-content-center mt-4">
+                <RadzenButton ButtonStyle="ButtonStyle.Success"
+                              Icon="check"
+                              Text="Aprovar"
+                              Click="@(() => ConfirmarDecisao(3))"
+                              Disabled="@(!PodeAprovar())" />
+
+                <RadzenButton ButtonStyle="ButtonStyle.Danger"
+                              Icon="close"
+                              Text="Reprovar"
+                              Click="@(() => ConfirmarDecisao(4))" />
+            </div>
+
+            @if (!PodeAprovar() && avaliacao != null)
+            {
+                <p class="text-danger mt-2">
+                    <small>Não é possível aprovar — o candidato não cumpre os requisitos mínimos de avaliação.</small>
+                </p>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info mt-3">
+                Esta candidatura já tem uma decisão final registada.
+            </div>
         }
 
        
