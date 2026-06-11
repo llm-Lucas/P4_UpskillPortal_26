@@ -443,6 +443,7 @@ namespace PortalUpskill.Data.DataAccessDapper
 			using (var connection = new SqlConnection(_connectionString))
 			{
 				string sql = @"DELETE FROM EstadoFormando WHERE PessoaId = @Id
+								DELETE FROM TurmaFormando WHERE FormandoId = @Id
 								DELETE FROM Formando WHERE PessoaId = @Id
 								DELETE FROM Pessoa WHERE Id = @Id";
 				connection.Execute(sql, new { Id = id });

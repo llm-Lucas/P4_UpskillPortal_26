@@ -46,32 +46,31 @@
             </RadzenGridColumn>
             <RadzenGridColumn TItem="Candidatura" Title="Acções" Sortable="false" Filterable="false">
                 <Template Context="c">
-                    <RadzenButton Title="Ver Detalhes" Size="ButtonSize.Medium" Icon="description"
-                                  Click="@(() => dialogService.Open<DetalhesCandidatura>(
-                "Detalhes da Candidatura",
-                new Dictionary<string, object>() { { "CandidaturaId", c.Id } },
-                new DialogOptions() { Width = "70%", Height = "80%" }))" />
+                    <RadzenButton Title="Ver Detalhes"
+                                  Size="ButtonSize.Medium"
+                                  Icon="description"
+                                  Click="@(() => AbrirDetalhesCandidatura(c.Id))" />
 
-                    @if (c.EstadoId == 2)
-                    {
-                       @* <RadzenButton Title="Aceitar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Success" Icon="check"
-                                      Click="@(() => ConfirmarAlteracaoEstado(c, 5))" />
-                       <RadzenButton Title="Não Aceitar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Warning" Icon="block"
-                                      Click="@(() => ConfirmarAlteracaoEstado(c, 6))" />*@
-                        <RadzenButton Title="Reprovar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="close"
-                                      Click="@(() => ConfirmarAlteracaoEstado(c, 4))" />
-                    }
-                    @if (c.EstadoId == 5)
-                    {
-                        <RadzenButton Title="Avaliação" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Info" Icon="assessment"
-                                      Click="@(() => dialogService.Open<AvaliacaoCandidato>(
-                    "Avaliação do Candidato",
-                    new Dictionary<string, object>() { { "CandidaturaId", c.Id } },
-                    new DialogOptions() { Width = "70%", Height = "85%" }))" />
-                        <RadzenButton Title="Reprovar" Size="ButtonSize.Medium" ButtonStyle="ButtonStyle.Danger" Icon="close"
-                                      Click="@(() => ConfirmarAlteracaoEstado(c, 4))" />
-                    }
-              
+                    <RadzenButton Title="Avaliação"
+                                  Size="ButtonSize.Medium"
+                                  ButtonStyle="ButtonStyle.Info"
+                                  Icon="assessment"
+                                  Disabled="@(c.EstadoId != 5 && c.EstadoId != 3)"
+                                  Click="@(() => AbrirAvaliacaoCandidato(c.Id))" />
+
+                    <RadzenButton Title="Reprovar"
+                                  Size="ButtonSize.Medium"
+                                  ButtonStyle="ButtonStyle.Danger"
+                                  Icon="close"
+                                  Disabled="@(c.EstadoId != 2 && c.EstadoId != 5)"
+                                  Click="@(() => ConfirmarAlteracaoEstado(c, 4))" />
+
+                    <RadzenButton Title="Reverter Estado"
+                                  Size="ButtonSize.Medium"
+                                  ButtonStyle="ButtonStyle.Warning"
+                                  Icon="undo"
+                                  Disabled="@(!PodeReverter(c.EstadoId))"
+                                  Click="@(() => ConfirmarReverterEstado(c))" />
                 </Template>
             </RadzenGridColumn>
         </Columns>
@@ -99,6 +98,29 @@
     {
         candidaturas = candidaturaData.GetAll();
     }
+    async Task AbrirDetalhesCandidatura(int candidaturaId)
+    {
+        var result = await dialogService.OpenAsync<DetalhesCandidatura>(
+            "Detalhes da Candidatura",
+            new Dictionary<string, object>() { { "CandidaturaId", candidaturaId } },
+            new DialogOptions() { Width = "70%", Height = "80%" });
+
+        LoadCandidaturas();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    async Task AbrirAvaliacaoCandidato(int candidaturaId)
+    {
+        var result = await dialogService.OpenAsync<AvaliacaoCandidato>(
+            "Avaliação do Candidato",
+            new Dictionary<string, object>() { { "CandidaturaId", candidaturaId } },
+            new DialogOptions() { Width = "70%", Height = "85%" });
+
+        LoadCandidaturas();
+
+        await InvokeAsync(StateHasChanged);
+    }
     void AlterarEstado(Candidatura candidatura, int novoEstadoId)
     {
         candidaturaData.UpdateEstado(candidatura.Id, novoEstadoId);
@@ -106,6 +128,7 @@
         if (novoEstadoId == 6)
             candidaturaData.UpdateEstado(candidatura.Id, 1);
         LoadCandidaturas();
+        StateHasChanged();
         notificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Success,
@@ -113,7 +136,45 @@
                     Duration = 3000
                 });
     }
+    bool PodeReverter(int estadoId)
+{
+    return estadoId == 3 || estadoId == 4 || estadoId == 6;
+}
 
+int ObterEstadoReversao(int estadoId)
+{
+    if (estadoId == 3)
+        return 5;
+
+    if (estadoId == 4)
+        return 2;
+
+    if (estadoId == 6)
+        return 2;
+
+    return estadoId;
+}
+
+async Task ConfirmarReverterEstado(Candidatura candidatura)
+{
+    int estadoAnterior = ObterEstadoReversao(candidatura.EstadoId);
+
+    await dialogService.OpenAsync("Confirmar Reversão", render =>
+@<div>
+    <p>Tem a certeza que pretende reverter o estado da candidatura de @candidatura.Pessoa.Nome?</p>
+
+    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1rem;">
+        <RadzenButton ButtonStyle="ButtonStyle.Warning"
+                      Text="Reverter"
+                      Click="@(() => { AlterarEstado(candidatura, estadoAnterior); dialogService.Close(); })" />
+
+        <RadzenButton ButtonStyle="ButtonStyle.Secondary"
+                      Text="Cancelar"
+                      Click="@(() => dialogService.Close())" />
+    </div>
+</div>,
+    new DialogOptions { Width = "400px", Height = "auto" });
+}
     async Task ConfirmarAlteracaoEstado(Candidatura candidatura, int novoEstadoId)
     {
         string acao = novoEstadoId switch
